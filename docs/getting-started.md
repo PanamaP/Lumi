@@ -15,12 +15,13 @@ A complete guide to building desktop applications with Lumi. From your first win
 7. [Dynamic Styles (InlineStyle)](#dynamic-styles-inlinestyle)
 8. [Components](#components)
 9. [Data Binding](#data-binding)
-10. [Animations & Tweens](#animations--tweens)
-11. [Scrolling](#scrolling)
-12. [Hot Reload](#hot-reload)
-13. [Inspector & Screenshots](#inspector--screenshots)
-14. [CSS Reference](#css-reference)
-15. [API Reference](#api-reference)
+10. [Template Directives](#template-directives)
+11. [Animations & Tweens](#animations--tweens)
+12. [Scrolling](#scrolling)
+13. [Hot Reload](#hot-reload)
+14. [Inspector & Screenshots](#inspector--screenshots)
+15. [CSS Reference](#css-reference)
+16. [API Reference](#api-reference)
 
 ---
 
@@ -656,6 +657,137 @@ BindingExpression.Parse("{Binding Score, FallbackValue=0}");
 
 ---
 
+## Template Directives
+
+Template directives let you write loops and conditionals directly in HTML, instead of building UI elements manually in C# code-behind.
+
+### `<template for="">` — Repeating Elements
+
+Repeat a block of HTML for each item in a collection:
+
+```html
+<!-- In your HTML template -->
+<ul class="user-list">
+  <template for="{Users}" as="user">
+    <li class="user-row">{user.Name} — {user.Email}</li>
+  </template>
+</ul>
+```
+
+- `for="{PropertyName}"` — path to a collection property on the data context
+- `as="alias"` — name for the loop variable (default: `"item"`)
+- Text like `{user.Name}` is automatically replaced with the property value
+
+### `<template if="">` — Conditional Rendering
+
+Conditionally show or hide a block of HTML:
+
+```html
+<template if="{IsLoggedIn}">
+  <div class="welcome">Welcome back, {UserName}!</div>
+</template>
+
+<template if="{HasError}">
+  <div class="error-banner">Something went wrong.</div>
+</template>
+```
+
+- `if="{PropertyName}"` — path to a property on the data context
+- Truthy values: `true`, non-zero numbers, non-empty strings, non-null objects
+- Falsy values: `false`, `0`, `null`, empty strings
+
+### Activating Directives with `TemplateEngine`
+
+Template directives are activated by calling `TemplateEngine.Apply()` with your root element and a view model:
+
+```csharp
+using Lumi.Core.Binding;
+
+public class MainWindow : Window
+{
+    private readonly AppViewModel _vm = new();
+
+    public override void OnReady()
+    {
+        // Activate all template directives in the tree
+        TemplateEngine.Apply(Root, _vm);
+    }
+}
+```
+
+### ObservableCollection Support
+
+When the collection implements `INotifyCollectionChanged` (e.g., `ObservableCollection<T>`), the UI updates automatically when items are added, removed, or cleared — no manual refresh needed:
+
+```csharp
+using System.Collections.ObjectModel;
+
+public class AppViewModel
+{
+    public ObservableCollection<string> Items { get; } = new(["Alpha", "Beta"]);
+}
+
+// Later — the UI updates automatically:
+_vm.Items.Add("Gamma");      // New element appears
+_vm.Items.RemoveAt(0);       // First element disappears
+_vm.Items.Clear();           // All elements removed
+```
+
+### INotifyPropertyChanged for `<template if="">`
+
+When the view model implements `INotifyPropertyChanged`, conditional blocks toggle automatically when the bound property changes:
+
+```csharp
+using System.ComponentModel;
+
+public class AppViewModel : INotifyPropertyChanged
+{
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set { _isLoading = value; PropertyChanged?.Invoke(this, new(nameof(IsLoading))); }
+    }
+    public event PropertyChangedEventHandler? PropertyChanged;
+}
+
+// Changing the property toggles the template block:
+_vm.IsLoading = true;   // <template if="{IsLoading}"> content appears
+_vm.IsLoading = false;  // Content disappears
+```
+
+### Text Interpolation
+
+Inside `<template for="">` blocks, you can use `{alias.Property}` to insert values:
+
+```html
+<template for="{Products}" as="p">
+  <div class="product">
+    <span class="name">{p.Name}</span>
+    <span class="price">${p.Price}</span>
+  </div>
+</template>
+```
+
+- `{p.Name}` — resolves the `Name` property on each item
+- `{p}` — calls `ToString()` on the item itself (useful for `List<string>`)
+- Mixed text works: `"Item: {p.Name} (${p.Price})"`
+
+### Nesting Directives
+
+Directives can be nested — for example, a for-loop inside a conditional:
+
+```html
+<template if="{HasResults}">
+  <h2>Results</h2>
+  <template for="{Results}" as="r">
+    <div class="result">{r.Title}</div>
+  </template>
+</template>
+```
+
+---
+
 ## Animations & Tweens
 
 Lumi provides a fluent animation API for smooth property transitions.
@@ -1049,6 +1181,51 @@ public abstract class Element
 }
 ```
 
+### TemplateEngine
+
+Activates template directives in the element tree.
+
+```csharp
+public static class TemplateEngine
+{
+    // Parser function (set automatically by LumiApp, or set manually for tests)
+    static Func<string, Element>? HtmlParser { get; set; }
+
+    // Walk the tree and activate all <template for=""> and <template if=""> directives
+    static void Apply(Element root, object dataContext);
+
+    // Replace {alias.Property} patterns in a string with resolved values
+    static string InterpolateText(string text, string alias, object item);
+}
+```
+
+### TemplateForElement
+
+A repeater element created from `<template for="">` in HTML.
+
+```csharp
+public class TemplateForElement : Element
+{
+    string CollectionPath { get; set; }   // Property path to the collection (e.g., "Items")
+    string ItemAlias { get; set; }        // Loop variable name (e.g., "item")
+    string TemplateHtml { get; set; }     // Inner HTML to repeat per item
+    void Unbind();                        // Disconnect from collection change notifications
+}
+```
+
+### TemplateIfElement
+
+A conditional element created from `<template if="">` in HTML.
+
+```csharp
+public class TemplateIfElement : Element
+{
+    string ConditionPath { get; set; }    // Property path to a boolean (e.g., "IsVisible")
+    string TemplateHtml { get; set; }     // Inner HTML to conditionally render
+    void Unbind();                        // Disconnect from property change notifications
+}
+```
+
 ### FrameMetrics
 
 Access real-time performance data:
@@ -1084,17 +1261,20 @@ public override void OnUpdate()
 
 ## Full Example: Todo App
 
-A minimal but complete example combining templates, events, binding, and components:
+A minimal but complete example combining templates, template directives, events, and binding:
 
 ```csharp
 // TodoWindow.cs
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using Lumi;
 using Lumi.Core;
+using Lumi.Core.Binding;
 using Lumi.Core.Components;
 
 public class TodoWindow : Window
 {
-    private readonly List<string> _todos = ["Buy groceries", "Walk the dog"];
+    private readonly TodoViewModel _vm = new();
 
     public TodoWindow()
     {
@@ -1109,8 +1289,11 @@ public class TodoWindow : Window
 
     public override void OnReady()
     {
-        RebuildList();
+        // Activate template directives — the <template for=""> in HTML
+        // binds to the Todos collection and renders items automatically
+        TemplateEngine.Apply(Root, _vm);
 
+        // Wire up the add button
         var textbox = new LumiTextBox { Placeholder = "Add a todo..." };
         FindById("input-host")?.AddChild(textbox.Root);
 
@@ -1119,28 +1302,18 @@ public class TodoWindow : Window
         {
             if (!string.IsNullOrWhiteSpace(textbox.Value))
             {
-                _todos.Add(textbox.Value);
+                _vm.Todos.Add(textbox.Value);  // UI updates automatically!
                 textbox.Value = "";
-                RebuildList();
             }
         };
         FindById("btn-host")?.AddChild(addBtn.Root);
     }
+}
 
-    private void RebuildList()
-    {
-        var listHost = FindById("todo-list");
-        if (listHost == null) return;
-
-        listHost.ClearChildren();
-        var list = new LumiList { Items = _todos };
-        list.OnItemClick = (index) =>
-        {
-            _todos.RemoveAt(index);
-            RebuildList();
-        };
-        listHost.AddChild(list.Root);
-    }
+public class TodoViewModel : INotifyPropertyChanged
+{
+    public ObservableCollection<string> Todos { get; } = new(["Buy groceries", "Walk the dog"]);
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 ```
 
@@ -1152,8 +1325,12 @@ public class TodoWindow : Window
     <div id="input-host" class="input-area"></div>
     <div id="btn-host"></div>
   </div>
-  <div class="list-area scroll" id="todo-list"></div>
-  <p class="hint">Click an item to remove it</p>
+  <div class="list-area scroll">
+    <template for="{Todos}" as="todo">
+      <div class="todo-item">{todo}</div>
+    </template>
+  </div>
+  <p class="hint">Adding items updates the list automatically</p>
 </div>
 ```
 
