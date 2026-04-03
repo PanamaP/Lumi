@@ -617,7 +617,7 @@ public class BugFixRegressionTests
     {
         var style = new ComputedStyle();
 
-        // ExCSS expands 'overflow: hidden' to 'overflow-x: hidden' + 'overflow-y: hidden'
+        // PropertyApplier supports overflow longhands (overflow-x/overflow-y)
         PropertyApplier.Apply(style, "overflow-x", "hidden");
         Assert.Equal(Overflow.Hidden, style.Overflow);
 
@@ -633,7 +633,7 @@ public class BugFixRegressionTests
     {
         var style = new ComputedStyle();
 
-        // ExCSS expands 'text-decoration: underline' to 'text-decoration-line: underline'
+        // PropertyApplier supports text-decoration-line longhand
         PropertyApplier.Apply(style, "text-decoration-line", "underline");
         Assert.Equal(TextDecoration.Underline, style.TextDecoration);
 

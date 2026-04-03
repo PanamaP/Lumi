@@ -3,14 +3,15 @@ using System.Text.RegularExpressions;
 namespace Lumi.Styling;
 
 /// <summary>
-/// Pre-processes CSS to resolve var() references before passing to ExCSS,
-/// which silently drops custom properties and var() values.
+/// Pre-processes CSS to resolve var() references before parsing.
+/// Custom properties (--name) are resolved at parse time and the declarations
+/// are removed, since the style pipeline doesn't yet support scoped variables.
 /// </summary>
 public static partial class CssVariablePreProcessor
 {
     /// <summary>
     /// Resolve all CSS custom property references (var()) in the raw CSS string.
-    /// Must be called before ExCSS parsing since ExCSS 4.x drops these declarations.
+    /// Called before parsing since the style pipeline resolves variables at parse time.
     /// </summary>
     public static string Process(string css)
     {
@@ -56,7 +57,7 @@ public static partial class CssVariablePreProcessor
             return fallback ?? "inherit";
         });
 
-        // Step 4: Remove custom property declarations (ExCSS would drop them anyway)
+        // Step 4: Remove custom property declarations (resolved above, not needed downstream)
         css = CustomPropertyDeclarationPattern().Replace(css, "");
 
         return css;

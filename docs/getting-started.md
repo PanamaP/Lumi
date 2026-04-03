@@ -215,7 +215,7 @@ Lumi uses standard HTML parsed by [AngleSharp](https://anglesharp.github.io/). T
 
 ## CSS Styling
 
-Lumi supports a comprehensive subset of CSS, parsed by [ExCSS](https://github.com/nicklackner/ExCSS). Styles cascade with full specificity rules: inline styles win over ID selectors, which win over class selectors, which win over tag selectors.
+Lumi supports a comprehensive subset of CSS, parsed by a lightweight hand-written tokenizer. Styles cascade with full specificity rules: inline styles win over ID selectors, which win over class selectors, which win over tag selectors.
 
 ### CSS Variables
 

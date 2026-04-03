@@ -165,9 +165,8 @@ tools/
 | [SkiaSharp](https://github.com/mono/SkiaSharp) | 3.119.2 | 2D rendering engine |
 | [ppy.SDL3-CS](https://github.com/ppy/SDL3-CS) | 2026.320.0 | Cross-platform windowing & input |
 | [AngleSharp](https://anglesharp.github.io/) | 1.4.0 | HTML5 template parsing |
-| [ExCSS](https://github.com/nicklackner/ExCSS) | 4.3.1 | CSS parsing & selectors |
 | [Yoga-CS](https://www.nuget.org/packages/Yoga-CS) | 1.0.0 | Flexbox layout (Facebook Yoga) |
-| [HarfBuzzSharp](https://github.com/nicklackner/ExCSS) | 8.3.1.3 | Text shaping (future) |
+| [HarfBuzzSharp](https://github.com/nicklackner/HarfBuzzSharp) | 8.3.1.3 | Text shaping (future) |
 
 ## 🧪 Running Tests
 

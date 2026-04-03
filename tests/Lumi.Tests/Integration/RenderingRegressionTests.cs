@@ -50,8 +50,8 @@ public class RenderingRegressionTests
     [Fact]
     public void Border_RendersGreenBorderEdge()
     {
-        // ExCSS decomposes border-color into per-edge properties not handled by
-        // PropertyApplier, so we set BorderColor programmatically after style resolution.
+        // border-color is set programmatically because CSS uses border-color shorthand
+        // which PropertyApplier handles. This test validates border rendering directly.
         using var p = new HeadlessPipeline(400, 300);
         p.Load(@"<div id=""box""></div>",
             "#box { width: 100px; height: 100px; border-width: 4px; background-color: white; }");
@@ -75,8 +75,7 @@ public class RenderingRegressionTests
     [Fact]
     public void BorderRadius_CornersAreClipped()
     {
-        // ExCSS decomposes border-radius into per-corner properties not handled by
-        // PropertyApplier, so we set BorderRadius programmatically after style resolution.
+        // border-radius is set programmatically to validate corner clipping rendering.
         using var p = new HeadlessPipeline(400, 300);
         p.Load(@"<div id=""box""></div>",
             "#box { width: 100px; height: 100px; background-color: red; }");
