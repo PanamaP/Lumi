@@ -1,0 +1,366 @@
+/* ── Base ─────────────────────────────────────────── */
+
+.app {
+  --accent: #38BDF8;
+  --bg-primary: #1E293B;
+  --bg-secondary: #0F172A;
+  --bg-card: #334155;
+  --bg-demo: #1E3A5F;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-subtle: #64748B;
+  --success: #22C55E;
+  --danger: #EF4444;
+
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  background-color: var(--bg-primary);
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 56px;
+  padding: 0px 24px;
+  background-color: var(--bg-secondary);
+}
+
+.logo {
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  flex-direction: row;
+  margin: 0px 0px 0px 32px;
+}
+
+.nav-link {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 8px 16px;
+  margin: 0px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition-property: color;
+  transition-duration: 0.2s;
+}
+
+.nav-link.active {
+  color: #F1F5F9;
+}
+
+/* ── Main ────────────────────────────────────────── */
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  background-color: var(--bg-primary);
+  overflow: scroll;
+}
+
+.hero {
+  flex-grow: 1;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+}
+
+.hero-title {
+  color: var(--text-primary);
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hero-subtitle {
+  color: var(--text-secondary);
+  font-size: 18px;
+  text-align: center;
+  margin: 12px 0px 0px 0px;
+}
+
+/* ── Cards ───────────────────────────────────────── */
+
+.cards {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin: 40px 0px 0px 0px;
+}
+
+.card {
+  width: 220px;
+  padding: 24px;
+  margin: 8px 12px;
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px 0px rgba(0,0,0,0.3);
+  transition-property: opacity;
+  transition-duration: 0.3s;
+}
+
+.card-title {
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card-text {
+  color: #CBD5E1;
+  font-size: 14px;
+  margin: 8px 0px 0px 0px;
+}
+
+/* ── Demo Section ────────────────────────────────── */
+
+.demo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 40px 0px 0px 0px;
+  width: 100%;
+  gap: 24px;
+}
+
+.demo-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+}
+
+.demo-card {
+  width: 200px;
+  padding: 24px;
+  background-color: var(--bg-demo);
+  border-radius: 12px;
+  border-width: 1px;
+  border-color: var(--accent);
+  border-style: solid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.demo-title {
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0px 0px 16px 0px;
+}
+
+/* ── Counter ─────────────────────────────────────── */
+
+.counter-value {
+  color: var(--text-primary);
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0px 0px 16px 0px;
+}
+
+.btn-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  background-color: #475569;
+  border-radius: 8px;
+  color: #F1F5F9;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: 0.15s;
+}
+
+.btn-primary {
+  background-color: #2563EB;
+}
+
+.btn-toggle {
+  background-color: #7C3AED;
+  margin: 8px 0px 0px 0px;
+}
+
+/* ── Progress Bar ────────────────────────────────── */
+
+.progress-track {
+  width: 140px;
+  height: 16px;
+  background-color: #334155;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0px 0px 8px 0px;
+}
+
+.progress-fill {
+  width: 0px;
+  height: 16px;
+  background-color: #22C55E;
+}
+
+.progress-label {
+  color: #94A3B8;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ── Theme Toggle ────────────────────────────────── */
+
+.theme-label {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0px 0px 16px 0px;
+  text-align: center;
+}
+
+/* ── Footer ──────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  background-color: var(--bg-secondary);
+}
+
+.footer-text {
+  color: var(--text-subtle);
+  font-size: 12px;
+}
+
+/* ── Text Demo ──────────────────────────────────── */
+
+.text-card {
+  width: 220px;
+}
+
+.wrapped-text {
+  color: #CBD5E1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.text-underline {
+  color: var(--accent);
+  font-size: 14px;
+  text-decoration: underline;
+  margin: 4px 0px;
+}
+
+.text-strike {
+  color: #FB7185;
+  font-size: 14px;
+  text-decoration: line-through;
+  margin: 4px 0px;
+}
+
+.text-uppercase {
+  color: #A78BFA;
+  font-size: 14px;
+  text-transform: uppercase;
+  margin: 4px 0px;
+}
+
+.text-capitalize {
+  color: #34D399;
+  font-size: 14px;
+  text-transform: capitalize;
+  margin: 4px 0px;
+}
+
+.ellipsis-text {
+  color: #CBD5E1;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-height: 20px;
+}
+
+/* ── Component Showcase ─────────────────────────── */
+
+.wide-card {
+  width: 280px;
+}
+
+.component-host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.scroll-container {
+  overflow: scroll;
+  max-height: 150px;
+  width: 100%;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+/* ── CSS Feature Showcase ───────────────────────── */
+
+.dashed-card {
+  border-width: 2px;
+  border-color: var(--accent);
+  border-style: dashed;
+}
+
+.dotted-card {
+  border-width: 2px;
+  border-color: var(--success);
+  border-style: dotted;
+}
+
+.pill-card {
+  border-radius: 32px 4px;
+  border-width: 3px;
+  border-color: #A78BFA;
+  border-style: solid;
+}
+
+.gap-card {
+  border-width: 1px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.feature-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 4px 0px 0px 0px;
+}
+
+.gap-demo {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.gap-box {
+  width: 40px;
+  height: 40px;
+  background-color: var(--accent);
+  border-radius: 6px;
+}

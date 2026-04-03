@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/HelloWorld/HelloWorld.csproj" />
+    <Project Path="samples/StressTest/StressTest.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Lumi.Core/Lumi.Core.csproj" />
+    <Project Path="src/Lumi.Input/Lumi.Input.csproj" />
+    <Project Path="src/Lumi.Layout/Lumi.Layout.csproj" />
+    <Project Path="src/Lumi.Platform/Lumi.Platform.csproj" />
+    <Project Path="src/Lumi.Rendering/Lumi.Rendering.csproj" />
+    <Project Path="src/Lumi.Styling/Lumi.Styling.csproj" />
+    <Project Path="src/Lumi.Text/Lumi.Text.csproj" />
+    <Project Path="src/Lumi/Lumi.csproj" />
+    <Project Path="src/Lumi.Generators/Lumi.Generators.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Lumi.Tests/Lumi.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Lumi.Input</PackageId>
+    <Description>Lumi GUI Framework - Input handling and interaction state</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
+    <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" />
+  </ItemGroup>
+
+</Project>

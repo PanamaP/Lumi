@@ -1,0 +1,9 @@
+.app { display: flex; flex-direction: column; flex-grow: 1; background-color: #0F172A; }
+.header { display: flex; flex-direction: row; align-items: center; height: 48px; padding: 0px 20px; background-color: #1E293B; }
+.title { color: #38BDF8; font-size: 18px; font-weight: 700; }
+.scenario-name { color: #94A3B8; font-size: 14px; margin: 0px 0px 0px 20px; }
+.content { flex-grow: 1; display: flex; flex-direction: column; padding: 16px; overflow: scroll; }
+.footer { display: flex; align-items: center; height: 32px; padding: 0px 20px; background-color: #1E293B; }
+.metrics { color: #22C55E; font-size: 12px; font-family: monospace; }
+.stress-item { padding: 4px 8px; margin: 2px 0px; background-color: #1E293B; border-radius: 4px; }
+.stress-text { color: #CBD5E1; font-size: 13px; }

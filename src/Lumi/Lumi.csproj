@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>Lumi</PackageId>
+    <Description>Lumi GUI Framework - Native C# desktop UI powered by HTML, CSS, SkiaSharp, and SDL3</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
+    <ProjectReference Include="..\Lumi.Rendering\Lumi.Rendering.csproj" />
+    <ProjectReference Include="..\Lumi.Layout\Lumi.Layout.csproj" />
+    <ProjectReference Include="..\Lumi.Styling\Lumi.Styling.csproj" />
+    <ProjectReference Include="..\Lumi.Input\Lumi.Input.csproj" />
+    <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" />
+  </ItemGroup>
+
+</Project>

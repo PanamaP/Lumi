@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# IDE
+.idea/
+.vs/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary/test files
+test_var_parsing.cs
+plan.md
+
+# Screenshots
+LumiScreenshots/

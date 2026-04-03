@@ -1,0 +1,1193 @@
+# Lumi — Getting Started Guide
+
+A complete guide to building desktop applications with Lumi. From your first window to advanced features like data binding, animations, and custom components.
+
+---
+
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Your First Application](#your-first-application)
+3. [HTML Templates](#html-templates)
+4. [CSS Styling](#css-styling)
+5. [Events & Interaction](#events--interaction)
+6. [Finding Elements](#finding-elements)
+7. [Dynamic Styles (InlineStyle)](#dynamic-styles-inlinestyle)
+8. [Components](#components)
+9. [Data Binding](#data-binding)
+10. [Animations & Tweens](#animations--tweens)
+11. [Scrolling](#scrolling)
+12. [Hot Reload](#hot-reload)
+13. [Inspector & Screenshots](#inspector--screenshots)
+14. [CSS Reference](#css-reference)
+15. [API Reference](#api-reference)
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- A code editor (VS Code, Visual Studio, Rider)
+
+### Create a New Project
+
+```bash
+# Create a new console app
+dotnet new console -n MyLumiApp
+cd MyLumiApp
+
+# Add a reference to the Lumi project (adjust path to your Lumi source)
+dotnet add reference ../path/to/src/Lumi/Lumi.csproj
+```
+
+### Project File
+
+Your `.csproj` should look like:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\Lumi\Lumi.csproj" />
+  </ItemGroup>
+
+  <!-- Copy HTML/CSS files to output directory -->
+  <ItemGroup>
+    <None Update="*.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="*.css" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
+```
+
+---
+
+## Your First Application
+
+Every Lumi app needs three files: a C# entry point, an HTML template, and a CSS stylesheet.
+
+### Program.cs
+
+```csharp
+using Lumi;
+
+LumiApp.Run(new MainWindow());
+```
+
+That's it — one line starts the application loop: SDL3 window creation, Skia rendering, input handling, all managed automatically.
+
+### MainWindow.cs
+
+```csharp
+using Lumi;
+using Lumi.Core;
+
+public class MainWindow : Window
+{
+    public MainWindow()
+    {
+        Title = "My First Lumi App";
+        Width = 800;
+        Height = 600;
+
+        // Load the UI template and styles
+        var dir = AppContext.BaseDirectory;
+        LoadTemplate(Path.Combine(dir, "MainWindow.html"));
+        LoadStyleSheet(Path.Combine(dir, "MainWindow.css"));
+    }
+
+    /// <summary>
+    /// Called once after the element tree is built. Wire up event handlers here.
+    /// </summary>
+    public override void OnReady()
+    {
+        var greeting = FindById("greeting");
+        var button = FindById("hello-btn");
+
+        button?.On("Click", (sender, e) =>
+        {
+            if (greeting is TextElement text)
+                text.Text = "You clicked the button!";
+        });
+    }
+}
+```
+
+### MainWindow.html
+
+```html
+<div class="app">
+  <h1 class="title">Welcome to Lumi</h1>
+  <p class="subtitle" id="greeting">Click the button below.</p>
+  <button class="btn" id="hello-btn">Say Hello</button>
+</div>
+```
+
+### MainWindow.css
+
+```css
+:root {
+  --bg: #0F172A;
+  --text: #F8FAFC;
+  --accent: #3B82F6;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg);
+  padding: 40px;
+}
+
+.title {
+  color: var(--text);
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0px 0px 8px 0px;
+}
+
+.subtitle {
+  color: #94A3B8;
+  font-size: 16px;
+  margin: 0px 0px 24px 0px;
+}
+
+.btn {
+  padding: 12px 32px;
+  background-color: var(--accent);
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+```
+
+### Run It
+
+```bash
+dotnet run
+```
+
+---
+
+## HTML Templates
+
+Lumi uses standard HTML parsed by [AngleSharp](https://anglesharp.github.io/). The parser maps HTML tags to Lumi element types:
+
+| HTML Tag | Lumi Element | Notes |
+|----------|-------------|-------|
+| `<div>`, `<section>`, `<header>`, `<footer>`, `<nav>`, `<main>`, `<article>`, `<aside>` | `BoxElement` | Container elements |
+| `<h1>` – `<h6>`, `<p>`, `<span>` | `BoxElement` containing `TextElement` | Text is wrapped in a `TextElement` child |
+| `<button>`, `<a>` | `BoxElement` (focusable) | Automatically `IsFocusable = true` |
+| `<img>` | `ImageElement` | `src` attribute maps to `Source` property |
+| `<input>` | `InputElement` | Supports `type`, `value`, `placeholder` attributes |
+| Any text content | `TextElement` | Direct text nodes become `TextElement` |
+
+### Supported Attributes
+
+```html
+<div id="my-id"
+     class="cls-a cls-b"
+     style="color: red; font-size: 20px"
+     role="button"
+     aria-label="Accessible name"
+     data-custom="value">
+  Content here
+</div>
+```
+
+- `id` → `Element.Id`
+- `class` → `Element.Classes` (space-separated)
+- `style` → `Element.InlineStyle` (highest cascade priority)
+- `role`, `aria-*` → `Element.Accessibility`
+- `data-*` and others → `Element.Attributes` dictionary
+
+---
+
+## CSS Styling
+
+Lumi supports a comprehensive subset of CSS, parsed by [ExCSS](https://github.com/nicklackner/ExCSS). Styles cascade with full specificity rules: inline styles win over ID selectors, which win over class selectors, which win over tag selectors.
+
+### CSS Variables
+
+Define custom properties in `:root` or any selector:
+
+```css
+:root {
+  --primary: #3B82F6;
+  --bg: #1E293B;
+  --radius: 8px;
+}
+
+.card {
+  background-color: var(--bg);
+  border-radius: var(--radius);
+  border-color: var(--primary);
+}
+
+/* Fallback values */
+.item {
+  color: var(--missing-color, #FFFFFF);
+}
+```
+
+### Selectors Supported
+
+```css
+div { }                  /* Tag selector */
+.card { }                /* Class selector */
+#my-id { }               /* ID selector */
+div.card { }             /* Tag + class */
+.parent .child { }       /* Descendant combinator */
+.parent > .child { }     /* Direct child combinator */
+.card, .panel { }        /* Group selector */
+h1, h2, h3 { }           /* Multiple tags */
+```
+
+### Loading Multiple Stylesheets
+
+```csharp
+// In your Window constructor
+LoadStyleSheet(Path.Combine(dir, "reset.css"));
+LoadStyleSheet(Path.Combine(dir, "theme.css"));
+LoadStyleSheet(Path.Combine(dir, "main.css"));
+
+// Or from strings
+LoadStyleSheetString(".dynamic { color: red; }");
+```
+
+---
+
+## Events & Interaction
+
+Lumi uses a three-phase event system inspired by the DOM: **Tunnel** (root → target), **Direct** (target only), **Bubble** (target → root).
+
+### Registering Event Handlers
+
+```csharp
+// Event names are case-insensitive: "click", "Click", "CLICK" all work
+element.On("Click", (sender, e) =>
+{
+    Console.WriteLine($"Clicked {sender.Id}!");
+});
+
+// Mouse events
+element.On("MouseDown", (sender, e) =>
+{
+    if (e is RoutedMouseEvent me)
+        Console.WriteLine($"Mouse down at ({me.X}, {me.Y})");
+});
+
+element.On("MouseUp", (sender, e) => { /* ... */ });
+element.On("MouseMove", (sender, e) => { /* ... */ });
+element.On("MouseEnter", (sender, e) => { /* hover in */ });
+element.On("MouseLeave", (sender, e) => { /* hover out */ });
+
+// Keyboard events
+element.On("KeyDown", (sender, e) =>
+{
+    if (e is RoutedKeyEvent ke)
+        Console.WriteLine($"Key: {ke.Key}, Ctrl: {ke.Ctrl}");
+});
+
+// Remove a handler
+element.Off("Click", myHandler);
+```
+
+### Available Events
+
+| Event | Dispatched When | Event Type |
+|-------|----------------|------------|
+| `Click` | Mouse button pressed and released on element | `RoutedMouseEvent` |
+| `MouseDown` | Mouse button pressed | `RoutedMouseEvent` |
+| `MouseUp` | Mouse button released | `RoutedMouseEvent` |
+| `MouseMove` | Mouse moved over element | `RoutedMouseEvent` |
+| `MouseEnter` | Mouse enters element bounds | `RoutedMouseEvent` |
+| `MouseLeave` | Mouse leaves element bounds | `RoutedMouseEvent` |
+| `KeyDown` | Key pressed (on focused element) | `RoutedKeyEvent` |
+| `KeyUp` | Key released | `RoutedKeyEvent` |
+| `Focus` | Element gains focus | `RoutedEvent` |
+| `Blur` | Element loses focus | `RoutedEvent` |
+| `Scroll` | Mouse wheel scrolled | `RoutedEvent` |
+
+### Stopping Event Propagation
+
+```csharp
+element.On("Click", (sender, e) =>
+{
+    e.Handled = true; // Stops bubble to parent
+});
+```
+
+---
+
+## Finding Elements
+
+The `Window` class provides methods to query the element tree:
+
+```csharp
+public override void OnReady()
+{
+    // Find by ID (returns null if not found)
+    Element? header = FindById("main-header");
+
+    // Find all elements with a class
+    List<Element> cards = FindByClass("card");
+
+    // Access children
+    Element firstChild = header.Children[0];
+
+    // Navigate up
+    Element? parent = firstChild.Parent;
+
+    // Check element type
+    if (header is TextElement textEl)
+        Console.WriteLine(textEl.Text);
+}
+```
+
+### Element Tree Manipulation
+
+```csharp
+// Create elements programmatically
+var box = new BoxElement("div");
+box.Id = "dynamic-box";
+box.Classes = ["card", "highlighted"];
+
+var label = new TextElement("Hello!");
+
+// Build tree
+box.AddChild(label);
+parentElement.AddChild(box);
+
+// Remove / clear
+parentElement.RemoveChild(box);
+parentElement.ClearChildren();
+
+// Insert at position
+parentElement.InsertChild(0, box); // Insert at beginning
+```
+
+---
+
+## Dynamic Styles (InlineStyle)
+
+**Important:** Never set `ComputedStyle` properties directly — the CSS StyleResolver overwrites them every frame. Use `InlineStyle` instead, which has the highest cascade priority.
+
+```csharp
+// ✅ Correct — survives the CSS cascade
+element.InlineStyle = "background-color: #FF0000; padding: 16px";
+element.MarkDirty(); // Tell the framework to re-render
+
+// ❌ Wrong — overwritten by StyleResolver next frame
+element.ComputedStyle.BackgroundColor = Color.FromHex("#FF0000");
+```
+
+### Common Patterns
+
+```csharp
+// Toggle visibility
+element.InlineStyle = isVisible ? "display: flex" : "display: none";
+element.MarkDirty();
+
+// Hover effects
+element.On("MouseEnter", (sender, _) =>
+{
+    ((Element)sender).InlineStyle = "background-color: #3B82F6";
+    ((Element)sender).MarkDirty();
+});
+element.On("MouseLeave", (sender, _) =>
+{
+    ((Element)sender).InlineStyle = "background-color: #1E293B";
+    ((Element)sender).MarkDirty();
+});
+
+// Animate a property each frame (use InvariantCulture for float formatting!)
+public override void OnUpdate()
+{
+    float width = CalculateWidth();
+    _progressBar.InlineStyle = string.Create(
+        System.Globalization.CultureInfo.InvariantCulture,
+        $"width: {width:F1}px");
+    _progressBar.MarkDirty();
+}
+```
+
+> ⚠️ **Culture Warning:** If your system uses comma as the decimal separator (e.g., `3,14` instead of `3.14`), always use `CultureInfo.InvariantCulture` when formatting floats in InlineStyle strings.
+
+---
+
+## Components
+
+Lumi includes a library of pre-built components. Each component exposes a `Root` element that you add to your element tree.
+
+### LumiButton
+
+```csharp
+using Lumi.Core.Components;
+
+var button = new LumiButton
+{
+    Text = "Submit",
+    Variant = ButtonVariant.Primary  // Primary, Secondary, or Danger
+};
+
+button.OnClick = () => Console.WriteLine("Submitted!");
+
+// Disable it
+button.IsDisabled = true;
+
+// Add to tree
+hostElement.AddChild(button.Root);
+```
+
+### LumiCheckbox
+
+```csharp
+var checkbox = new LumiCheckbox
+{
+    Label = "Enable notifications",
+    IsChecked = true
+};
+
+checkbox.OnChanged = (isChecked) =>
+{
+    Console.WriteLine($"Checked: {isChecked}");
+};
+
+hostElement.AddChild(checkbox.Root);
+```
+
+### LumiSlider
+
+```csharp
+var slider = new LumiSlider
+{
+    Min = 0,
+    Max = 100,
+    Value = 50
+};
+
+slider.OnValueChanged = (value) =>
+{
+    Console.WriteLine($"Slider: {value:F1}");
+};
+
+hostElement.AddChild(slider.Root);
+```
+
+### LumiDialog
+
+```csharp
+var dialog = new LumiDialog
+{
+    Title = "Confirm Action"
+};
+
+// Add custom content
+var message = new TextElement("Are you sure?");
+message.InlineStyle = "color: #F8FAFC; font-size: 14px";
+dialog.Content = message;
+
+// Show/hide
+dialog.IsOpen = true;
+
+// Handle close (user clicks ✕ button)
+dialog.OnClose = () => Console.WriteLine("Dialog closed");
+
+// Add to ROOT element (dialogs overlay the entire window)
+Root.AddChild(dialog.Root);
+```
+
+### LumiDropdown
+
+```csharp
+var dropdown = new LumiDropdown
+{
+    Items = ["Option A", "Option B", "Option C"],
+    SelectedIndex = 0
+};
+
+dropdown.OnSelectionChanged = (index) =>
+{
+    Console.WriteLine($"Selected: {dropdown.Items[index]}");
+};
+
+hostElement.AddChild(dropdown.Root);
+```
+
+### LumiTextBox
+
+```csharp
+var textbox = new LumiTextBox
+{
+    Label = "Email",
+    Placeholder = "you@example.com",
+    Value = ""
+};
+
+textbox.OnValueChanged = (text) =>
+{
+    Console.WriteLine($"Input: {text}");
+};
+
+// Read-only mode
+textbox.IsReadOnly = true;
+
+hostElement.AddChild(textbox.Root);
+```
+
+### LumiList
+
+```csharp
+var list = new LumiList
+{
+    Items = ["Item 1", "Item 2", "Item 3", "Item 4", "Item 5"]
+};
+
+list.OnItemClick = (index) =>
+{
+    Console.WriteLine($"Clicked item {index}");
+};
+
+// Place inside a scroll container for scrollable lists
+scrollContainer.AddChild(list.Root);
+```
+
+### Component Color Palette
+
+The `ComponentStyles` class provides the default dark-theme palette:
+
+```csharp
+ComponentStyles.Background   // #1E293B — app background
+ComponentStyles.Accent        // #38BDF8 — primary accent
+ComponentStyles.TextColor     // #F8FAFC — primary text
+ComponentStyles.Subtle        // #94A3B8 — secondary text
+ComponentStyles.Danger        // #EF4444 — danger/error
+ComponentStyles.Surface       // #334155 — card/surface background
+ComponentStyles.Border        // #475569 — borders
+ComponentStyles.Disabled      // #64748B — disabled state
+
+// Convert to CSS-compatible rgba() string
+string css = ComponentStyles.ToRgba(ComponentStyles.Accent);
+// Returns: "rgba(56, 189, 248, 255)"
+```
+
+---
+
+## Data Binding
+
+Lumi supports data binding to `INotifyPropertyChanged` view models.
+
+### Basic Binding
+
+```csharp
+using System.ComponentModel;
+using Lumi.Core.Binding;
+
+// 1. Create a view model
+public class CounterViewModel : INotifyPropertyChanged
+{
+    private int _count;
+    public int Count
+    {
+        get => _count;
+        set
+        {
+            _count = value;
+            PropertyChanged?.Invoke(this, new(nameof(Count)));
+        }
+    }
+    public event PropertyChangedEventHandler? PropertyChanged;
+}
+
+// 2. In your Window class
+private readonly CounterViewModel _vm = new();
+private readonly BindingEngine _bindingEngine = new();
+
+public override void OnReady()
+{
+    // Bind an element's text to the Count property
+    var counterDisplay = FindById("counter-value");
+    if (counterDisplay != null)
+    {
+        var expr = BindingExpression.Parse("{Binding Count}");
+        _bindingEngine.Bind(counterDisplay, "Text", _vm, expr);
+    }
+
+    // Change the view model — UI updates automatically
+    FindById("btn-inc")?.On("Click", (_, _) => _vm.Count++);
+}
+```
+
+### Binding Expression Syntax
+
+```csharp
+// Simple property
+BindingExpression.Parse("{Binding Name}");
+
+// Nested path
+BindingExpression.Parse("{Binding User.Email}");
+
+// With binding mode
+BindingExpression.Parse("{Binding Name, Mode=TwoWay}");
+BindingExpression.Parse("{Binding Name, Mode=OneTime}");
+
+// With fallback value
+BindingExpression.Parse("{Binding Score, FallbackValue=0}");
+```
+
+### Binding Modes
+
+| Mode | Description |
+|------|-------------|
+| `OneWay` (default) | Source → UI. Changes in the view model update the element. |
+| `TwoWay` | Source ↔ UI. Changes flow both directions (for input elements). |
+| `OneTime` | Reads the value once and never updates again. |
+
+---
+
+## Animations & Tweens
+
+Lumi provides a fluent animation API for smooth property transitions.
+
+### Fluent Animation Builder
+
+```csharp
+using Lumi.Core.Animation;
+
+// Fade an element in
+element.Animate()
+    .Property("opacity", 0f, 1f)
+    .Duration(0.4f)
+    .Easing(Easing.EaseOutCubic)
+    .Start();
+
+// Slide an element down with a delay
+element.Animate()
+    .Property("opacity", 0f, 1f)
+    .Duration(0.3f)
+    .Delay(0.2f)
+    .Easing(Easing.EaseOutCubic)
+    .OnComplete(() => Console.WriteLine("Animation done!"))
+    .Start();
+```
+
+### Animatable Properties
+
+The animation system works by calling `PropertyApplier.Apply()` each frame with interpolated values. Any numeric CSS property can be animated:
+
+- `opacity` (0.0 – 1.0)
+- `width`, `height`, `min-width`, `max-width`, etc.
+- `margin-top`, `margin-left`, etc.
+- `padding-top`, `padding-left`, etc.
+- `font-size`
+- `border-radius`
+- `top`, `left`, `right`, `bottom`
+
+### Easing Functions
+
+```csharp
+Easing.Linear        // Constant speed
+Easing.EaseInCubic   // Slow start
+Easing.EaseOutCubic  // Slow end
+Easing.EaseInOutCubic // Slow start and end
+Easing.EaseInQuad    // Quadratic ease in
+Easing.EaseOutQuad   // Quadratic ease out
+
+// From CSS name string
+Easing.FromName("ease-in-out") // Returns EaseInOutCubic
+```
+
+### Staggered Entrance Animations
+
+```csharp
+var cards = FindByClass("card");
+float delay = 0;
+foreach (var card in cards)
+{
+    card.ComputedStyle.Opacity = 0; // Start invisible
+    card.Animate()
+        .Property("opacity", 0, 1)
+        .Duration(0.4f)
+        .Delay(delay)
+        .Easing(Easing.EaseOutCubic)
+        .Start();
+    delay += 0.15f; // Each card appears 150ms after the previous
+}
+```
+
+### Low-Level Tween API
+
+```csharp
+// Create and manage tweens directly
+var tween = new Tween(from: 0f, to: 100f, duration: 1.0f, Easing.EaseOutCubic);
+tween.OnUpdate = (value) =>
+{
+    element.InlineStyle = string.Create(CultureInfo.InvariantCulture,
+        $"width: {value:F1}px");
+    element.MarkDirty();
+};
+tween.OnComplete = () => Console.WriteLine("Tween finished!");
+
+AnimationExtensions.GlobalTweenEngine.Add(tween);
+```
+
+---
+
+## Scrolling
+
+Elements with `overflow: scroll` in CSS become scrollable containers.
+
+### CSS Setup
+
+```css
+.scroll-container {
+  max-height: 200px;
+  overflow: scroll;
+}
+```
+
+### Scroll Behavior
+
+- The framework handles mouse wheel events automatically
+- Children are clipped to the container's bounds
+- Children use `flex-shrink: 0` by default inside scroll containers (prevents unwanted squishing)
+- Hit testing is scroll-offset-aware — buttons remain clickable at their visual position after scrolling
+
+### Programmatic Scrolling
+
+```csharp
+// Scroll to an absolute position (clamped to valid range)
+element.ScrollTo(0, 100); // Scroll to Y=100
+
+// Scroll by a relative delta
+element.ScrollBy(0, 50); // Scroll down 50px
+
+// Read scroll state
+float currentScroll = element.ScrollTop;
+float totalHeight = element.ScrollHeight;
+float visibleHeight = element.LayoutBox.Height;
+```
+
+---
+
+## Hot Reload
+
+Lumi watches your source HTML and CSS files and reloads them instantly when you save.
+
+### Enable Hot Reload
+
+```csharp
+public MainWindow()
+{
+    // ... LoadTemplate / LoadStyleSheet ...
+
+    // Point to the SOURCE files (not the bin/ copies)
+    HtmlPath = Path.Combine(GetSourceDir(), "MainWindow.html");
+    CssPath = Path.Combine(GetSourceDir(), "MainWindow.css");
+    EnableHotReload = true;
+}
+
+private static string GetSourceDir(
+    [System.Runtime.CompilerServices.CallerFilePath] string path = "")
+    => Path.GetDirectoryName(path)!;
+```
+
+### How It Works
+
+1. Content-hash polling every 500ms detects changes (immune to editor save strategies)
+2. `FileSystemWatcher` provides instant acceleration for supported editors
+3. 200ms debounce handles atomic writes (rename + write)
+4. Changes are applied on the main thread during the next frame
+
+### OnHtmlReloaded Callback
+
+When HTML is reloaded, the element tree is replaced. Override `OnHtmlReloaded()` to re-register event handlers:
+
+```csharp
+public override void OnHtmlReloaded()
+{
+    // Re-wire handlers after HTML hot reload replaces the element tree
+    var button = FindById("my-button");
+    button?.On("Click", (_, _) => HandleClick());
+}
+```
+
+---
+
+## Inspector & Screenshots
+
+### Inspector (F12)
+
+Press **F12** at runtime to toggle the inspector overlay:
+
+- **Blue outlines** around every element showing layout bounds
+- **Box model visualization** on the hovered element:
+  - Orange = margin
+  - Green = padding
+  - Blue = content area
+- **Tooltip** showing tag, id, size, font, color, margin/padding values
+
+### Screenshots (F5)
+
+Press **F5** to capture a PNG screenshot to `~/Desktop/LumiScreenshots/`.
+
+### Headless Screenshots (CLI Tool)
+
+```bash
+dotnet run --project tools/ScreenshotTool -- \
+  MainWindow.html MainWindow.css output.png 1200 800
+```
+
+---
+
+## CSS Reference
+
+### Supported Properties (89+)
+
+#### Box Model
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `width`, `height` | `px`, `%`, `em`, `rem`, `pt` | `width: 200px` |
+| `min-width`, `max-width` | `px`, `%`, `em`, `rem`, `pt` | `max-width: 100%` |
+| `min-height`, `max-height` | `px`, `%`, `em`, `rem`, `pt` | `min-height: 50px` |
+| `margin` | 1–4 values | `margin: 8px 16px` |
+| `padding` | 1–4 values | `padding: 12px 24px` |
+| `border-width` | 1–4 values | `border-width: 1px` |
+| `border-color` | color | `border-color: #38BDF8` |
+| `border-style` | `none`, `solid`, `dashed`, `dotted`, `double` | `border-style: dashed` |
+| `border-radius` | 1–4 corner values | `border-radius: 8px` or `32px 4px` |
+| `box-sizing` | `content-box`, `border-box` | `box-sizing: border-box` |
+
+#### Flexbox Layout
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `display` | `block`, `flex`, `none` | `display: flex` |
+| `flex-direction` | `row`, `row-reverse`, `column`, `column-reverse` | `flex-direction: column` |
+| `flex-wrap` | `nowrap`, `wrap`, `wrap-reverse` | `flex-wrap: wrap` |
+| `justify-content` | `flex-start`, `flex-end`, `center`, `space-between`, `space-around`, `space-evenly` | `justify-content: center` |
+| `align-items` | `flex-start`, `flex-end`, `center`, `stretch`, `baseline` | `align-items: center` |
+| `align-self` | Same as `align-items` | `align-self: flex-end` |
+| `flex-grow` | number | `flex-grow: 1` |
+| `flex-shrink` | number | `flex-shrink: 0` |
+| `flex-basis` | `px`, `%`, `auto` | `flex-basis: 200px` |
+| `gap` | `px` | `gap: 16px` |
+| `row-gap`, `column-gap` | `px` | `row-gap: 8px` |
+
+#### Positioning
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `position` | `relative`, `absolute`, `fixed` | `position: absolute` |
+| `top`, `right`, `bottom`, `left` | `px`, `%`, `auto` | `top: 0px` |
+| `z-index` | integer | `z-index: 100` |
+| `overflow` | `visible`, `hidden`, `scroll` | `overflow: scroll` |
+
+#### Typography
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `color` | hex, `rgb()`, `rgba()`, named | `color: #F8FAFC` |
+| `font-family` | string | `font-family: "Segoe UI"` |
+| `font-size` | `px`, `em`, `rem`, `pt` | `font-size: 16px` |
+| `font-weight` | `100`–`900`, `normal`, `bold` | `font-weight: 600` |
+| `font-style` | `normal`, `italic` | `font-style: italic` |
+| `line-height` | unitless multiplier or `px`/`em` | `line-height: 1.5` |
+| `text-align` | `left`, `center`, `right` | `text-align: center` |
+| `letter-spacing` | `px`, `em` | `letter-spacing: 1px` |
+| `text-decoration` | `none`, `underline`, `line-through` | `text-decoration: underline` |
+| `text-transform` | `none`, `uppercase`, `lowercase`, `capitalize` | `text-transform: uppercase` |
+| `white-space` | `normal`, `nowrap`, `pre` | `white-space: nowrap` |
+| `text-overflow` | `clip`, `ellipsis` | `text-overflow: ellipsis` |
+| `word-break` | `normal`, `break-all` | `word-break: break-all` |
+
+#### Visual
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `background-color` | color | `background-color: #334155` |
+| `opacity` | `0.0`–`1.0` | `opacity: 0.8` |
+| `visibility` | `visible`, `hidden` | `visibility: hidden` |
+| `cursor` | `default`, `pointer` | `cursor: pointer` |
+| `box-shadow` | `offsetX offsetY blur spread color [inset]` | `box-shadow: 0px 4px 12px rgba(0,0,0,0.3)` |
+
+#### Transitions & Animations
+
+| Property | Values | Example |
+|----------|--------|---------|
+| `transition-property` | CSS property name | `transition-property: opacity` |
+| `transition-duration` | seconds or ms | `transition-duration: 0.3s` |
+| `transition-timing-function` | `ease`, `linear`, `ease-in`, `ease-out`, `ease-in-out` | `transition-timing-function: ease` |
+
+### Color Formats
+
+```css
+color: #F00;                  /* 3-digit hex */
+color: #FF0000;               /* 6-digit hex */
+color: #FF0000FF;             /* 8-digit hex with alpha */
+color: rgb(255, 0, 0);        /* RGB */
+color: rgba(255, 0, 0, 0.5);  /* RGBA with alpha 0–1 */
+color: red;                   /* Named color */
+color: transparent;           /* Fully transparent */
+```
+
+**Named colors:** `red`, `blue`, `green`, `yellow`, `orange`, `purple`, `cyan`, `aqua`, `magenta`, `fuchsia`, `lime`, `maroon`, `navy`, `olive`, `teal`, `silver`, `gray`/`grey`, `black`, `white`, `transparent`
+
+### Units
+
+| Unit | Description | Example |
+|------|-------------|---------|
+| `px` | Pixels (default) | `width: 200px` |
+| `%` | Percentage of parent | `width: 50%` |
+| `em` | Relative to element's font-size | `padding: 1.5em` |
+| `rem` | Relative to root font-size (16px) | `font-size: 1.25rem` |
+| `pt` | Points (1pt = 1.333px) | `font-size: 12pt` |
+
+---
+
+## API Reference
+
+### Window
+
+The base class for your application window.
+
+```csharp
+public class Window
+{
+    // Properties
+    string Title { get; set; }
+    int Width { get; set; }
+    int Height { get; set; }
+    Element Root { get; }                    // Root of the element tree
+    FrameMetrics FrameMetrics { get; }       // FPS and timing data
+    string? HtmlPath { get; set; }           // Source HTML path for hot reload
+    string? CssPath { get; set; }            // Source CSS path for hot reload
+    bool EnableHotReload { get; set; }       // Enable/disable hot reload
+
+    // Template loading
+    void LoadTemplate(string path);          // Load HTML from file
+    void LoadTemplateString(string html);    // Load HTML from string
+    void LoadStyleSheet(string path);        // Load CSS from file
+    void LoadStyleSheetString(string css);   // Load CSS from string
+
+    // Element queries
+    Element? FindById(string id);            // Find element by ID
+    List<Element> FindByClass(string cls);   // Find elements by class name
+
+    // Lifecycle (override these)
+    virtual void OnReady();                  // Called once after tree is built
+    virtual void OnUpdate();                 // Called every frame
+    virtual void OnHtmlReloaded();           // Called after hot reload replaces HTML
+    
+    // Utilities
+    bool SaveScreenshot(string filePath);    // Save current frame as PNG
+}
+```
+
+### Element
+
+The base class for all UI elements in the tree.
+
+```csharp
+public abstract class Element
+{
+    // Identity
+    string? Id { get; set; }
+    List<string> Classes { get; set; }
+    abstract string TagName { get; }
+    Dictionary<string, string> Attributes { get; set; }
+
+    // Tree
+    Element? Parent { get; }
+    IReadOnlyList<Element> Children { get; }
+    void AddChild(Element child);
+    void RemoveChild(Element child);
+    void InsertChild(int index, Element child);
+    void ClearChildren();
+
+    // Styling
+    string? InlineStyle { get; set; }        // CSS inline style (highest priority)
+    ComputedStyle ComputedStyle { get; }     // Read-only computed style (after cascade)
+
+    // Layout
+    LayoutBox LayoutBox { get; set; }        // Position and size after layout
+
+    // Scrolling
+    float ScrollTop { get; set; }
+    float ScrollLeft { get; set; }
+    float ScrollHeight { get; }              // Total content height
+    float ScrollWidth { get; }               // Total content width
+    void ScrollTo(float x, float y);         // Scroll to absolute position
+    void ScrollBy(float dx, float dy);       // Scroll by relative delta
+
+    // Events
+    void On(string eventName, RoutedEventHandler handler);
+    void Off(string eventName, RoutedEventHandler handler);
+
+    // Focus
+    bool IsFocusable { get; set; }
+    bool IsFocused { get; set; }
+    int TabIndex { get; set; }
+
+    // Dirty tracking
+    void MarkDirty();                        // Mark element for re-render
+
+    // Binding
+    object? DataContext { get; set; }
+}
+```
+
+### FrameMetrics
+
+Access real-time performance data:
+
+```csharp
+public sealed class FrameMetrics
+{
+    double CurrentFps { get; }       // Instantaneous FPS
+    double AverageFps { get; }       // Rolling average (120 frames)
+    double TotalFrameTimeMs { get; } // Total frame time in ms
+    double PaintTimeMs { get; }      // Rendering time
+    double LayoutTimeMs { get; }     // Layout calculation time
+    double StyleTimeMs { get; }      // Style resolution time
+    double UpdateTimeMs { get; }     // Update logic time
+    string GetSummary();             // Formatted summary string
+}
+```
+
+### Usage in OnUpdate
+
+```csharp
+public override void OnUpdate()
+{
+    if (_fpsLabel != null)
+    {
+        _fpsLabel.Text = $"FPS: {FrameMetrics.CurrentFps:F0}";
+        _fpsLabel.MarkDirty();
+    }
+}
+```
+
+---
+
+## Full Example: Todo App
+
+A minimal but complete example combining templates, events, binding, and components:
+
+```csharp
+// TodoWindow.cs
+using Lumi;
+using Lumi.Core;
+using Lumi.Core.Components;
+
+public class TodoWindow : Window
+{
+    private readonly List<string> _todos = ["Buy groceries", "Walk the dog"];
+
+    public TodoWindow()
+    {
+        Title = "Lumi Todo";
+        Width = 500;
+        Height = 400;
+
+        var dir = AppContext.BaseDirectory;
+        LoadTemplate(Path.Combine(dir, "Todo.html"));
+        LoadStyleSheet(Path.Combine(dir, "Todo.css"));
+    }
+
+    public override void OnReady()
+    {
+        RebuildList();
+
+        var textbox = new LumiTextBox { Placeholder = "Add a todo..." };
+        FindById("input-host")?.AddChild(textbox.Root);
+
+        var addBtn = new LumiButton { Text = "Add", Variant = ButtonVariant.Primary };
+        addBtn.OnClick = () =>
+        {
+            if (!string.IsNullOrWhiteSpace(textbox.Value))
+            {
+                _todos.Add(textbox.Value);
+                textbox.Value = "";
+                RebuildList();
+            }
+        };
+        FindById("btn-host")?.AddChild(addBtn.Root);
+    }
+
+    private void RebuildList()
+    {
+        var listHost = FindById("todo-list");
+        if (listHost == null) return;
+
+        listHost.ClearChildren();
+        var list = new LumiList { Items = _todos };
+        list.OnItemClick = (index) =>
+        {
+            _todos.RemoveAt(index);
+            RebuildList();
+        };
+        listHost.AddChild(list.Root);
+    }
+}
+```
+
+```html
+<!-- Todo.html -->
+<div class="app">
+  <h1 class="title">My Todos</h1>
+  <div class="input-row">
+    <div id="input-host" class="input-area"></div>
+    <div id="btn-host"></div>
+  </div>
+  <div class="list-area scroll" id="todo-list"></div>
+  <p class="hint">Click an item to remove it</p>
+</div>
+```
+
+```css
+/* Todo.css */
+:root { --bg: #0F172A; --text: #F8FAFC; --accent: #38BDF8; }
+
+.app {
+  display: flex; flex-direction: column; padding: 32px;
+  background-color: var(--bg); gap: 16px;
+}
+.title { color: var(--accent); font-size: 24px; font-weight: 700; }
+.input-row { display: flex; flex-direction: row; gap: 8px; align-items: flex-end; }
+.input-area { flex-grow: 1; }
+.list-area { max-height: 250px; overflow: scroll; }
+.hint { color: #64748B; font-size: 12px; }
+```
+
+---
+
+## Tips & Best Practices
+
+1. **Always use `InlineStyle` for dynamic styling** — `ComputedStyle` is read-only in practice (rebuilt every frame from CSS).
+
+2. **Call `MarkDirty()` after changing InlineStyle or text** — otherwise the change won't be rendered until something else triggers a repaint.
+
+3. **Use `CultureInfo.InvariantCulture`** for float-to-string in InlineStyle — prevents locale-dependent decimal separators breaking CSS values.
+
+4. **Add components to `Root`** for overlays (dialogs) — they need to render above all other content.
+
+5. **Event names are case-insensitive** — `"Click"`, `"click"`, and `"CLICK"` all work.
+
+6. **Use hot reload during development** — edit HTML/CSS and see changes instantly without restarting.
+
+7. **Press F12 for the inspector** — see element bounds, box model, and computed styles.
+
+8. **Check `FrameMetrics`** for performance — if paint time is high, reduce element count or complexity.

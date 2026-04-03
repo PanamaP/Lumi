@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Lumi.Core</PackageId>
+    <Description>Lumi GUI Framework - Core element model, events, and data types</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+</Project>

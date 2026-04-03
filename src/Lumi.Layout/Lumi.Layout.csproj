@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>Lumi.Layout</PackageId>
+    <Description>Lumi GUI Framework - Yoga-based CSS flexbox layout engine</Description>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
+    <ProjectReference Include="..\Lumi.Styling\Lumi.Styling.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Yoga-CS" Version="1.0.0" />
+  </ItemGroup>
+
+</Project>

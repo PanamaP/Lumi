@@ -1,0 +1,127 @@
+<div class="app">
+  <header class="header" role="banner">
+    <h1 class="logo">Lumi</h1>
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+      <span class="nav-link active">Home</span>
+      <span class="nav-link">About</span>
+      <span class="nav-link">Docs</span>
+    </nav>
+  </header>
+
+  <main class="main" role="main">
+    <div class="hero">
+      <h1 class="hero-title">Hello, Lumi!</h1>
+      <p class="hero-subtitle">A native C# GUI framework powered by HTML, CSS, and Skia.</p>
+
+      <div class="cards">
+        <div class="card" id="card-html">
+          <h2 class="card-title">HTML Templates</h2>
+          <p class="card-text">Write your UI in familiar HTML markup.</p>
+        </div>
+        <div class="card" id="card-css">
+          <h2 class="card-title">CSS Styling</h2>
+          <p class="card-text">Style with real CSS — cascade, specificity, and all.</p>
+        </div>
+        <div class="card" id="card-native">
+          <h2 class="card-title">Native Rendering</h2>
+          <p class="card-text">No browser. No Electron. Pure Skia pixels.</p>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-row">
+          <div class="demo-card" id="counter-card">
+            <h2 class="demo-title">Counter</h2>
+            <span class="counter-value" id="counter-value">0</span>
+            <div class="btn-row">
+              <button class="btn" id="btn-decrement" role="button" aria-label="Decrement counter">-</button>
+              <button class="btn btn-primary" id="btn-increment" role="button" aria-label="Increment counter">+</button>
+            </div>
+          </div>
+
+          <div class="demo-card" id="progress-card">
+            <h2 class="demo-title">Animation</h2>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span class="progress-label" id="progress-label">0%</span>
+          </div>
+
+          <div class="demo-card" id="theme-card">
+            <h2 class="demo-title">Theme</h2>
+            <span class="theme-label" id="theme-label">Dark Mode</span>
+            <button class="btn btn-toggle" id="btn-theme" role="button" aria-label="Toggle theme">Toggle Theme</button>
+          </div>
+        </div>
+
+        <div class="demo-row" id="text-demo-row">
+          <div class="demo-card text-card">
+            <h2 class="demo-title">Text Wrapping</h2>
+            <p class="wrapped-text">This is a paragraph that demonstrates automatic word wrapping in the Lumi framework. Long text will flow naturally across multiple lines.</p>
+          </div>
+
+          <div class="demo-card text-card">
+            <h2 class="demo-title">Decorations</h2>
+            <span class="text-underline">Underlined text</span>
+            <span class="text-strike">Strikethrough text</span>
+            <span class="text-uppercase">uppercase transform</span>
+            <span class="text-capitalize">capitalize each word</span>
+          </div>
+
+          <div class="demo-card text-card">
+            <h2 class="demo-title ellipsis-title">Overflow &amp; Ellipsis</h2>
+            <p class="ellipsis-text">This text is too long to fit in the available space so it gets truncated with an ellipsis character at the end.</p>
+          </div>
+        </div>
+
+        <div class="demo-row" id="component-demo-row">
+          <div class="demo-card wide-card" id="components-card">
+            <h2 class="demo-title">Components</h2>
+            <div id="component-host" class="component-host"></div>
+          </div>
+
+          <div class="demo-card wide-card" id="scroll-card">
+            <h2 class="demo-title">Scroll</h2>
+            <div class="scroll-container" id="scroll-list"></div>
+          </div>
+
+          <div class="demo-card" id="dialog-card">
+            <h2 class="demo-title">Dialog</h2>
+            <button class="btn btn-primary" id="btn-dialog" role="button" aria-label="Open dialog">Open Dialog</button>
+          </div>
+        </div>
+
+        <div class="demo-row" id="css-features-row">
+          <div class="demo-card dashed-card" id="border-dashed-card">
+            <h2 class="demo-title">Dashed Border</h2>
+            <span class="feature-text">border-style: dashed</span>
+          </div>
+
+          <div class="demo-card dotted-card" id="border-dotted-card">
+            <h2 class="demo-title">Dotted Border</h2>
+            <span class="feature-text">border-style: dotted</span>
+          </div>
+
+          <div class="demo-card pill-card" id="pill-card">
+            <h2 class="demo-title">Asymmetric Radius</h2>
+            <span class="feature-text">border-radius: 32px 4px</span>
+          </div>
+
+          <div class="demo-card gap-card" id="gap-card">
+            <h2 class="demo-title">Gap Layout</h2>
+            <div class="gap-demo">
+              <div class="gap-box"></div>
+              <div class="gap-box"></div>
+              <div class="gap-box"></div>
+              <div class="gap-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <span class="footer-text" id="fps-text">Press F12 for Inspector | Built with Lumi</span>
+  </footer>
+</div>
