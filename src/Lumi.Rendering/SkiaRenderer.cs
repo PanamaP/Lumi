@@ -464,8 +464,15 @@ public class SkiaRenderer : IDisposable
     {
         string text = ApplyTextTransform(textElement.Text, style.TextTransform);
 
-        // Use multi-line text layout
-        var layout = TextLayout.Layout(text, width, height, style);
+        // Account for padding — text content is drawn inside the padding area
+        float padL = style.Padding.Left, padT = style.Padding.Top;
+        float padR = style.Padding.Right, padB = style.Padding.Bottom;
+        float contentW = width - padL - padR;
+        float contentH = height - padT - padB;
+        if (contentW <= 0) contentW = width;
+        if (contentH <= 0) contentH = height;
+
+        var layout = TextLayout.Layout(text, contentW, contentH, style);
         if (layout.Lines.Count == 0) return;
 
         using var textPaint = new SKPaint
@@ -478,12 +485,15 @@ public class SkiaRenderer : IDisposable
             style.FontFamily, style.FontSize, style.FontWeight,
             style.FontStyle == FontStyle.Italic);
 
+        // Offset all text drawing by padding
+        int textSave = canvas.Save();
+        canvas.Translate(padL, padT);
+
         // Draw each line
         foreach (var line in layout.Lines)
         {
             if (style.LetterSpacing != 0)
             {
-                // Draw character by character with spacing offset
                 DrawTextWithLetterSpacing(canvas, line, style.LetterSpacing, font, textPaint);
             }
             else
@@ -497,6 +507,8 @@ public class SkiaRenderer : IDisposable
         {
             DrawTextDecoration(canvas, layout, style, font, textPaint);
         }
+
+        canvas.RestoreToCount(textSave);
     }
 
     private static void DrawTextWithLetterSpacing(SKCanvas canvas, TextLine line, float spacing, SKFont font, SKPaint paint)
