@@ -85,7 +85,7 @@ public static class HtmlTemplateParser
         // Map classes
         var classAttr = htmlElement.GetAttribute("class");
         if (!string.IsNullOrEmpty(classAttr))
-            element.Classes = classAttr.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            element.Classes = new ClassList(classAttr.Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
         // Map inline style
         var style = htmlElement.GetAttribute("style");

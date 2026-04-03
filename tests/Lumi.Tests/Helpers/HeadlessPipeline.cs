@@ -19,6 +19,8 @@ public sealed class HeadlessPipeline : IDisposable
     public int Width { get; }
     public int Height { get; }
 
+    private readonly ElementIndex _index = new();
+
     private SKBitmap? _readBitmap;
 
     public HeadlessPipeline(int width = 800, int height = 600)
@@ -55,6 +57,7 @@ public sealed class HeadlessPipeline : IDisposable
     public void Load(string html, string css)
     {
         Root = HtmlTemplateParser.Parse(html);
+        _index.AttachTo(Root);
         StyleResolver.AddStyleSheet(CssParser.Parse(css));
     }
 
@@ -135,19 +138,14 @@ public sealed class HeadlessPipeline : IDisposable
     }
 
     /// <summary>
-    /// Find an element by ID in the tree.
+    /// Find an element by ID in the tree. O(1) indexed lookup.
     /// </summary>
-    public Element? FindById(string id) => FindById(Root, id);
+    public Element? FindById(string id) => _index.FindById(id);
 
     /// <summary>
-    /// Find all elements with a given class.
+    /// Find all elements with a given class. O(1) indexed lookup.
     /// </summary>
-    public List<Element> FindByClass(string className)
-    {
-        var results = new List<Element>();
-        FindByClass(Root, className, results);
-        return results;
-    }
+    public List<Element> FindByClass(string className) => _index.FindByClass(className);
 
     /// <summary>
     /// Get the LayoutBox of an element found by ID.
@@ -193,23 +191,6 @@ public sealed class HeadlessPipeline : IDisposable
         }
 
         return (0, 0);
-    }
-
-    private static Element? FindById(Element element, string id)
-    {
-        if (element.Id == id) return element;
-        foreach (var child in element.Children)
-        {
-            var found = FindById(child, id);
-            if (found != null) return found;
-        }
-        return null;
-    }
-
-    private static void FindByClass(Element element, string className, List<Element> results)
-    {
-        if (element.Classes.Contains(className)) results.Add(element);
-        foreach (var child in element.Children) FindByClass(child, className, results);
     }
 
     public void Dispose()

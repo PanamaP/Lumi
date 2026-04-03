@@ -30,7 +30,21 @@ public class Window
     /// </summary>
     public bool EnableHotReload { get; set; } = false;
 
-    public Element Root { get; internal set; } = new BoxElement("body");
+    private Element _root = new BoxElement("body");
+    private readonly ElementIndex _index = new();
+    private bool _indexAttached;
+
+    public Element Root
+    {
+        get => _root;
+        internal set
+        {
+            _root = value;
+            _index.AttachTo(_root);
+            _indexAttached = true;
+        }
+    }
+
     public StyleResolver StyleResolver { get; } = new();
     internal YogaLayoutEngine LayoutEngine { get; } = new();
 
@@ -104,36 +118,29 @@ public class Window
     public virtual void OnUpdate() { }
 
     /// <summary>
-    /// Find an element by its ID.
+    /// Find an element by its ID. O(1) indexed lookup.
     /// </summary>
-    public Element? FindById(string id) => FindById(Root, id);
+    public Element? FindById(string id)
+    {
+        EnsureIndexAttached();
+        return _index.FindById(id);
+    }
 
     /// <summary>
-    /// Find all elements with the given CSS class.
+    /// Find all elements with the given CSS class. O(1) indexed lookup.
     /// </summary>
     public List<Element> FindByClass(string className)
     {
-        var results = new List<Element>();
-        FindByClass(Root, className, results);
-        return results;
+        EnsureIndexAttached();
+        return _index.FindByClass(className);
     }
 
-    private static Element? FindById(Element element, string id)
+    private void EnsureIndexAttached()
     {
-        if (element.Id == id) return element;
-        foreach (var child in element.Children)
+        if (!_indexAttached)
         {
-            var found = FindById(child, id);
-            if (found != null) return found;
+            _index.AttachTo(_root);
+            _indexAttached = true;
         }
-        return null;
-    }
-
-    private static void FindByClass(Element element, string className, List<Element> results)
-    {
-        if (element.Classes.Contains(className))
-            results.Add(element);
-        foreach (var child in element.Children)
-            FindByClass(child, className, results);
     }
 }

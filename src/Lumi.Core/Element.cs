@@ -54,9 +54,55 @@ public sealed class DirtyRegionTracker
 /// </summary>
 public abstract class Element
 {
-    public string? Id { get; set; }
-    public List<string> Classes { get; set; } = [];
+    private string? _id;
+    public string? Id
+    {
+        get => _id;
+        set
+        {
+            var old = _id;
+            _id = value;
+            _index?.OnIdChanged(this, old, value);
+        }
+    }
+
+    private ClassList _classes;
+    public ClassList Classes
+    {
+        get => _classes;
+        set
+        {
+            if (_classes == value) return;
+            // Unregister old classes from index
+            if (_index != null)
+            {
+                foreach (var cls in _classes)
+                    _index.OnClassRemoved(this, cls);
+            }
+            _classes.Owner = null;
+            _classes = value ?? new ClassList();
+            _classes.Owner = this;
+            // Register new classes with index
+            if (_index != null)
+            {
+                foreach (var cls in _classes)
+                    _index.OnClassAdded(this, cls);
+            }
+        }
+    }
+
     public Element? Parent { get; internal set; }
+
+    /// <summary>
+    /// Internal reference to the element index for O(1) lookups.
+    /// Set by ElementIndex when this element is part of an indexed tree.
+    /// </summary>
+    internal ElementIndex? _index;
+
+    protected Element()
+    {
+        _classes = new ClassList { Owner = this };
+    }
 
     private readonly List<Element> _children = [];
     public IReadOnlyList<Element> Children => _children;
@@ -134,6 +180,7 @@ public abstract class Element
     {
         child.Parent = this;
         _children.Add(child);
+        _index?.Register(child);
         MarkDirty();
     }
 
@@ -141,6 +188,7 @@ public abstract class Element
     {
         if (_children.Remove(child))
         {
+            _index?.Unregister(child);
             child.Parent = null;
             MarkDirty();
         }
@@ -150,13 +198,17 @@ public abstract class Element
     {
         child.Parent = this;
         _children.Insert(index, child);
+        _index?.Register(child);
         MarkDirty();
     }
 
     public void ClearChildren()
     {
         foreach (var child in _children)
+        {
+            _index?.Unregister(child);
             child.Parent = null;
+        }
         _children.Clear();
         MarkDirty();
     }
