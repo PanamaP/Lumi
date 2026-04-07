@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>Lumi.Text</PackageId>
-    <Description>Lumi GUI Framework - Text measurement and shaping via HarfBuzz and SkiaSharp</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

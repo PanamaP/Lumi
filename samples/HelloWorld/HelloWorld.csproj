@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Lumi\Lumi.csproj" />
+    <ProjectReference Include="..\..\src\Lumi.Core\Lumi.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -16,7 +16,7 @@ public unsafe class Sdl3RenderTarget : IDisposable
 
     public Sdl3RenderTarget(SDL_Renderer* renderer)
     {
-        ArgumentNullException.ThrowIfNull((IntPtr)renderer, nameof(renderer));
+        if (renderer == null) throw new ArgumentNullException(nameof(renderer));
         _renderer = renderer;
     }
 

@@ -40,6 +40,7 @@ public class SystemPreferences
         }
     }
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private void DetectWindows()
     {
         // Dark mode: AppsUseLightTheme = 0 means dark mode

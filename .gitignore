@@ -3,6 +3,11 @@ bin/
 obj/
 out/
 
+# NuGet packages
+nupkgs/
+nugpkgs/
+*.nupkg
+
 # IDE
 .idea/
 .vs/
