@@ -117,7 +117,8 @@ public sealed class LumiApp : IDisposable
             // Stay active (poll) if: something is dirty, we rendered last frame
             // (OnUpdate may re-dirty for animations), or tweens/transitions are running.
             bool stayActive = _app.IsDirty || _inspector.IsEnabled || _wasActiveLastFrame
-                || AnimationExtensions.GlobalTweenEngine.ActiveCount > 0;
+                || AnimationExtensions.GlobalTweenEngine.ActiveCount > 0
+                || _window.StyleResolver.KeyframePlayer.ActiveCount > 0;
             var events = stayActive
                 ? _platformWindow.PollEvents()
                 : _platformWindow.WaitForEvents();
@@ -146,6 +147,7 @@ public sealed class LumiApp : IDisposable
             _app.Update();
             _transitionManager.Update(_frameClock.DeltaTime);
             AnimationExtensions.GlobalTweenEngine.Update((float)_frameClock.DeltaTime);
+            _window.StyleResolver.KeyframePlayer.Update((float)_frameClock.DeltaTime);
             _frameMetrics.RecordUpdate();
 
             bool needsRepaint = _app.IsDirty || _inspector.IsEnabled;

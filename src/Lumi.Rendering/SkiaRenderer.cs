@@ -249,7 +249,7 @@ public class SkiaRenderer : IDisposable
             float w0 = box.Width;
             float h0 = box.Height;
             float originX = style.TransformOriginX / 100f * w0;
-            float originY = style.TransformOriginY / 100f * w0;
+            float originY = style.TransformOriginY / 100f * h0;
 
             canvas.Translate(originX, originY);
             canvas.Translate(transform.TranslateX, transform.TranslateY);

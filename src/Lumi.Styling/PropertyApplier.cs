@@ -1,5 +1,6 @@
 using System.Globalization;
 using Lumi.Core;
+using Lumi.Core.Animation;
 
 namespace Lumi.Styling;
 
@@ -401,11 +402,23 @@ public static class PropertyApplier
             case "animation-duration":
                 style.AnimationDuration = ParseDuration(value);
                 break;
+            case "animation-delay":
+                style.AnimationDelay = ParseDuration(value);
+                break;
             case "animation-iteration-count":
                 style.AnimationIterationCount = value == "infinite" ? -1 : (int)ParseFloat(value, 1);
                 break;
             case "animation-direction":
-                style.AnimationDirection = value;
+                style.AnimationDirection = ParseAnimationDirection(value);
+                break;
+            case "animation-fill-mode":
+                style.AnimationFillMode = ParseAnimationFillMode(value);
+                break;
+            case "animation-timing-function":
+                style.AnimationTimingFunction = value;
+                break;
+            case "animation":
+                ParseAnimationShorthand(style, value);
                 break;
 
             // --- Box shadow ---
@@ -1173,4 +1186,76 @@ public static class PropertyApplier
         _ when value.EndsWith('%') => ParseFloat(value[..^1], 50),
         _ => ParseLengthOrZero(value) // absolute px value
     };
+
+    private static AnimationDirection ParseAnimationDirection(string value) => value.Trim().ToLowerInvariant() switch
+    {
+        "reverse" => AnimationDirection.Reverse,
+        "alternate" => AnimationDirection.Alternate,
+        "alternate-reverse" => AnimationDirection.AlternateReverse,
+        _ => AnimationDirection.Normal
+    };
+
+    private static AnimationFillMode ParseAnimationFillMode(string value) => value.Trim().ToLowerInvariant() switch
+    {
+        "forwards" => AnimationFillMode.Forwards,
+        "backwards" => AnimationFillMode.Backwards,
+        "both" => AnimationFillMode.Both,
+        _ => AnimationFillMode.None
+    };
+
+    /// <summary>
+    /// Parse `animation: name duration timing-function delay iteration-count direction fill-mode`
+    /// e.g. `animation: spin 1s ease-in-out infinite` or `animation: fadeIn 0.3s`
+    /// </summary>
+    internal static void ParseAnimationShorthand(ComputedStyle style, string value)
+    {
+        if (value is "none" or "initial" or "inherit")
+        {
+            style.AnimationName = null;
+            return;
+        }
+
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        bool durationSet = false;
+
+        foreach (var part in parts)
+        {
+            var p = part.Trim();
+
+            // Duration or delay (first time value = duration, second = delay)
+            if (p.EndsWith('s') && float.TryParse(p.EndsWith("ms", StringComparison.Ordinal) ? p[..^2] : p[..^1],
+                NumberStyles.Float, CultureInfo.InvariantCulture, out _))
+            {
+                if (!durationSet)
+                {
+                    style.AnimationDuration = ParseDuration(p);
+                    durationSet = true;
+                }
+                else
+                {
+                    style.AnimationDelay = ParseDuration(p);
+                }
+                continue;
+            }
+
+            // Iteration count
+            if (p == "infinite") { style.AnimationIterationCount = -1; continue; }
+            if (int.TryParse(p, out int ic) && ic >= 0) { style.AnimationIterationCount = ic; continue; }
+
+            // Direction
+            if (p is "normal" or "reverse" or "alternate" or "alternate-reverse")
+            { style.AnimationDirection = ParseAnimationDirection(p); continue; }
+
+            // Fill mode
+            if (p is "forwards" or "backwards" or "both")
+            { style.AnimationFillMode = ParseAnimationFillMode(p); continue; }
+
+            // Timing function
+            if (p is "ease" or "ease-in" or "ease-out" or "ease-in-out" or "linear" or "step-start" or "step-end")
+            { style.AnimationTimingFunction = p; continue; }
+
+            // Anything else is the animation name
+            style.AnimationName = p;
+        }
+    }
 }

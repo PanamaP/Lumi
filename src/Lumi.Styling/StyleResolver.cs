@@ -1,4 +1,5 @@
 using Lumi.Core;
+using Lumi.Core.Animation;
 using Element = Lumi.Core.Element;
 
 namespace Lumi.Styling;
@@ -25,6 +26,14 @@ public class StyleResolver
     private float _viewportWidth;
     private float _viewportHeight;
 
+    // Tracks which elements already have their CSS animation playing
+    private readonly HashSet<Element> _animatingElements = new();
+
+    /// <summary>
+    /// The keyframe player used to auto-play CSS @keyframes animations.
+    /// </summary>
+    public KeyframePlayer KeyframePlayer { get; } = new();
+
     /// <summary>
     /// Sets the viewport dimensions used for @media query evaluation.
     /// Call once per frame before ResolveStyles().
@@ -42,6 +51,7 @@ public class StyleResolver
     public void AddStyleSheet(ParsedStyleSheet sheet)
     {
         _styleSheets.Add(sheet);
+        RegisterKeyframes(sheet);
         _stylesheetVersion++;
     }
 
@@ -54,6 +64,7 @@ public class StyleResolver
     public void ClearStyleSheets()
     {
         _styleSheets.Clear();
+        _animatingElements.Clear();
         _stylesheetVersion++;
     }
 
@@ -116,7 +127,17 @@ public class StyleResolver
         // 6. Apply resolved values onto the element's existing ComputedStyle
         ApplyToComputedStyle(element.ComputedStyle, _tempStyle);
 
-        // 7. Recurse into children
+        // 7. Auto-play @keyframes animation if animation-name is set
+        if (!string.IsNullOrEmpty(element.ComputedStyle.AnimationName) && _animatingElements.Add(element))
+        {
+            var cs = element.ComputedStyle;
+            KeyframePlayer.Play(element, cs.AnimationName,
+                cs.AnimationDuration > 0 ? cs.AnimationDuration : 0.3f,
+                cs.AnimationIterationCount,
+                cs.AnimationDirection);
+        }
+
+        // 8. Recurse into children
         foreach (var child in element.Children)
         {
             ResolveElement(child, element.ComputedStyle, pseudoState);
@@ -281,6 +302,15 @@ public class StyleResolver
         target.TransitionProperty = source.TransitionProperty;
         target.TransitionDuration = source.TransitionDuration;
 
+        // Animation
+        target.AnimationName = source.AnimationName;
+        target.AnimationDuration = source.AnimationDuration;
+        target.AnimationDelay = source.AnimationDelay;
+        target.AnimationIterationCount = source.AnimationIterationCount;
+        target.AnimationDirection = source.AnimationDirection;
+        target.AnimationFillMode = source.AnimationFillMode;
+        target.AnimationTimingFunction = source.AnimationTimingFunction;
+
         // Pointer events
         target.PointerEvents = source.PointerEvents;
 
@@ -288,5 +318,25 @@ public class StyleResolver
         target.Transform = source.Transform;
         target.TransformOriginX = source.TransformOriginX;
         target.TransformOriginY = source.TransformOriginY;
+    }
+
+    /// <summary>
+    /// Converts parsed @keyframes blocks from a stylesheet and registers them
+    /// with the KeyframePlayer for auto-play.
+    /// </summary>
+    private void RegisterKeyframes(ParsedStyleSheet sheet)
+    {
+        foreach (var (name, parsed) in sheet.Keyframes)
+        {
+            var animation = new KeyframeAnimation { Name = name };
+            foreach (var frame in parsed.Frames)
+            {
+                var props = new Dictionary<string, string>();
+                foreach (var decl in frame.Declarations)
+                    props[decl.Property] = decl.Value;
+                animation.Keyframes.Add(new Keyframe(frame.Percent, props));
+            }
+            KeyframePlayer.Register(animation);
+        }
     }
 }

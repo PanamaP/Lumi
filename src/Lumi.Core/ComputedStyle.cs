@@ -1,3 +1,5 @@
+using Lumi.Core.Animation;
+
 namespace Lumi.Core;
 
 /// <summary>
@@ -83,8 +85,11 @@ public class ComputedStyle
     // Animation
     public string? AnimationName { get; set; }
     public float AnimationDuration { get; set; } = 0;
+    public float AnimationDelay { get; set; } = 0;
     public int AnimationIterationCount { get; set; } = 1;
-    public string? AnimationDirection { get; set; }
+    public AnimationDirection AnimationDirection { get; set; } = AnimationDirection.Normal;
+    public AnimationFillMode AnimationFillMode { get; set; } = AnimationFillMode.None;
+    public string? AnimationTimingFunction { get; set; }
 
     // Pointer events
     public bool PointerEvents { get; set; } = true;
@@ -164,8 +169,11 @@ public class ComputedStyle
 
         AnimationName = null;
         AnimationDuration = 0;
+        AnimationDelay = 0;
         AnimationIterationCount = 1;
-        AnimationDirection = null;
+        AnimationDirection = AnimationDirection.Normal;
+        AnimationFillMode = AnimationFillMode.None;
+        AnimationTimingFunction = null;
 
         PointerEvents = true;
 
