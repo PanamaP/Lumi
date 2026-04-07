@@ -89,6 +89,11 @@ public class ComputedStyle
     // Pointer events
     public bool PointerEvents { get; set; } = true;
 
+    // Transform
+    public CssTransform Transform { get; set; } = CssTransform.Identity;
+    public float TransformOriginX { get; set; } = 50; // percentage
+    public float TransformOriginY { get; set; } = 50; // percentage
+
     /// <summary>
     /// Reset all properties to their default values. Used by pooled style resolution
     /// to avoid allocating new ComputedStyle instances every frame.
@@ -163,6 +168,10 @@ public class ComputedStyle
         AnimationDirection = null;
 
         PointerEvents = true;
+
+        Transform = CssTransform.Identity;
+        TransformOriginX = 50;
+        TransformOriginY = 50;
     }
 }
 
@@ -242,4 +251,19 @@ public enum BorderStyle
     Dashed,
     Dotted,
     Double
+}
+
+/// <summary>
+/// 2D CSS transform: translate, scale, rotate, skew.
+/// </summary>
+public record struct CssTransform(
+    float TranslateX, float TranslateY,
+    float ScaleX, float ScaleY,
+    float Rotate,
+    float SkewX, float SkewY)
+{
+    public static readonly CssTransform Identity = new(0, 0, 1, 1, 0, 0, 0);
+    public bool IsIdentity => TranslateX == 0 && TranslateY == 0 &&
+                              ScaleX == 1 && ScaleY == 1 &&
+                              Rotate == 0 && SkewX == 0 && SkewY == 0;
 }

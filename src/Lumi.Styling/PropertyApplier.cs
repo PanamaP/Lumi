@@ -431,6 +431,14 @@ public static class PropertyApplier
             case "font":
                 ParseFontShorthand(style, value);
                 break;
+
+            // --- Transform ---
+            case "transform":
+                style.Transform = ParseTransform(value);
+                break;
+            case "transform-origin":
+                ParseTransformOrigin(style, value);
+                break;
         }
     }
 
@@ -1058,4 +1066,111 @@ public static class PropertyApplier
 
         return tokens;
     }
+
+    // ── Transform parsers ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Parse CSS transform: "translate(10px, 20px) scale(1.5) rotate(45deg) skew(10deg, 5deg)"
+    /// </summary>
+    internal static CssTransform ParseTransform(string value)
+    {
+        if (value is "none" or "initial")
+            return CssTransform.Identity;
+
+        float tx = 0, ty = 0, sx = 1, sy = 1, rot = 0, skx = 0, sky = 0;
+
+        int i = 0;
+        while (i < value.Length)
+        {
+            // Skip whitespace
+            while (i < value.Length && value[i] == ' ') i++;
+            if (i >= value.Length) break;
+
+            // Find function name
+            int nameStart = i;
+            while (i < value.Length && value[i] != '(') i++;
+            if (i >= value.Length) break;
+            string funcName = value[nameStart..i].Trim().ToLowerInvariant();
+            i++; // skip '('
+
+            // Find closing paren
+            int parenEnd = value.IndexOf(')', i);
+            if (parenEnd < 0) break;
+            string args = value[i..parenEnd].Trim();
+            i = parenEnd + 1;
+
+            var parts = args.Split(',', StringSplitOptions.TrimEntries);
+
+            switch (funcName)
+            {
+                case "translate":
+                    tx += ParseLengthOrZero(parts[0]);
+                    if (parts.Length > 1) ty += ParseLengthOrZero(parts[1]);
+                    break;
+                case "translatex":
+                    tx += ParseLengthOrZero(parts[0]);
+                    break;
+                case "translatey":
+                    ty += ParseLengthOrZero(parts[0]);
+                    break;
+                case "scale":
+                    float s1 = ParseFloat(parts[0], 1);
+                    float s2 = parts.Length > 1 ? ParseFloat(parts[1], s1) : s1;
+                    sx *= s1;
+                    sy *= s2;
+                    break;
+                case "scalex":
+                    sx *= ParseFloat(parts[0], 1);
+                    break;
+                case "scaley":
+                    sy *= ParseFloat(parts[0], 1);
+                    break;
+                case "rotate":
+                    rot += ParseAngle(parts[0]);
+                    break;
+                case "skew":
+                    skx += ParseAngle(parts[0]);
+                    if (parts.Length > 1) sky += ParseAngle(parts[1]);
+                    break;
+                case "skewx":
+                    skx += ParseAngle(parts[0]);
+                    break;
+                case "skewy":
+                    sky += ParseAngle(parts[0]);
+                    break;
+            }
+        }
+
+        return new CssTransform(tx, ty, sx, sy, rot, skx, sky);
+    }
+
+    private static float ParseAngle(string value)
+    {
+        value = value.Trim();
+        if (value.EndsWith("deg", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^3], 0);
+        if (value.EndsWith("rad", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^3], 0) * (180f / MathF.PI);
+        if (value.EndsWith("turn", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^4], 0) * 360f;
+        return ParseFloat(value, 0); // assume degrees
+    }
+
+    private static void ParseTransformOrigin(ComputedStyle style, string value)
+    {
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length >= 1)
+            style.TransformOriginX = ParseOriginComponent(parts[0]);
+        if (parts.Length >= 2)
+            style.TransformOriginY = ParseOriginComponent(parts[1]);
+    }
+
+    private static float ParseOriginComponent(string value) => value.ToLowerInvariant() switch
+    {
+        "left" or "top" => 0,
+        "center" => 50,
+        "right" or "bottom" => 100,
+        _ when value.EndsWith('%') => ParseFloat(value[..^1], 50),
+        _ => ParseLengthOrZero(value) // absolute px value
+    };
 }

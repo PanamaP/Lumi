@@ -283,5 +283,10 @@ public class StyleResolver
 
         // Pointer events
         target.PointerEvents = source.PointerEvents;
+
+        // Transform
+        target.Transform = source.Transform;
+        target.TransformOriginX = source.TransformOriginX;
+        target.TransformOriginY = source.TransformOriginY;
     }
 }
