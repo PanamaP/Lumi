@@ -14,6 +14,8 @@ public class BoxElement : Element
         if (tagName is "button" or "a")
             IsFocusable = true;
     }
+
+    protected override Element CreateCloneInstance() => new BoxElement(_tagName);
 }
 
 /// <summary>
@@ -26,6 +28,15 @@ public class TextElement : Element
 
     public TextElement() { }
     public TextElement(string text) => Text = text;
+
+    protected override Element CreateCloneInstance() => new TextElement();
+
+    public override Element DeepClone()
+    {
+        var clone = (TextElement)base.DeepClone();
+        clone.Text = Text;
+        return clone;
+    }
 }
 
 /// <summary>
@@ -37,6 +48,17 @@ public class ImageElement : Element
     public string? Source { get; set; }
     public float NaturalWidth { get; set; }
     public float NaturalHeight { get; set; }
+
+    protected override Element CreateCloneInstance() => new ImageElement();
+
+    public override Element DeepClone()
+    {
+        var clone = (ImageElement)base.DeepClone();
+        clone.Source = Source;
+        clone.NaturalWidth = NaturalWidth;
+        clone.NaturalHeight = NaturalHeight;
+        return clone;
+    }
 }
 
 /// <summary>
@@ -71,5 +93,18 @@ public class InputElement : Element
     public InputElement()
     {
         IsFocusable = true;
+    }
+
+    protected override Element CreateCloneInstance() => new InputElement();
+
+    public override Element DeepClone()
+    {
+        var clone = (InputElement)base.DeepClone();
+        clone.InputType = InputType;
+        clone._value = _value;
+        clone.Placeholder = Placeholder;
+        clone.IsDisabled = IsDisabled;
+        clone.IsChecked = IsChecked;
+        return clone;
     }
 }
