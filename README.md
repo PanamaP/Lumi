@@ -178,6 +178,20 @@ dotnet build Lumi.slnx
 dotnet run --project samples/HelloWorld
 ```
 
+## 🚢 Publishing
+
+Lumi uses GitHub Actions for CI/CD:
+
+- **CI** — Every push and PR runs build + tests automatically
+- **Publish** — Tag a release to publish NuGet packages:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+This triggers the publish workflow which packs and pushes both `Lumi` and `Lumi.Templates` to NuGet. Requires a `NUGET_API_KEY` secret configured in the repository settings.
+
 ### Keyboard Shortcuts (at runtime)
 
 | Key | Action |

@@ -11,5 +11,11 @@ public class MainWindow : Window
         var dir = AppContext.BaseDirectory;
         LoadTemplate(Path.Combine(dir, "MainWindow.html"));
         LoadStyleSheet(Path.Combine(dir, "MainWindow.css"));
+        
+        // Hot reload watches the SOURCE files you edit, not the bin/ copies
+        var sourceDir = GetSourceDirectory();
+        HtmlPath = Path.Combine(sourceDir, "MainWindow.html");
+        CssPath = Path.Combine(sourceDir, "MainWindow.css");
+        EnableHotReload = true;
     }
 }
