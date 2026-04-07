@@ -9,7 +9,7 @@ Lumi lets you write desktop UI with the languages you already know — HTML for 
 ## ✨ Features
 
 - **HTML Templates** — Define your UI structure using standard HTML markup
-- **CSS Styling** — Full cascade, specificity, inheritance, 89+ CSS properties, CSS variables (`var()`)
+- **CSS Styling** — Full cascade, specificity, inheritance, 86 CSS properties, CSS variables (`var()`)
 - **Native Rendering** — SkiaSharp paints every pixel; no browser, no WebView
 - **Flexbox Layout** — Facebook Yoga powers the layout engine (flex-direction, wrapping, gap, alignment)
 - **SDL3 Windowing** — Cross-platform window management and input handling
@@ -115,7 +115,7 @@ Lumi (umbrella)
 ├── Lumi.Rendering   — SkiaSharp 2D painting
 ├── Lumi.Input       — Hit testing and interaction state
 ├── Lumi.Platform    — SDL3 windowing and input translation
-└── Lumi.Text        — (future) HarfBuzz text shaping
+└── Lumi.Text        — HarfBuzz text shaping (implemented, integration in progress)
 ```
 
 ### Render Pipeline
@@ -148,12 +148,12 @@ src/
   Lumi.Rendering/               SkiaRenderer
   Lumi.Input/                   HitTester, InteractionState
   Lumi.Platform/                Sdl3Window, Sdl3RenderTarget, IPlatformWindow
-  Lumi.Text/                    (stub — future HarfBuzz integration)
+  Lumi.Text/                    HarfBuzz text shaping (implemented, integration in progress)
 samples/
   HelloWorld/                   Feature showcase sample app
   StressTest/                   Performance benchmark suite
 tests/
-  Lumi.Tests/                   285 unit + integration tests
+  Lumi.Tests/                   315 unit + integration tests
 tools/
   ScreenshotTool/               Headless screenshot capture utility
 ```
@@ -162,11 +162,11 @@ tools/
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| [SkiaSharp](https://github.com/mono/SkiaSharp) | 3.119.2 | 2D rendering engine |
+| [SkiaSharp](https://github.com/mono/SkiaSharp) | 3.* | 2D rendering engine |
 | [ppy.SDL3-CS](https://github.com/ppy/SDL3-CS) | 2026.320.0 | Cross-platform windowing & input |
 | [AngleSharp](https://anglesharp.github.io/) | 1.4.0 | HTML5 template parsing |
 | [Yoga-CS](https://www.nuget.org/packages/Yoga-CS) | 1.0.0 | Flexbox layout (Facebook Yoga) |
-| [HarfBuzzSharp](https://github.com/nicklackner/HarfBuzzSharp) | 8.3.1.3 | Text shaping (future) |
+| [HarfBuzzSharp](https://github.com/nicklackner/HarfBuzzSharp) | 8.3.1.3 | Text shaping |
 
 ## 🧪 Running Tests
 
@@ -174,7 +174,7 @@ tools/
 dotnet test Lumi.slnx
 ```
 
-285 tests covering CSS parsing, layout, hit testing, components, binding, and rendering.
+315 tests covering CSS parsing, layout, hit testing, components, binding, rendering, and text shaping.
 
 ## 🔧 Building & Running
 
@@ -205,9 +205,9 @@ dotnet run --project samples/HelloWorld
 | 6. Animations | ✅ Done | Tween engine, easing functions, CSS transitions |
 | 7. Components | ✅ Done | Button, Checkbox, Slider, Dialog, Dropdown, TextBox, List |
 | 8. Developer Tools | ✅ Done | Hot reload, inspector overlay, screenshot capture |
-| 9. Text & Images | 🔲 Planned | HarfBuzz text shaping, image loading |
+| 9. Text & Images | 🔶 In Progress | HarfBuzz text shaping (done), image loading (planned) |
 | 10. Accessibility | 🔲 Planned | UIA on Windows, AT-SPI on Linux |
-| 11. Performance | 🔲 Planned | Dirty subtree tracking, incremental layout |
+| 11. Performance | 🔶 In Progress | VSync frame pacing, live resize, event-driven idle |
 
 ## 📄 License
 
