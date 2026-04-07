@@ -445,8 +445,27 @@ public static class PropertyApplier
     /// </summary>
     private static float ResolveLength(string value, float fontSize, float fallback)
     {
+        // Handle calc() expressions
+        if (value.StartsWith("calc(", StringComparison.OrdinalIgnoreCase) && value.EndsWith(')'))
+        {
+            var expr = value[5..^1].Trim();
+            return CalcExpression.Evaluate(expr, fontSize, _viewportWidth, _viewportHeight, fallback);
+        }
+
         if (value.EndsWith('%'))
             return -ParseFloat(value[..^1], fallback);
+
+        if (value.EndsWith("vmin", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^4], fallback) * Math.Min(_viewportWidth, _viewportHeight) / 100f;
+
+        if (value.EndsWith("vmax", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^4], fallback) * Math.Max(_viewportWidth, _viewportHeight) / 100f;
+
+        if (value.EndsWith("vh", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^2], fallback) * _viewportHeight / 100f;
+
+        if (value.EndsWith("vw", StringComparison.OrdinalIgnoreCase))
+            return ParseFloat(value[..^2], fallback) * _viewportWidth / 100f;
 
         if (value.EndsWith("rem", StringComparison.OrdinalIgnoreCase))
             return ParseFloat(value[..^3], fallback) * RootFontSize;
@@ -496,6 +515,10 @@ public static class PropertyApplier
     // Font size context for resolving em units — set before applying properties
     [ThreadStatic] private static float _currentFontSize;
 
+    // Viewport dimensions for vh/vw units
+    [ThreadStatic] private static float _viewportWidth;
+    [ThreadStatic] private static float _viewportHeight;
+
     /// <summary>
     /// Sets the font-size context used to resolve em units.
     /// Call this before Apply() with the element's inherited/computed font size.
@@ -503,6 +526,16 @@ public static class PropertyApplier
     public static void SetFontSizeContext(float fontSize)
     {
         _currentFontSize = fontSize > 0 ? fontSize : RootFontSize;
+    }
+
+    /// <summary>
+    /// Sets the viewport dimensions used to resolve vh/vw/vmin/vmax units.
+    /// Call once per frame before style resolution.
+    /// </summary>
+    public static void SetViewportContext(float width, float height)
+    {
+        _viewportWidth = width;
+        _viewportHeight = height;
     }
 
     private static string StripUnit(string value)

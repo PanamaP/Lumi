@@ -154,6 +154,9 @@ public sealed class LumiApp : IDisposable
             {
                 var (w, h) = _platformWindow.GetPixelSize();
 
+                // Set viewport context for vh/vw/calc() resolution
+                PropertyApplier.SetViewportContext(w, h);
+
                 _frameMetrics.BeginStage();
                 if (!_resizeOnly)
                 {
