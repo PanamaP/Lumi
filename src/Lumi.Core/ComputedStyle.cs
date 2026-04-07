@@ -205,6 +205,11 @@ public record struct Color(byte R, byte G, byte B, byte A)
                 (byte)(Convert.ToByte(hex[1..2], 16) * 17),
                 (byte)(Convert.ToByte(hex[2..3], 16) * 17),
                 255),
+            4 => new Color(
+                (byte)(Convert.ToByte(hex[..1], 16) * 17),
+                (byte)(Convert.ToByte(hex[1..2], 16) * 17),
+                (byte)(Convert.ToByte(hex[2..3], 16) * 17),
+                (byte)(Convert.ToByte(hex[3..4], 16) * 17)),
             6 => new Color(
                 Convert.ToByte(hex[..2], 16),
                 Convert.ToByte(hex[2..4], 16),

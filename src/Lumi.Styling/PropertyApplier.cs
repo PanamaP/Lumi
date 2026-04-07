@@ -417,6 +417,20 @@ public static class PropertyApplier
             case "background-image":
                 style.BackgroundImage = ParseUrl(value);
                 break;
+
+            // --- Shorthands ---
+            case "border":
+                ParseBorderShorthand(style, value);
+                break;
+            case "flex":
+                ParseFlexShorthand(style, value);
+                break;
+            case "background":
+                ParseBackgroundShorthand(style, value);
+                break;
+            case "font":
+                ParseFontShorthand(style, value);
+                break;
         }
     }
 
@@ -601,28 +615,40 @@ public static class PropertyApplier
             }
         }
 
-        return value switch
+        // Handle hsl(h, s%, l%) and hsla(h, s%, l%, a)
+        if (value.StartsWith("hsl", StringComparison.OrdinalIgnoreCase))
         {
-            "transparent" => Color.Transparent,
-            "black" => Color.Black,
-            "white" => Color.White,
-            "red" => new Color(255, 0, 0, 255),
-            "green" => new Color(0, 128, 0, 255),
-            "blue" => new Color(0, 0, 255, 255),
-            "yellow" => new Color(255, 255, 0, 255),
-            "gray" or "grey" => new Color(128, 128, 128, 255),
-            "orange" => new Color(255, 165, 0, 255),
-            "purple" => new Color(128, 0, 128, 255),
-            "cyan" or "aqua" => new Color(0, 255, 255, 255),
-            "magenta" or "fuchsia" => new Color(255, 0, 255, 255),
-            "lime" => new Color(0, 255, 0, 255),
-            "maroon" => new Color(128, 0, 0, 255),
-            "navy" => new Color(0, 0, 128, 255),
-            "olive" => new Color(128, 128, 0, 255),
-            "teal" => new Color(0, 128, 128, 255),
-            "silver" => new Color(192, 192, 192, 255),
-            _ => Color.Black
-        };
+            var start = value.IndexOf('(');
+            var end = value.LastIndexOf(')');
+            if (start >= 0 && end > start)
+            {
+                var parts = value[(start + 1)..end]
+                    .Split(',', StringSplitOptions.TrimEntries);
+
+                if (parts.Length >= 3
+                    && float.TryParse(parts[0].TrimEnd('°'), NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var h)
+                    && float.TryParse(parts[1].TrimEnd('%'), NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var s)
+                    && float.TryParse(parts[2].TrimEnd('%'), NumberStyles.Float,
+                        CultureInfo.InvariantCulture, out var l))
+                {
+                    byte a = 255;
+                    if (parts.Length >= 4 && float.TryParse(parts[3].TrimEnd('%'), NumberStyles.Float,
+                            CultureInfo.InvariantCulture, out var af))
+                    {
+                        a = (byte)(af <= 1f ? af * 255 : af);
+                    }
+                    return CssColors.FromHsl(h, s / 100f, l / 100f, a);
+                }
+            }
+        }
+
+        // Try all 147 CSS named colors
+        if (CssColors.TryGet(value, out var namedColor))
+            return namedColor;
+
+        return Color.Black;
     }
 
     private static BoxShadow ParseBoxShadow(string value)
@@ -752,5 +778,251 @@ public static class PropertyApplier
         }
 
         return value;
+    }
+
+    // ── Shorthand parsers ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Parse "border: [width] [style] [color]" shorthand.
+    /// Any of the three components may be omitted in any order.
+    /// </summary>
+    private static void ParseBorderShorthand(ComputedStyle style, string value)
+    {
+        if (value is "none" or "initial")
+        {
+            style.BorderWidth = EdgeValues.Zero;
+            style.BorderStyle = BorderStyle.None;
+            return;
+        }
+
+        // Split tokens, but keep rgb()/rgba() together
+        var tokens = SplitCssTokens(value);
+        float? width = null;
+        BorderStyle? parsedStyle = null;
+        string? colorToken = null;
+
+        foreach (var token in tokens)
+        {
+            // Check for border-style keywords first
+            var bs = token switch
+            {
+                "solid" => (BorderStyle?)BorderStyle.Solid,
+                "dashed" => (BorderStyle?)BorderStyle.Dashed,
+                "dotted" => (BorderStyle?)BorderStyle.Dotted,
+                "double" => (BorderStyle?)BorderStyle.Double,
+                "none" => (BorderStyle?)BorderStyle.None,
+                _ => null
+            };
+
+            if (bs.HasValue)
+            {
+                parsedStyle = bs.Value;
+                continue;
+            }
+
+            // Try as a length (width)
+            if (width == null)
+            {
+                var w = ParseLengthOrZero(token);
+                if (w > 0 || token == "0" || token == "0px")
+                {
+                    width = w;
+                    continue;
+                }
+            }
+
+            // Otherwise treat as color
+            colorToken ??= token;
+        }
+
+        if (width.HasValue)
+            style.BorderWidth = new EdgeValues(width.Value);
+        if (parsedStyle.HasValue)
+            style.BorderStyle = parsedStyle.Value;
+        if (colorToken != null)
+            style.BorderColor = ParseColor(colorToken);
+    }
+
+    /// <summary>
+    /// Parse "flex: [grow] [shrink] [basis]" shorthand.
+    /// Supports: flex: none | auto | initial | &lt;number&gt; | &lt;number&gt; &lt;number&gt; | &lt;number&gt; &lt;number&gt; &lt;basis&gt;
+    /// </summary>
+    private static void ParseFlexShorthand(ComputedStyle style, string value)
+    {
+        switch (value)
+        {
+            case "none":
+                style.FlexGrow = 0;
+                style.FlexShrink = 0;
+                style.FlexBasis = float.NaN; // auto
+                return;
+            case "auto":
+                style.FlexGrow = 1;
+                style.FlexShrink = 1;
+                style.FlexBasis = float.NaN; // auto
+                return;
+            case "initial":
+                style.FlexGrow = 0;
+                style.FlexShrink = 1;
+                style.FlexBasis = float.NaN; // auto
+                return;
+        }
+
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            // Single number: flex: <grow> → grow=N, shrink=1, basis=0
+            style.FlexGrow = ParseFloat(parts[0], 0);
+            style.FlexShrink = 1;
+            style.FlexBasis = 0;
+        }
+        else if (parts.Length == 2)
+        {
+            style.FlexGrow = ParseFloat(parts[0], 0);
+            // Second value could be shrink (number) or basis (has unit)
+            if (HasUnit(parts[1]))
+            {
+                style.FlexShrink = 1;
+                style.FlexBasis = ParseLength(parts[1]);
+            }
+            else
+            {
+                style.FlexShrink = ParseFloat(parts[1], 1);
+                style.FlexBasis = 0;
+            }
+        }
+        else if (parts.Length >= 3)
+        {
+            style.FlexGrow = ParseFloat(parts[0], 0);
+            style.FlexShrink = ParseFloat(parts[1], 1);
+            style.FlexBasis = ParseLength(parts[2]);
+        }
+    }
+
+    /// <summary>
+    /// Parse "background: [color] [url] ..." shorthand.
+    /// Currently handles color and url() components only.
+    /// </summary>
+    private static void ParseBackgroundShorthand(ComputedStyle style, string value)
+    {
+        if (value is "none" or "initial")
+        {
+            style.BackgroundColor = Color.Transparent;
+            style.BackgroundImage = null;
+            return;
+        }
+
+        // Extract url() if present
+        int urlStart = value.IndexOf("url(", StringComparison.OrdinalIgnoreCase);
+        if (urlStart >= 0)
+        {
+            int urlEnd = value.IndexOf(')', urlStart);
+            if (urlEnd >= 0)
+            {
+                style.BackgroundImage = ParseUrl(value[urlStart..(urlEnd + 1)]);
+                // Rest is color
+                string rest = (value[..urlStart] + value[(urlEnd + 1)..]).Trim();
+                if (rest.Length > 0)
+                    style.BackgroundColor = ParseColor(rest);
+                return;
+            }
+        }
+
+        // No url() — treat entire value as color
+        style.BackgroundColor = ParseColor(value);
+    }
+
+    /// <summary>
+    /// Parse "font: [style] [weight] size[/line-height] family" shorthand.
+    /// Size and family are required; style and weight are optional.
+    /// </summary>
+    private static void ParseFontShorthand(ComputedStyle style, string value)
+    {
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return;
+
+        int i = 0;
+
+        // Optional font-style
+        if (i < parts.Length && parts[i] is "italic" or "oblique")
+        {
+            style.FontStyle = FontStyle.Italic;
+            i++;
+        }
+        else if (i < parts.Length && parts[i] == "normal")
+        {
+            // "normal" could be style or weight — skip and treat as default
+            i++;
+        }
+
+        // Optional font-weight
+        if (i < parts.Length && IsFontWeight(parts[i]))
+        {
+            style.FontWeight = ParseFontWeight(parts[i]);
+            i++;
+        }
+
+        // Required: font-size (possibly with /line-height)
+        if (i < parts.Length)
+        {
+            string sizePart = parts[i];
+            int slashIdx = sizePart.IndexOf('/');
+            if (slashIdx >= 0)
+            {
+                style.FontSize = ParseLengthOrZero(sizePart[..slashIdx]);
+                style.LineHeight = ParseFloat(sizePart[(slashIdx + 1)..], 1.2f);
+            }
+            else
+            {
+                style.FontSize = ParseLengthOrZero(sizePart);
+            }
+            i++;
+        }
+
+        // Remaining parts: font-family (may contain spaces for multi-word names)
+        if (i < parts.Length)
+        {
+            style.FontFamily = string.Join(' ', parts[i..]).Trim('"', '\'', ' ');
+        }
+    }
+
+    private static bool IsFontWeight(string value) =>
+        value is "bold" or "bolder" or "lighter" or "normal"
+        || (int.TryParse(value, out var w) && w >= 100 && w <= 900);
+
+    private static bool HasUnit(string value) =>
+        value.EndsWith("px", StringComparison.OrdinalIgnoreCase) ||
+        value.EndsWith("em", StringComparison.OrdinalIgnoreCase) ||
+        value.EndsWith("rem", StringComparison.OrdinalIgnoreCase) ||
+        value.EndsWith("pt", StringComparison.OrdinalIgnoreCase) ||
+        value.EndsWith('%') ||
+        value is "auto";
+
+    /// <summary>
+    /// Split CSS value tokens while keeping rgb()/rgba()/hsl()/hsla() together.
+    /// </summary>
+    private static List<string> SplitCssTokens(string value)
+    {
+        var tokens = new List<string>();
+        int start = 0;
+        int depth = 0;
+
+        for (int i = 0; i < value.Length; i++)
+        {
+            char c = value[i];
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (c == ' ' && depth == 0)
+            {
+                if (i > start)
+                    tokens.Add(value[start..i]);
+                start = i + 1;
+            }
+        }
+
+        if (start < value.Length)
+            tokens.Add(value[start..]);
+
+        return tokens;
     }
 }
