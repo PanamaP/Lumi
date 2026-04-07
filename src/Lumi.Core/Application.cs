@@ -58,7 +58,7 @@ public class Application
     /// </summary>
     public void MarkClean()
     {
-        MarkClean(Root);
+        MarkCleanAndSnapshot(Root);
     }
 
     public void RequestStop() => IsRunning = false;
@@ -174,7 +174,7 @@ public class Application
                 RequestStop();
                 break;
             case WindowEventType.Resized:
-                Root.MarkDirty();
+                // Resize is handled by LumiApp.UpdateInteractionState to avoid double MarkDirty
                 break;
         }
     }
@@ -220,11 +220,31 @@ public class Application
         return null;
     }
 
-    private static void MarkClean(Element element)
+    /// <summary>
+    /// Mark all elements clean and snapshot their layout boxes in a single tree walk.
+    /// </summary>
+    private static void MarkCleanAndSnapshot(Element element)
     {
         element.IsDirty = false;
         element.IsLayoutDirty = false;
+
+        // Snapshot current absolute box for next frame's dirty region detection
+        element.PreviousLayoutBox = ComputeAbsoluteBox(element);
+
         foreach (var child in element.Children)
-            MarkClean(child);
+            MarkCleanAndSnapshot(child);
+    }
+
+    private static LayoutBox ComputeAbsoluteBox(Element element)
+    {
+        float x = 0, y = 0;
+        var current = element;
+        while (current != null)
+        {
+            x += current.LayoutBox.X;
+            y += current.LayoutBox.Y;
+            current = current.Parent;
+        }
+        return new LayoutBox(x, y, element.LayoutBox.Width, element.LayoutBox.Height);
     }
 }

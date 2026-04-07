@@ -68,7 +68,8 @@ public enum WindowEventType
     FocusGained,
     FocusLost,
     Shown,
-    Hidden
+    Hidden,
+    Exposed
 }
 
 public enum KeyCode

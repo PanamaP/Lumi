@@ -27,6 +27,9 @@ public sealed class LumiApp : IDisposable
     private HotReload? _hotReload;
     private bool _disposed;
     private bool _useGpuRendering;
+    private bool _resizeOnly;
+    private bool _liveResizeRendered;
+    private bool _wasActiveLastFrame = true;
 
     private LumiApp(Window window)
     {
@@ -91,8 +94,11 @@ public sealed class LumiApp : IDisposable
         _app.Start();
         _app.Root.MarkDirty();
 
+        // Register live resize callback so frames render during the OS modal resize loop
+        _platformWindow.SetLiveResizeCallback(OnLiveResize);
+
         Console.WriteLine($"[Lumi] Target refresh rate: {_frameClock.TargetRefreshRate}Hz " +
-                          $"| GPU: {_useGpuRendering} | VSync: off (FrameClock pacing)");
+                          $"| GPU: {_useGpuRendering} | VSync: adaptive");
 
         // Start hot reload if enabled
         if (_window.EnableHotReload && (_window.HtmlPath != null || _window.CssPath != null))
@@ -107,7 +113,16 @@ public sealed class LumiApp : IDisposable
             _frameMetrics.BeginFrame();
 
             _frameMetrics.BeginStage();
-            var events = _platformWindow.PollEvents();
+            // When idle, block on SDL_WaitEvent for zero CPU usage.
+            // Stay active (poll) if: something is dirty, we rendered last frame
+            // (OnUpdate may re-dirty for animations), or tweens/transitions are running.
+            bool stayActive = _app.IsDirty || _inspector.IsEnabled || _wasActiveLastFrame
+                || AnimationExtensions.GlobalTweenEngine.ActiveCount > 0;
+            var events = stayActive
+                ? _platformWindow.PollEvents()
+                : _platformWindow.WaitForEvents();
+            _resizeOnly = false;
+            _liveResizeRendered = false;
             _app.ProcessInput(events);
             UpdateInteractionState(events);
             _frameMetrics.RecordPoll();
@@ -140,11 +155,14 @@ public sealed class LumiApp : IDisposable
                 var (w, h) = _platformWindow.GetPixelSize();
 
                 _frameMetrics.BeginStage();
-                var pseudoState = new PseudoClassState(
-                    IsHovered: _interaction.HoveredElement != null,
-                    IsFocused: _interaction.FocusedElement != null,
-                    IsActive: _interaction.ActiveElement != null);
-                _window.StyleResolver.ResolveStyles(_window.Root, pseudoState);
+                if (!_resizeOnly)
+                {
+                    var pseudoState = new PseudoClassState(
+                        IsHovered: _interaction.HoveredElement != null,
+                        IsFocused: _interaction.FocusedElement != null,
+                        IsActive: _interaction.ActiveElement != null);
+                    _window.StyleResolver.ResolveStyles(_window.Root, pseudoState);
+                }
                 _frameMetrics.RecordStyle();
 
                 _frameMetrics.BeginStage();
@@ -191,23 +209,52 @@ public sealed class LumiApp : IDisposable
                 }
                 _frameMetrics.RecordPresent();
 
-                // Snapshot current layout boxes for next frame's dirty detection
-                SnapshotLayoutBoxes(_window.Root);
+                // MarkClean also snapshots layout boxes (single tree walk)
                 _app.MarkClean();
             }
 
             _frameMetrics.EndFrame();
+            _wasActiveLastFrame = needsRepaint;
 
-            // Frame pacing via FrameClock (VSync is disabled for maximum control)
-            if (needsRepaint)
-                _frameClock.WaitForNextFrame();
-            else
-                _frameClock.IdleWait();
+            // VSync (via SwapBuffers) handles frame pacing for active frames.
+            // WaitForEvents handles idle frames (blocks until input arrives).
         }
+    }
+
+    /// <summary>
+    /// Called from the SDL event watcher during the OS modal resize loop.
+    /// Performs a minimal render pass so the window content updates live while dragging.
+    /// </summary>
+    private void OnLiveResize(int widthPixels, int heightPixels)
+    {
+        var (w, h) = _platformWindow.GetPixelSize();
+
+        _window.Root.MarkDirty();
+        _window.LayoutEngine.CalculateLayout(_window.Root, w, h);
+
+        _renderer.EnsureSize(w, h);
+        _renderer.Paint(_window.Root);
+
+        if (_useGpuRendering)
+        {
+            _platformWindow.SwapBuffers();
+        }
+        else
+        {
+            _renderTarget.EnsureSize(w, h);
+            _renderTarget.UpdatePixels(_renderer.GetPixels(), _renderer.Pitch);
+            _renderTarget.Present();
+        }
+
+        _app.MarkClean();
+        _liveResizeRendered = true;
     }
 
     private void UpdateInteractionState(List<InputEvent> events)
     {
+        bool hadResize = false;
+        bool wasDirtyBefore = _app.IsDirty;
+
         foreach (var evt in events)
         {
             switch (evt)
@@ -248,9 +295,19 @@ public sealed class LumiApp : IDisposable
                         HandleKeyboardNav(key);
                     break;
                 case WindowEvent { Type: WindowEventType.Resized }:
-                    _window.Root.MarkDirty();
+                case WindowEvent { Type: WindowEventType.Exposed }:
+                    // Coalesce: just record that a resize/expose happened; MarkDirty once after the loop
+                    hadResize = true;
                     break;
             }
+        }
+
+        if (hadResize && !_liveResizeRendered)
+        {
+            _window.Root.MarkDirty();
+            // If the tree was clean before and only resize events dirtied it, skip style resolution
+            if (!wasDirtyBefore)
+                _resizeOnly = true;
         }
     }
 
@@ -386,16 +443,6 @@ public sealed class LumiApp : IDisposable
             current = current.Parent;
         }
         return new LayoutBox(x, y, element.LayoutBox.Width, element.LayoutBox.Height);
-    }
-
-    /// <summary>
-    /// Save current layout boxes as previous for next frame's dirty detection.
-    /// </summary>
-    private static void SnapshotLayoutBoxes(Element element)
-    {
-        element.PreviousLayoutBox = GetAbsoluteBox(element);
-        foreach (var child in element.Children)
-            SnapshotLayoutBoxes(child);
     }
 
     /// <summary>

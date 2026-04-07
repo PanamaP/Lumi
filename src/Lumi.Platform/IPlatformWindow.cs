@@ -26,6 +26,12 @@ public interface IPlatformWindow : IDisposable
     List<InputEvent> PollEvents();
 
     /// <summary>
+    /// Block until at least one event arrives, then drain all pending events.
+    /// Used when idle (nothing dirty) to avoid burning CPU.
+    /// </summary>
+    List<InputEvent> WaitForEvents();
+
+    /// <summary>
     /// Get the native window pointer (for Skia surface creation).
     /// </summary>
     IntPtr NativeHandle { get; }
@@ -57,6 +63,12 @@ public interface IPlatformWindow : IDisposable
     /// Whether an OpenGL context has been created.
     /// </summary>
     bool HasGLContext { get; }
+
+    /// <summary>
+    /// Register a callback for live window resize rendering.
+    /// Called from the OS modal resize loop so the application can repaint at each new size.
+    /// </summary>
+    void SetLiveResizeCallback(Action<int, int> callback);
 
     /// <summary>
     /// OS-level display preferences (dark mode, high contrast).

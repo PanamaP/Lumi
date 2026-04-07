@@ -30,6 +30,9 @@ public unsafe class YogaLayoutEngine : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
+        // Rebuild measure map only for elements that need measurement callbacks.
+        // Clearing and re-populating is necessary because SyncNode re-registers
+        // measure functions, but the map itself is lightweight (only leaf nodes).
         _measureMap.Clear();
         var rootNode = SyncNode(root);
         _rootNodePtr = (IntPtr)rootNode;

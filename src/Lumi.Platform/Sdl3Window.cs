@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Lumi.Core;
 using SDL;
@@ -13,6 +14,10 @@ public unsafe class Sdl3Window : IPlatformWindow
     private bool _isOpen;
     private bool _disposed;
     private int _displayRefreshRate;
+
+    // Live resize: SDL event watcher fires during the OS modal resize loop
+    private static Sdl3Window? _activeInstance;
+    private Action<int, int>? _liveResizeCallback;
 
     public bool IsOpen => _isOpen;
 
@@ -105,9 +110,10 @@ public unsafe class Sdl3Window : IPlatformWindow
         if (!SDL_GL_MakeCurrent(_window, _glContext))
             throw new InvalidOperationException($"SDL_GL_MakeCurrent failed: {SDL_GetError()}");
 
-        // Disable VSync — let FrameClock handle frame pacing for maximum FPS control.
-        // VSync swap interval 1 causes frame-doubling on missed deadlines (e.g., 17ms work → 33ms frame).
-        SDL_GL_SetSwapInterval(0);
+        // Enable adaptive VSync: presents immediately on missed deadlines,
+        // waits for VSync otherwise. Falls back to regular VSync if unsupported.
+        if (!SDL_GL_SetSwapInterval(-1))
+            SDL_GL_SetSwapInterval(1);
     }
 
     public void SwapBuffers()
@@ -140,6 +146,33 @@ public unsafe class Sdl3Window : IPlatformWindow
     {
         EnsureWindow();
         SDL_SetWindowSize(_window, width, height);
+    }
+
+    /// <summary>
+    /// Register a callback for live resize rendering.
+    /// On Windows, the OS enters a modal loop during window resize, blocking the main
+    /// event loop. This callback fires from an SDL event watcher during that modal loop,
+    /// allowing the application to re-render at each new size.
+    /// </summary>
+    public void SetLiveResizeCallback(Action<int, int> callback)
+    {
+        _liveResizeCallback = callback;
+        _activeInstance = this;
+        SDL_AddEventWatch(&LiveResizeEventWatcher, IntPtr.Zero);
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static SDLBool LiveResizeEventWatcher(IntPtr userdata, SDL_Event* ev)
+    {
+        var type = (SDL_EventType)ev->type;
+        if (type is SDL_EventType.SDL_EVENT_WINDOW_RESIZED
+                  or SDL_EventType.SDL_EVENT_WINDOW_EXPOSED
+                  or SDL_EventType.SDL_EVENT_WINDOW_MAXIMIZED
+                  or SDL_EventType.SDL_EVENT_WINDOW_RESTORED)
+        {
+            _activeInstance?._liveResizeCallback?.Invoke(ev->window.data1, ev->window.data2);
+        }
+        return true;
     }
 
     public float GetDpiScale()
@@ -180,6 +213,35 @@ public unsafe class Sdl3Window : IPlatformWindow
         return events;
     }
 
+    /// <summary>
+    /// Block until at least one event arrives, then drain all pending events.
+    /// Used when idle (nothing dirty) to avoid burning CPU.
+    /// </summary>
+    public List<InputEvent> WaitForEvents()
+    {
+        EnsureWindow();
+        var events = new List<InputEvent>();
+        SDL_Event ev;
+
+        // Block until the first event arrives
+        if (SDL_WaitEvent(&ev))
+        {
+            var inputEvent = TranslateEvent(&ev);
+            if (inputEvent != null)
+                events.Add(inputEvent);
+        }
+
+        // Drain any remaining pending events
+        while (SDL_PollEvent(&ev))
+        {
+            var inputEvent = TranslateEvent(&ev);
+            if (inputEvent != null)
+                events.Add(inputEvent);
+        }
+
+        return events;
+    }
+
     private InputEvent? TranslateEvent(SDL_Event* ev)
     {
         switch ((SDL_EventType)ev->type)
@@ -204,6 +266,16 @@ public unsafe class Sdl3Window : IPlatformWindow
                     Timestamp = ev->common.timestamp
                 };
             }
+
+            // Content invalidated — needs repaint (e.g., after maximize, restore, or unocclude)
+            case SDL_EventType.SDL_EVENT_WINDOW_EXPOSED:
+            case SDL_EventType.SDL_EVENT_WINDOW_MAXIMIZED:
+            case SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                return new WindowEvent
+                {
+                    Type = WindowEventType.Exposed,
+                    Timestamp = ev->common.timestamp
+                };
 
             case SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
                 return new WindowEvent
@@ -426,6 +498,14 @@ public unsafe class Sdl3Window : IPlatformWindow
 
         _disposed = true;
         _isOpen = false;
+
+        if (_liveResizeCallback != null)
+        {
+            SDL_RemoveEventWatch(&LiveResizeEventWatcher, IntPtr.Zero);
+            _liveResizeCallback = null;
+            if (_activeInstance == this)
+                _activeInstance = null;
+        }
 
         if (_glContext != null)
         {
