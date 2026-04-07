@@ -232,6 +232,7 @@ public static class SelectorMatcher
             ":focus" => state.IsFocused,
             ":active" => state.IsActive,
             ":disabled" => state.IsDisabled,
+            ":root" => element.Parent == null,
             ":first-child" => IsFirstChild(element),
             ":last-child" => IsLastChild(element),
             ":nth-child" => false, // TODO: parse An+B syntax
