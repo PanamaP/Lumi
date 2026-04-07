@@ -157,6 +157,9 @@ public sealed class LumiApp : IDisposable
                 // Set viewport context for vh/vw/calc() resolution
                 PropertyApplier.SetViewportContext(w, h);
 
+                // Set viewport for @media query evaluation
+                _window.StyleResolver.SetViewport(w, h);
+
                 _frameMetrics.BeginStage();
                 if (!_resizeOnly)
                 {

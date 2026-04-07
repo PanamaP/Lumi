@@ -21,6 +21,24 @@ public class StyleResolver
     private int _stylesheetVersion;
     private int _lastResolvedVersion;
 
+    // Viewport dimensions for @media query evaluation
+    private float _viewportWidth;
+    private float _viewportHeight;
+
+    /// <summary>
+    /// Sets the viewport dimensions used for @media query evaluation.
+    /// Call once per frame before ResolveStyles().
+    /// </summary>
+    public void SetViewport(float width, float height)
+    {
+        if (_viewportWidth != width || _viewportHeight != height)
+        {
+            _viewportWidth = width;
+            _viewportHeight = height;
+            _selectorCache.Clear(); // media conditions may change matching rules
+        }
+    }
+
     public void AddStyleSheet(ParsedStyleSheet sheet)
     {
         _styleSheets.Add(sheet);
@@ -123,12 +141,31 @@ public class StyleResolver
         for (int s = 0; s < _styleSheets.Count; s++)
         {
             var sheet = _styleSheets[s];
+
+            // Regular (unconditional) rules
             for (int r = 0; r < sheet.Rules.Count; r++)
             {
                 var rule = sheet.Rules[r];
                 if (SelectorMatcher.Matches(element, rule.SelectorText, pseudoState))
                 {
                     _matchBuffer.Add((rule, s, r));
+                }
+            }
+
+            // @media conditional rules — include only if condition matches viewport
+            foreach (var mediaRule in sheet.MediaRules)
+            {
+                if (mediaRule.Condition.Evaluate(_viewportWidth, _viewportHeight))
+                {
+                    for (int r = 0; r < mediaRule.Rules.Count; r++)
+                    {
+                        var rule = mediaRule.Rules[r];
+                        if (SelectorMatcher.Matches(element, rule.SelectorText, pseudoState))
+                        {
+                            // Use high sheet index offset so media rules come after regular rules
+                            _matchBuffer.Add((rule, s + 1000, r));
+                        }
+                    }
                 }
             }
         }
