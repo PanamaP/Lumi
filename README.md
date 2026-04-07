@@ -24,48 +24,40 @@ Lumi lets you write desktop UI with the languages you already know — HTML for 
 
 ## 🚀 Quick Start
 
+```bash
+dotnet new install Lumi.Templates
+dotnet new lumi -n MyApp
+cd MyApp
+dotnet run
+```
+
+That's it — you get a running desktop app with a window, HTML template, and CSS styling.
+
+### What's inside
+
 ```csharp
-// Program.cs
+// Program.cs — one line to start the app
 using Lumi;
-using HelloWorld;
 
 LumiApp.Run(new MainWindow());
 ```
 
 ```csharp
-// MainWindow.cs
+// MainWindow.cs — your window class
 using Lumi;
-using Lumi.Core;
 
 public class MainWindow : Window
 {
     public MainWindow()
     {
-        Title = "My App";
+        Title = "MyApp";
         Width = 960;
         Height = 680;
 
         var dir = AppContext.BaseDirectory;
         LoadTemplate(Path.Combine(dir, "MainWindow.html"));
         LoadStyleSheet(Path.Combine(dir, "MainWindow.css"));
-
-        // Enable hot reload — edits to source files refresh instantly
-        HtmlPath = Path.Combine(GetSourceDir(), "MainWindow.html");
-        CssPath = Path.Combine(GetSourceDir(), "MainWindow.css");
-        EnableHotReload = true;
     }
-
-    public override void OnReady()
-    {
-        var button = FindById("my-button");
-        button?.On("Click", (sender, e) =>
-        {
-            Console.WriteLine("Clicked!");
-        });
-    }
-
-    private static string GetSourceDir([System.Runtime.CompilerServices.CallerFilePath] string path = "")
-        => Path.GetDirectoryName(path)!;
 }
 ```
 
