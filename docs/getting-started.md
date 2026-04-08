@@ -684,7 +684,7 @@ Conditionally show or hide a block of HTML:
 
 ```html
 <template if="{IsLoggedIn}">
-  <div class="welcome">Welcome back, {UserName}!</div>
+  <div class="welcome">Welcome back!</div>
 </template>
 
 <template if="{HasError}">
@@ -695,6 +695,7 @@ Conditionally show or hide a block of HTML:
 - `if="{PropertyName}"` — path to a property on the data context
 - Truthy values: `true`, non-zero numbers, non-empty strings, non-null objects
 - Falsy values: `false`, `0`, `null`, empty strings
+- **Note:** `<template if>` currently supports conditional visibility only. Text interpolation (e.g. `{PropertyName}`) inside template-if content is not yet supported.
 
 ### Activating Directives with `TemplateEngine`
 

@@ -120,17 +120,12 @@ public class TemplateDirectiveTests : IDisposable
     public void TemplateFor_EmptyCollection_NoChildren()
     {
         var root = HtmlTemplateParser.Parse(
-            "<div><template for=\"{Items}\" as=\"item\"><span>{item}</span></template></div>");
-
-        var vm = new SimpleListViewModel { Names = [] };
-        // Use "Names" path doesn't match "Items" — let's fix this
-        var root2 = HtmlTemplateParser.Parse(
             "<div><template for=\"{Names}\" as=\"item\"><span>{item}</span></template></div>");
 
-        var vm2 = new SimpleListViewModel { Names = [] };
-        TemplateEngine.Apply(root2, vm2);
+        var vm = new SimpleListViewModel { Names = [] };
+        TemplateEngine.Apply(root, vm);
 
-        var templateFor = Assert.IsType<TemplateForElement>(root2.Children[0].Children[0]);
+        var templateFor = Assert.IsType<TemplateForElement>(root.Children[0].Children[0]);
         Assert.Empty(templateFor.Children);
     }
 
@@ -222,6 +217,46 @@ public class TemplateDirectiveTests : IDisposable
         Assert.Equal(3, templateFor.Children.Count);
     }
 
+    [Fact]
+    public void TemplateFor_ObservableCollection_ReplaceItem()
+    {
+        var root = HtmlTemplateParser.Parse(
+            "<div><template for=\"{Items}\" as=\"item\"><span>{item}</span></template></div>");
+
+        var items = new ObservableCollection<string>(["A", "B", "C"]);
+        var vm = new ObservableListViewModel { Items = items };
+        TemplateEngine.Apply(root, vm);
+
+        var templateFor = Assert.IsType<TemplateForElement>(root.Children[0].Children[0]);
+        Assert.Equal(3, templateFor.Children.Count);
+
+        // Replace via index assignment
+        items[1] = "Z";
+        Assert.Equal(3, templateFor.Children.Count);
+
+        var replacedSpan = FindTextElement(templateFor.Children[1]);
+        Assert.NotNull(replacedSpan);
+        Assert.Equal("Z", replacedSpan!.Text);
+    }
+
+    [Fact]
+    public void TemplateFor_NullCollection_ClearsStaleChildren()
+    {
+        var root = HtmlTemplateParser.Parse(
+            "<div><template for=\"{Names}\" as=\"item\"><span>{item}</span></template></div>");
+
+        var vm = new SimpleListViewModel { Names = ["A", "B"] };
+        TemplateEngine.Apply(root, vm);
+
+        var templateFor = Assert.IsType<TemplateForElement>(root.Children[0].Children[0]);
+        Assert.Equal(2, templateFor.Children.Count);
+
+        // Re-apply with null collection — stale children must be cleared
+        vm.Names = null!;
+        TemplateEngine.Apply(root, vm);
+        Assert.Empty(templateFor.Children);
+    }
+
     #endregion
 
     #region TemplateIf Tests
@@ -271,6 +306,25 @@ public class TemplateDirectiveTests : IDisposable
         // Toggle back to false
         vm.IsVisible = false;
         Assert.Empty(templateIf.Children);
+    }
+
+    [Fact]
+    public void TemplateIf_InterpolationNotSupported_RendersLiterally()
+    {
+        // Known limitation: {PropertyPath} inside template-if is not interpolated
+        var root = HtmlTemplateParser.Parse(
+            "<div><template if=\"{IsVisible}\"><span>{IsVisible}</span></template></div>");
+
+        var vm = new ConditionalViewModel { IsVisible = true };
+        TemplateEngine.Apply(root, vm);
+
+        var templateIf = Assert.IsType<TemplateIfElement>(root.Children[0].Children[0]);
+        Assert.NotEmpty(templateIf.Children);
+
+        // Text should remain as the literal pattern since alias is null
+        var span = FindTextElement(templateIf.Children[0]);
+        Assert.NotNull(span);
+        Assert.Equal("{IsVisible}", span!.Text);
     }
 
     #endregion

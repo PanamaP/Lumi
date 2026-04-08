@@ -63,10 +63,13 @@ public static class TemplateEngine
     private static void ActivateFor(TemplateForElement templateFor, object context)
     {
         var collection = BindingEngine.ResolvePath(context, templateFor.CollectionPath);
-        if (collection is not IEnumerable enumerable) return;
 
+        // Always clear stale children/bindings first — even if the collection is null
+        // or non-enumerable, so we don't leave orphaned DOM nodes from a prior activation.
         templateFor.Unbind();
         templateFor.ClearChildren();
+
+        if (collection is not IEnumerable enumerable) return;
 
         // Parse prototype once and cache it
         if (templateFor._prototype == null)
@@ -124,7 +127,10 @@ public static class TemplateEngine
                 container.AddChild(cloned);
             }
 
-            // Create reactive bindings for any interpolation patterns
+            // Note: TemplateIf currently does not support {PropertyPath} interpolation
+            // inside its content. alias is null here, so CreateBindings is a no-op.
+            // This is a known limitation — full DataContext-based interpolation for
+            // template-if content is planned as a future enhancement.
             CreateBindings(container, null, context, templateIf._bindings);
 
             ResolveDirectives(container, context);
