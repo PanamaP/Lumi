@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>Lumi.Templates</PackageId>
+    <PackageVersion>0.2.0</PackageVersion>
+    <Title>Lumi Project Templates</Title>
+    <Authors>Lumi</Authors>
+    <Description>Project templates for the Lumi GUI framework. Use 'dotnet new lumi' to create a new Lumi desktop app.</Description>
+    <TargetFramework>net10.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="lumi-app\**\*" Exclude="lumi-app\bin\**;lumi-app\obj\**" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <Compile Remove="**\*" />
+  </ItemGroup>
+
+</Project>

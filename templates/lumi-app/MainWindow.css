@@ -1,0 +1,75 @@
+.app {
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --text: #F8FAFC;
+  --muted: #94A3B8;
+  --accent: #38BDF8;
+  --border: #334155;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  background-color: var(--bg);
+  padding: 40px;
+}
+
+.title {
+  color: var(--text);
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0px 0px 12px 0px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  margin: 0px 0px 0px 0px;
+}
+
+.divider {
+  width: 64px;
+  height: 2px;
+  background-color: var(--border);
+  margin: 32px 0px 32px 0px;
+  border-radius: 1px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin: 0px 0px 32px 0px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface);
+  border-radius: 12px;
+  padding: 24px 32px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--border);
+  transition-property: border-color;
+  transition-duration: 0.2s;
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card-label {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0px;
+}

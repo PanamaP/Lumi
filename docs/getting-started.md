@@ -28,50 +28,46 @@ A complete guide to building desktop applications with Lumi. From your first win
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
 - A code editor (VS Code, Visual Studio, Rider)
 
 ### Create a New Project
 
+The fastest way to start is with the Lumi project template:
+
 ```bash
-# Create a new console app
-dotnet new console -n MyLumiApp
-cd MyLumiApp
+# Install the template (one-time)
+dotnet new install Lumi.Templates
 
-# Add a reference to the Lumi project (adjust path to your Lumi source)
-dotnet add reference ../path/to/src/Lumi/Lumi.csproj
+# Create a new app
+dotnet new lumi -n MyApp
+cd MyApp
+dotnet run
 ```
 
-### Project File
+This scaffolds a ready-to-run project with everything wired up:
 
-Your `.csproj` should look like:
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\src\Lumi\Lumi.csproj" />
-  </ItemGroup>
-
-  <!-- Copy HTML/CSS files to output directory -->
-  <ItemGroup>
-    <None Update="*.html" CopyToOutputDirectory="PreserveNewest" />
-    <None Update="*.css" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-</Project>
 ```
+MyApp/
+├── MyApp.csproj          # Project file with Lumi NuGet reference
+├── Program.cs            # App entry point (1 line)
+├── MainWindow.cs         # Your window class
+├── MainWindow.html       # UI template
+└── MainWindow.css        # Styles
+```
+
+> **Developing Lumi itself?** You can reference the source directly instead:
+> ```bash
+> dotnet new console -n MyApp
+> cd MyApp
+> dotnet add reference ../path/to/src/Lumi/Lumi.csproj
+> ```
 
 ---
 
 ## Your First Application
 
-Every Lumi app needs three files: a C# entry point, an HTML template, and a CSS stylesheet.
+The template gives you a working app out of the box. Here's what each file does:
 
 ### Program.cs
 

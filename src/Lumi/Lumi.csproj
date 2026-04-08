@@ -5,15 +5,48 @@
     <PackageId>Lumi</PackageId>
     <Description>Lumi GUI Framework - Native C# desktop UI powered by HTML, CSS, SkiaSharp, and SDL3</Description>
     <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
-    <ProjectReference Include="..\Lumi.Rendering\Lumi.Rendering.csproj" />
-    <ProjectReference Include="..\Lumi.Layout\Lumi.Layout.csproj" />
-    <ProjectReference Include="..\Lumi.Styling\Lumi.Styling.csproj" />
-    <ProjectReference Include="..\Lumi.Input\Lumi.Input.csproj" />
-    <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" />
+    <InternalsVisibleTo Include="Lumi.Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Rendering\Lumi.Rendering.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Layout\Lumi.Layout.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Styling\Lumi.Styling.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Input\Lumi.Input.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- 3rd-party dependencies surfaced to consumers -->
+  <ItemGroup>
+    <PackageReference Include="SkiaSharp" Version="3.*" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.2" />
+    <PackageReference Include="AngleSharp" Version="1.4.0" />
+    <PackageReference Include="Yoga-CS" Version="1.0.0" />
+    <PackageReference Include="ppy.SDL3-CS" Version="2026.320.0" />
+    <PackageReference Include="HarfBuzzSharp" Version="8.3.1.3" />
+  </ItemGroup>
+
+  <!-- Bundle sub-project DLLs into the Lumi NuGet package -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeSubProjectOutputs</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="IncludeSubProjectOutputs" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)"
+                            Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

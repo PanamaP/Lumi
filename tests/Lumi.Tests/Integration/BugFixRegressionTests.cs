@@ -640,4 +640,82 @@ public class BugFixRegressionTests
         PropertyApplier.Apply(style, "text-decoration-line", "line-through");
         Assert.Equal(TextDecoration.LineThrough, style.TextDecoration);
     }
+
+    // ── Hot Reload WakeUp Callback (regression for idle-loop fix) ─────
+
+    [Fact]
+    public void HotReload_QueueCssReload_InvokesWakeUp()
+    {
+        var window = new TestWindow();
+        window.LoadTemplateString("<div class='app'>Hello</div>");
+
+        var tmpCss = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(tmpCss, ".app { background-color: red; }");
+
+            bool wakeUpCalled = false;
+            var hotReload = new HotReload(window, null, tmpCss, wakeUp: () => wakeUpCalled = true);
+
+            hotReload.QueueCssReload();
+
+            Assert.True(wakeUpCalled, "WakeUp callback should be invoked when CSS reload is queued");
+            Assert.True(hotReload.HasPendingChanges, "Should have pending changes after QueueCssReload");
+        }
+        finally
+        {
+            File.Delete(tmpCss);
+        }
+    }
+
+    [Fact]
+    public void HotReload_QueueHtmlReload_InvokesWakeUp()
+    {
+        var window = new TestWindow();
+        window.LoadTemplateString("<div>Original</div>");
+        window.LoadStyleSheetString(".app { color: red; }");
+
+        var tmpHtml = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(tmpHtml, "<div class='app'>Updated</div>");
+
+            bool wakeUpCalled = false;
+            var hotReload = new HotReload(window, tmpHtml, null, wakeUp: () => wakeUpCalled = true);
+
+            hotReload.QueueHtmlReload();
+
+            Assert.True(wakeUpCalled, "WakeUp callback should be invoked when HTML reload is queued");
+            Assert.True(hotReload.HasPendingChanges, "Should have pending changes after QueueHtmlReload");
+        }
+        finally
+        {
+            File.Delete(tmpHtml);
+        }
+    }
+
+    [Fact]
+    public void HotReload_NoWakeUpCallback_DoesNotCrash()
+    {
+        var window = new TestWindow();
+        window.LoadTemplateString("<div class='app'>Hello</div>");
+
+        var tmpCss = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(tmpCss, ".app { background-color: blue; }");
+
+            // No wakeUp callback (backward compat — default null)
+            var hotReload = new HotReload(window, null, tmpCss);
+
+            var ex = Record.Exception(() => hotReload.QueueCssReload());
+
+            Assert.Null(ex);
+            Assert.True(hotReload.HasPendingChanges, "Should have pending changes even without wakeUp callback");
+        }
+        finally
+        {
+            File.Delete(tmpCss);
+        }
+    }
 }

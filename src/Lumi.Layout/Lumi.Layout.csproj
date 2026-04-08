@@ -2,9 +2,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>Lumi.Layout</PackageId>
-    <Description>Lumi GUI Framework - Yoga-based CSS flexbox layout engine</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

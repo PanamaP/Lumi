@@ -34,16 +34,19 @@ public sealed class HotReload : IDisposable
     private int _lastHtmlHash;
     private int _lastCssHash;
 
+    private readonly Action? _wakeUp;
+
     private const int DebounceMs = 200;
     private const int PollIntervalMs = 500;
     private const int MaxRetries = 5;
     private const int RetryDelayMs = 50;
 
-    public HotReload(Window window, string? htmlPath, string? cssPath)
+    public HotReload(Window window, string? htmlPath, string? cssPath, Action? wakeUp = null)
     {
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _htmlPath = htmlPath != null ? Path.GetFullPath(htmlPath) : null;
         _cssPath = cssPath != null ? Path.GetFullPath(cssPath) : null;
+        _wakeUp = wakeUp;
 
         // Snapshot initial content hashes
         _lastHtmlHash = GetContentHash(_htmlPath);
@@ -178,7 +181,7 @@ public sealed class HotReload : IDisposable
         }
     }
 
-    private void QueueHtmlReload()
+    internal void QueueHtmlReload()
     {
         if (_htmlPath == null) return;
 
@@ -192,6 +195,7 @@ public sealed class HotReload : IDisposable
             _window.Root.MarkDirty();
             HtmlWasReloaded = true;
         });
+        _wakeUp?.Invoke();
     }
 
     internal void QueueCssReload()
@@ -208,6 +212,7 @@ public sealed class HotReload : IDisposable
             _window.StyleResolver.AddStyleSheet(newSheet);
             _window.Root.MarkDirty();
         });
+        _wakeUp?.Invoke();
     }
 
     /// <summary>

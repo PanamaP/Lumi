@@ -186,10 +186,24 @@ public class ToolingTests : IDisposable
     // ─── NuGet Packaging Tests ───
 
     [Fact]
-    public void NuGet_AllLibraryProjects_HaveIsPackableTrue()
+    public void NuGet_UmbrellaProject_IsPackable()
     {
         var repoRoot = FindRepoRoot();
-        var libraryProjects = new[]
+        var path = Path.Combine(repoRoot, "src", "Lumi", "Lumi.csproj");
+        Assert.True(File.Exists(path), $"Project file not found: {path}");
+
+        var doc = XDocument.Load(path);
+        var ns = doc.Root!.Name.Namespace;
+        var isPackable = doc.Descendants(ns + "IsPackable").FirstOrDefault();
+        Assert.True(isPackable != null && isPackable.Value.Equals("true", StringComparison.OrdinalIgnoreCase),
+            "src/Lumi/Lumi.csproj should have <IsPackable>true</IsPackable>");
+    }
+
+    [Fact]
+    public void NuGet_SubProjects_AreNotPackable()
+    {
+        var repoRoot = FindRepoRoot();
+        var subProjects = new[]
         {
             "src/Lumi.Core/Lumi.Core.csproj",
             "src/Lumi.Rendering/Lumi.Rendering.csproj",
@@ -198,10 +212,9 @@ public class ToolingTests : IDisposable
             "src/Lumi.Input/Lumi.Input.csproj",
             "src/Lumi.Platform/Lumi.Platform.csproj",
             "src/Lumi.Text/Lumi.Text.csproj",
-            "src/Lumi/Lumi.csproj"
         };
 
-        foreach (var project in libraryProjects)
+        foreach (var project in subProjects)
         {
             var path = Path.Combine(repoRoot, project.Replace('/', Path.DirectorySeparatorChar));
             Assert.True(File.Exists(path), $"Project file not found: {path}");
@@ -209,8 +222,8 @@ public class ToolingTests : IDisposable
             var doc = XDocument.Load(path);
             var ns = doc.Root!.Name.Namespace;
             var isPackable = doc.Descendants(ns + "IsPackable").FirstOrDefault();
-            Assert.True(isPackable != null && isPackable.Value.Equals("true", StringComparison.OrdinalIgnoreCase),
-                $"{project} should have <IsPackable>true</IsPackable>");
+            Assert.True(isPackable != null && isPackable.Value.Equals("false", StringComparison.OrdinalIgnoreCase),
+                $"{project} should have <IsPackable>false</IsPackable> — only Lumi.csproj is published");
         }
     }
 
