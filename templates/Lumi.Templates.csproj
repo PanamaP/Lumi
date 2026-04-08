@@ -5,8 +5,14 @@
     <PackageId>Lumi.Templates</PackageId>
     <PackageVersion>0.2.0</PackageVersion>
     <Title>Lumi Project Templates</Title>
-    <Authors>Lumi</Authors>
+    <Authors>Lumi Contributors</Authors>
     <Description>Project templates for the Lumi GUI framework. Use 'dotnet new lumi' to create a new Lumi desktop app.</Description>
+    <Copyright>Copyright (c) Lumi Contributors 2026</Copyright>
+    <PackageProjectUrl>https://github.com/PanamaP/Lumi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PanamaP/Lumi</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>template;dotnet-new;gui;lumi</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TargetFramework>net10.0</TargetFramework>
     <IncludeContentInPack>true</IncludeContentInPack>
     <IncludeBuildOutput>false</IncludeBuildOutput>
