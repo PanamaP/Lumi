@@ -1,4 +1,7 @@
+using System.Runtime.CompilerServices;
 using Lumi;
+
+namespace LumiApp.1;
 
 public class MainWindow : Window
 {
@@ -18,4 +21,7 @@ public class MainWindow : Window
         CssPath = Path.Combine(sourceDir, "MainWindow.css");
         EnableHotReload = true;
     }
+    
+    private static string GetSourceDirectory([CallerFilePath] string callerPath = "")
+        => Path.GetDirectoryName(callerPath)!;
 }

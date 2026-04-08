@@ -242,6 +242,17 @@ public unsafe class Sdl3Window : IPlatformWindow
         return events;
     }
 
+    /// <summary>
+    /// Push a user event to wake up WaitForEvents from another thread.
+    /// Used by hot reload to signal pending file changes without polling.
+    /// </summary>
+    public void WakeUp()
+    {
+        SDL_Event ev = default;
+        ev.type = (uint)SDL_EventType.SDL_EVENT_USER;
+        SDL_PushEvent(&ev);
+    }
+
     private InputEvent? TranslateEvent(SDL_Event* ev)
     {
         switch ((SDL_EventType)ev->type)

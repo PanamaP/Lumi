@@ -30,6 +30,7 @@ public sealed class LumiApp : IDisposable
     private bool _resizeOnly;
     private bool _liveResizeRendered;
     private bool _wasActiveLastFrame = true;
+    private bool _liveResizeRegistered;
 
     private LumiApp(Window window)
     {
@@ -94,16 +95,14 @@ public sealed class LumiApp : IDisposable
         _app.Start();
         _app.Root.MarkDirty();
 
-        // Register live resize callback so frames render during the OS modal resize loop
-        _platformWindow.SetLiveResizeCallback(OnLiveResize);
-
         Console.WriteLine($"[Lumi] Target refresh rate: {_frameClock.TargetRefreshRate}Hz " +
                           $"| GPU: {_useGpuRendering} | VSync: adaptive");
 
         // Start hot reload if enabled
         if (_window.EnableHotReload && (_window.HtmlPath != null || _window.CssPath != null))
         {
-            _hotReload = new HotReload(_window, _window.HtmlPath, _window.CssPath);
+            _hotReload = new HotReload(_window, _window.HtmlPath, _window.CssPath,
+                wakeUp: () => _platformWindow.WakeUp());
             _hotReload.Start();
         }
 
@@ -211,6 +210,15 @@ public sealed class LumiApp : IDisposable
 
                 // MarkClean also snapshots layout boxes (single tree walk)
                 _app.MarkClean();
+            }
+
+            // Register live resize callback after the first styled paint so the initial
+            // Exposed event is handled by the main loop (with style resolution) instead of
+            // the lightweight live-resize path that skips styles.
+            if (needsRepaint && !_liveResizeRegistered)
+            {
+                _platformWindow.SetLiveResizeCallback(OnLiveResize);
+                _liveResizeRegistered = true;
             }
 
             _frameMetrics.EndFrame();
