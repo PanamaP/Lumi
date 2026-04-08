@@ -86,9 +86,9 @@ public class ClassListTests
         list.Add("active");
         list.Add("primary");
 
-        Assert.True(list.Contains("active"));
-        Assert.True(list.Contains("primary"));
-        Assert.False(list.Contains("hidden"));
+        Assert.Contains("active", list);
+        Assert.Contains("primary", list);
+        Assert.DoesNotContain("hidden", list);
         Assert.Equal(2, list.Count);
     }
 
@@ -110,8 +110,8 @@ public class ClassListTests
         list.Add("b");
 
         Assert.True(list.Remove("a"));
-        Assert.False(list.Contains("a"));
-        Assert.True(list.Contains("b"));
+        Assert.DoesNotContain("a", list);
+        Assert.Contains("b", list);
         Assert.Single(list);
     }
 
@@ -131,7 +131,7 @@ public class ClassListTests
         list.Clear();
 
         Assert.Empty(list);
-        Assert.False(list.Contains("a"));
+        Assert.DoesNotContain("a", list);
     }
 
     [Fact]
@@ -140,9 +140,9 @@ public class ClassListTests
         var list = new ClassList(["x", "y", "z", "x"]);
 
         Assert.Equal(3, list.Count);
-        Assert.True(list.Contains("x"));
-        Assert.True(list.Contains("y"));
-        Assert.True(list.Contains("z"));
+        Assert.Contains("x", list);
+        Assert.Contains("y", list);
+        Assert.Contains("z", list);
     }
 
     [Fact]
@@ -152,9 +152,9 @@ public class ClassListTests
         list.SetFrom(["new1", "new2"]);
 
         Assert.Equal(2, list.Count);
-        Assert.False(list.Contains("old1"));
-        Assert.True(list.Contains("new1"));
-        Assert.True(list.Contains("new2"));
+        Assert.DoesNotContain("old1", list);
+        Assert.Contains("new1", list);
+        Assert.Contains("new2", list);
     }
 
     [Fact]
