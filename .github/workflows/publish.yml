@@ -32,6 +32,9 @@ jobs:
       - name: Pack Lumi
         run: dotnet pack src/Lumi/Lumi.csproj -c Release -o ./nupkgs /p:Version=${{ steps.version.outputs.VERSION }}
 
+      - name: Sync template Lumi version
+        run: sed -i 's|<PackageReference Include="Lumi" Version="[^"]*"|<PackageReference Include="Lumi" Version="${{ steps.version.outputs.VERSION }}"|' templates/lumi-app/LumiApp.1.csproj
+
       - name: Pack Lumi.Templates
         run: dotnet pack templates/Lumi.Templates.csproj -c Release -o ./nupkgs /p:PackageVersion=${{ steps.version.outputs.VERSION }}
 
