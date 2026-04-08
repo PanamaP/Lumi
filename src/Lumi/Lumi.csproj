@@ -29,6 +29,8 @@
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="3.*" />
     <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.2" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="3.119.2" />
     <PackageReference Include="AngleSharp" Version="1.4.0" />
     <PackageReference Include="Yoga-CS" Version="1.0.0" />
     <PackageReference Include="ppy.SDL3-CS" Version="2026.320.0" />
