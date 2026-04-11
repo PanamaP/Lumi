@@ -245,6 +245,41 @@ public abstract class Element
     /// </summary>
     public abstract string TagName { get; }
 
+    /// <summary>
+    /// Create a deep clone of this element and its subtree.
+    /// Copies visual properties (Id, Classes, InlineStyle, Attributes) and children.
+    /// Resets layout state. Does NOT copy Parent, DataContext, or ElementIndex ref.
+    /// </summary>
+    public virtual Element DeepClone()
+    {
+        var clone = CreateCloneInstance();
+        CopyBasePropertiesTo(clone);
+        foreach (var child in _children)
+            clone.AddChild(child.DeepClone());
+        return clone;
+    }
+
+    /// <summary>
+    /// Create an empty instance of the same element type.
+    /// Override in subclasses that require constructor arguments.
+    /// </summary>
+    protected abstract Element CreateCloneInstance();
+
+    /// <summary>
+    /// Copy base Element properties to a clone.
+    /// </summary>
+    protected void CopyBasePropertiesTo(Element clone)
+    {
+        clone._id = _id;
+        foreach (var cls in _classes)
+            clone._classes.Add(cls);
+        clone.InlineStyle = InlineStyle;
+        foreach (var kvp in Attributes)
+            clone.Attributes[kvp.Key] = kvp.Value;
+        clone.IsFocusable = IsFocusable;
+        clone.TabIndex = TabIndex;
+    }
+
     public override string ToString() =>
         $"<{TagName}" +
         (Id != null ? $" id=\"{Id}\"" : "") +

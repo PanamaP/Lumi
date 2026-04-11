@@ -37,6 +37,9 @@ public sealed class LumiApp : IDisposable
         _window = window;
         _app = new Application();
 
+        // Wire up TemplateEngine's HTML parser so template directives can parse HTML
+        Core.Binding.TemplateEngine.HtmlParser ??= HtmlTemplateParser.Parse;
+
         _platformWindow = new Sdl3Window();
         _platformWindow.Create(window.Title, window.Width, window.Height);
 
