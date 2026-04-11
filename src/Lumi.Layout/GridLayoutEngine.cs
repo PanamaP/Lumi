@@ -94,18 +94,26 @@ public static class GridLayoutEngine
 
     private static string ExpandRepeat(string template)
     {
-        // Match repeat(N, trackDef) — supports nested tokens like "1fr 100px"
-        return RepeatRegex.Replace(template, match =>
+        try
         {
-            int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
-            if (count > 10000)
+            // Match repeat(N, trackDef) — supports nested tokens like "1fr 100px"
+            return RepeatRegex.Replace(template, match =>
             {
-                System.Diagnostics.Debug.WriteLine($"[Lumi.Layout] CSS repeat() count {count} exceeds maximum; capped to 10000");
-                count = 10000;
-            }
-            string trackDef = match.Groups[2].Value.Trim();
-            return string.Join(" ", Enumerable.Repeat(trackDef, count));
-        });
+                int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+                if (count > 10000)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[Lumi.Layout] CSS repeat() count {count} exceeds maximum; capped to 10000");
+                    count = 10000;
+                }
+                string trackDef = match.Groups[2].Value.Trim();
+                return string.Join(" ", Enumerable.Repeat(trackDef, count));
+            });
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            System.Diagnostics.Debug.WriteLine("[Lumi.Layout] CSS repeat() regex timed out; using template as-is");
+            return template;
+        }
     }
 
     private static IEnumerable<string> SplitTokens(string template) =>

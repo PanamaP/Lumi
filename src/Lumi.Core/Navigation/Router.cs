@@ -109,14 +109,24 @@ public class Router
     {
         if (!CanGoBack)
             return;
+        if (_navigating)
+            throw new InvalidOperationException("Cannot navigate while a navigation is already in progress.");
 
-        var previousRoute = _history[^1];
-        var (registration, parameters) = MatchRoute(previousRoute);
-        if (registration is null)
-            return;
+        _navigating = true;
+        try
+        {
+            var previousRoute = _history[^1];
+            var (registration, parameters) = MatchRoute(previousRoute);
+            if (registration is null)
+                return;
 
-        ApplyRoute(previousRoute, registration.Value, parameters);
-        _history.RemoveAt(_history.Count - 1);
+            _history.RemoveAt(_history.Count - 1);
+            ApplyRoute(previousRoute, registration.Value, parameters);
+        }
+        finally
+        {
+            _navigating = false;
+        }
     }
 
     private void ApplyRoute(string route, RouteRegistration registration, RouteParameters parameters)

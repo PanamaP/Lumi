@@ -6,6 +6,7 @@ namespace Lumi.Core;
 /// </summary>
 public static class Clipboard
 {
+    private static readonly object _lock = new();
     private static Func<string?>? _getText;
     private static Action<string>? _setText;
     private static bool _initialized;
@@ -13,7 +14,12 @@ public static class Clipboard
     /// <summary>
     /// Retrieves text from the OS clipboard. Returns null when unavailable.
     /// </summary>
-    public static string? GetText() => _getText?.Invoke();
+    public static string? GetText()
+    {
+        Func<string?>? getter;
+        lock (_lock) { getter = _getText; }
+        return getter?.Invoke();
+    }
 
     /// <summary>
     /// Places text on the OS clipboard.
@@ -21,7 +27,9 @@ public static class Clipboard
     public static void SetText(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        _setText?.Invoke(text);
+        Action<string>? setter;
+        lock (_lock) { setter = _setText; }
+        setter?.Invoke(text);
     }
 
     /// <summary>
@@ -29,18 +37,24 @@ public static class Clipboard
     /// </summary>
     internal static void Initialize(Func<string?> getText, Action<string> setText)
     {
-        if (_initialized)
-            throw new InvalidOperationException("Clipboard has already been initialized.");
-        _getText = getText ?? throw new ArgumentNullException(nameof(getText));
-        _setText = setText ?? throw new ArgumentNullException(nameof(setText));
-        _initialized = true;
+        lock (_lock)
+        {
+            if (_initialized)
+                throw new InvalidOperationException("Clipboard has already been initialized.");
+            _getText = getText ?? throw new ArgumentNullException(nameof(getText));
+            _setText = setText ?? throw new ArgumentNullException(nameof(setText));
+            _initialized = true;
+        }
     }
 
     /// <summary>Reset for test isolation.</summary>
     internal static void ResetForTesting()
     {
-        _getText = null;
-        _setText = null;
-        _initialized = false;
+        lock (_lock)
+        {
+            _getText = null;
+            _setText = null;
+            _initialized = false;
+        }
     }
 }
