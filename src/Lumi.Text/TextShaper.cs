@@ -321,8 +321,25 @@ public sealed class TextShaper : IDisposable
             byte[] fontData = new byte[length];
             Marshal.Copy(memBase, fontData, 0, length);
 
-            using var ms = new MemoryStream(fontData);
-            var blob = Blob.FromStream(ms);
+            // Do NOT use Blob.FromStream — it has a memory safety bug in HarfBuzzSharp 8.3.1.3:
+            // it pins the byte array only during a fixed block, then returns a blob referencing
+            // now-unpinned (GC-movable) memory, causing access violations or garbled glyphs.
+            // Instead, pin the array for the blob's lifetime via GCHandle.
+            var pinned = GCHandle.Alloc(fontData, GCHandleType.Pinned);
+            Blob blob;
+            try
+            {
+                blob = new Blob(
+                    pinned.AddrOfPinnedObject(),
+                    fontData.Length,
+                    MemoryMode.ReadOnly,
+                    () => pinned.Free());
+            }
+            catch
+            {
+                pinned.Free();
+                throw;
+            }
             blob.MakeImmutable();
 
             var face = new Face(blob, (uint)ttcIndex);
