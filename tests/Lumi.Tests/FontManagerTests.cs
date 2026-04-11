@@ -3,6 +3,7 @@ using SkiaSharp;
 
 namespace Lumi.Tests;
 
+[Collection("FontManager")]
 public sealed class FontManagerTests : IDisposable
 {
     public FontManagerTests()

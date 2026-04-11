@@ -145,6 +145,21 @@ public unsafe class Sdl3Window : IPlatformWindow
         }
     }
 
+    /// <summary>
+    /// Creates an SDL renderer for CPU-based rendering via <see cref="Sdl3RenderTarget"/>.
+    /// Must be called after <see cref="Create"/> and only when no GL context is active.
+    /// </summary>
+    public void CreateSdlRenderer()
+    {
+        EnsureWindow();
+        if (_renderer != null)
+            throw new InvalidOperationException("SDL renderer has already been created.");
+
+        _renderer = SDL_CreateRenderer(_window, (byte*)null);
+        if (_renderer == null)
+            throw new InvalidOperationException($"SDL_CreateRenderer failed: {SDL_GetError()}");
+    }
+
     public void SwapBuffers()
     {
         EnsureWindow();

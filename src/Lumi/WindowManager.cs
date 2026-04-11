@@ -45,6 +45,10 @@ public class WindowManager
             platformWindow.DestroyGLContext();
             renderer = new SkiaRenderer();
             useGpu = false;
+
+            // Create SDL renderer and render target for CPU fallback
+            platformWindow.CreateSdlRenderer();
+            platformWindow.SetVSync(VSyncMode.On);
         }
 
         window.PlatformWindow = platformWindow;
@@ -62,7 +66,8 @@ public class WindowManager
 
         lock (_lock)
         {
-            _windows.Add(new ManagedWindow(window, platformWindow, renderer, useGpu));
+            var renderTarget = useGpu ? null : new Sdl3RenderTarget(platformWindow.RendererPtr);
+            _windows.Add(new ManagedWindow(window, platformWindow, renderer, useGpu, renderTarget));
         }
         return window;
     }
@@ -155,6 +160,12 @@ public class WindowManager
                     {
                         managed.PlatformWindow.SwapBuffers();
                     }
+                    else if (managed.RenderTarget is { } rt)
+                    {
+                        rt.EnsureSize(w, h);
+                        rt.UpdatePixels(managed.Renderer.GetPixels(), managed.Renderer.Pitch);
+                        rt.Present();
+                    }
 
                     managed.Window.App?.MarkClean();
                 }
@@ -177,6 +188,7 @@ public class WindowManager
         managed.Window.IsOpen = false;
         managed.Window.App?.RequestStop();
         managed.Window.LayoutEngine.Dispose();
+        managed.RenderTarget?.Dispose();
         managed.Renderer.Dispose();
         managed.PlatformWindow.Dispose();
         managed.Window.PlatformWindow = null;
@@ -188,5 +200,6 @@ public class WindowManager
         SecondaryWindow Window,
         Sdl3Window PlatformWindow,
         SkiaRenderer Renderer,
-        bool UseGpu);
+        bool UseGpu,
+        Sdl3RenderTarget? RenderTarget);
 }

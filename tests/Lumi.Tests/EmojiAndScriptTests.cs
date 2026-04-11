@@ -4,6 +4,7 @@ using SkiaSharp;
 
 namespace Lumi.Tests;
 
+[Collection("FontManager")]
 public class EmojiAndScriptTests : IDisposable
 {
     private readonly TextShaper _shaper = new();

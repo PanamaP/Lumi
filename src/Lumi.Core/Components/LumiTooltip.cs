@@ -51,11 +51,15 @@ public class LumiTooltip : IDisposable
 
         tooltip._mouseLeaveHandler = (_, e) =>
         {
-            if (e is RoutedMouseEvent me &&
-                (tooltip._container.LayoutBox.Contains(me.X, me.Y) ||
-                 target.LayoutBox.Contains(me.X, me.Y)))
+            if (e is RoutedMouseEvent me)
             {
-                return;
+                bool containerHasLayout = tooltip._container.LayoutBox.Width > 0 || tooltip._container.LayoutBox.Height > 0;
+                bool targetHasLayout = target.LayoutBox.Width > 0 || target.LayoutBox.Height > 0;
+                if ((containerHasLayout && tooltip._container.LayoutBox.Contains(me.X, me.Y)) ||
+                    (targetHasLayout && target.LayoutBox.Contains(me.X, me.Y)))
+                {
+                    return;
+                }
             }
 
             ComponentStyles.SetVisible(tooltip._container, false);
@@ -65,11 +69,15 @@ public class LumiTooltip : IDisposable
 
         tooltip._containerLeaveHandler = (_, e) =>
         {
-            if (e is RoutedMouseEvent me &&
-                (target.LayoutBox.Contains(me.X, me.Y) ||
-                 tooltip._container.LayoutBox.Contains(me.X, me.Y)))
+            if (e is RoutedMouseEvent me)
             {
-                return;
+                bool targetHasLayout = target.LayoutBox.Width > 0 || target.LayoutBox.Height > 0;
+                bool containerHasLayout = tooltip._container.LayoutBox.Width > 0 || tooltip._container.LayoutBox.Height > 0;
+                if ((targetHasLayout && target.LayoutBox.Contains(me.X, me.Y)) ||
+                    (containerHasLayout && tooltip._container.LayoutBox.Contains(me.X, me.Y)))
+                {
+                    return;
+                }
             }
 
             ComponentStyles.SetVisible(tooltip._container, false);

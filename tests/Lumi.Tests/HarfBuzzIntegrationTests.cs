@@ -7,6 +7,7 @@ using SkiaSharp;
 /// <summary>
 /// Integration tests verifying HarfBuzz text shaping is wired into the rendering pipeline.
 /// </summary>
+[Collection("FontManager")]
 public class HarfBuzzIntegrationTests : IDisposable
 {
     private readonly TextShaper _shaper = new();
