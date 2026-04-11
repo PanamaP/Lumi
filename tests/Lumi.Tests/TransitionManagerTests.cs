@@ -309,4 +309,27 @@ public class TransitionManagerTests
         manager.Update(2.0);
         Assert.Equal(0.0f, element.ComputedStyle.Opacity, 2);
     }
+
+    // --- Element removal during active transition ---
+
+    [Fact]
+    public void Update_ElementRemovedDuringTransition_DoesNotThrow()
+    {
+        var manager = new TransitionManager();
+        var parent = new BoxElement("div");
+        var element = CreateTransitionElement("opacity", 1.0f);
+        element.ComputedStyle.Opacity = 1.0f;
+        parent.AddChild(element);
+
+        manager.CaptureState(element);
+        element.ComputedStyle.Opacity = 0.0f;
+        manager.DetectChanges(element);
+
+        // Remove element from parent while transition is active
+        parent.RemoveChild(element);
+
+        // Update should not throw even though element is detached
+        var ex = Record.Exception(() => manager.Update(0.5f));
+        Assert.Null(ex);
+    }
 }

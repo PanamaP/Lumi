@@ -224,4 +224,12 @@ public class CssVariablePreProcessorTests
         // Since --font is not defined, fallback should be used
         Assert.Contains("Arial, sans-serif", result);
     }
+
+    [Fact]
+    public void Process_CircularVariableReference_DoesNotHang()
+    {
+        var css = ":root { --a: var(--b); --b: var(--a); } .box { color: var(--a); }";
+        var ex = Record.Exception(() => CssVariablePreProcessor.Process(css));
+        Assert.Null(ex);
+    }
 }

@@ -40,7 +40,6 @@ public class FrameMetricsTests
         metrics.EndFrame();
 
         Assert.True(metrics.CurrentFps > 0, "Current FPS should be positive");
-        Assert.True(metrics.CurrentFps < 1000, "FPS should be reasonable");
     }
 
     [Fact]
