@@ -268,6 +268,56 @@ public class Application
                 input.MarkDirty();
                 break;
 
+            case KeyCode.C when keyboard.Ctrl:
+            {
+                var textToCopy = input.HasSelection
+                    ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
+                    : input.Value;
+                if (!string.IsNullOrEmpty(textToCopy))
+                    Clipboard.SetText?.Invoke(textToCopy);
+                break;
+            }
+
+            case KeyCode.V when keyboard.Ctrl:
+            {
+                var pasteText = Clipboard.GetText?.Invoke();
+                if (!string.IsNullOrEmpty(pasteText))
+                {
+                    if (input.HasSelection)
+                        input.DeleteSelection();
+
+                    input.Value = input.Value[..input.CursorPosition] + pasteText + input.Value[input.CursorPosition..];
+                    input.CursorPosition += pasteText.Length;
+                    input.ClearSelection();
+                    input.ResetBlink();
+                    input.MarkDirty();
+                    EventDispatcher.Dispatch(new RoutedEvent("input"), input);
+                }
+                break;
+            }
+
+            case KeyCode.X when keyboard.Ctrl:
+            {
+                var textToCut = input.HasSelection
+                    ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
+                    : input.Value;
+                if (!string.IsNullOrEmpty(textToCut))
+                    Clipboard.SetText?.Invoke(textToCut);
+
+                if (input.HasSelection)
+                    input.DeleteSelection();
+                else
+                {
+                    input.Value = "";
+                    input.CursorPosition = 0;
+                    input.ClearSelection();
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                EventDispatcher.Dispatch(new RoutedEvent("input"), input);
+                break;
+            }
+
             case KeyCode.Backspace:
                 if (input.HasSelection)
                 {

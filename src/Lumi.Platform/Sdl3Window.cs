@@ -494,6 +494,23 @@ public unsafe class Sdl3Window : IPlatformWindow
         _ => KeyCode.Unknown,
     };
 
+    public void SetClipboardText(string text)
+    {
+        SDL_SetClipboardText(text);
+    }
+
+    public string? GetClipboardText()
+    {
+        if (!SDL_HasClipboardText())
+            return null;
+        return SDL_GetClipboardText();
+    }
+
+    public bool HasClipboardText()
+    {
+        return SDL_HasClipboardText();
+    }
+
     private void EnsureWindow()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);

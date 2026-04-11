@@ -74,4 +74,19 @@ public interface IPlatformWindow : IDisposable
     /// OS-level display preferences (dark mode, high contrast).
     /// </summary>
     SystemPreferences SystemPreferences { get; }
+
+    /// <summary>
+    /// Copy text to the OS clipboard.
+    /// </summary>
+    void SetClipboardText(string text);
+
+    /// <summary>
+    /// Get text from the OS clipboard. Returns null if no text is available.
+    /// </summary>
+    string? GetClipboardText();
+
+    /// <summary>
+    /// Check whether the OS clipboard contains text.
+    /// </summary>
+    bool HasClipboardText();
 }

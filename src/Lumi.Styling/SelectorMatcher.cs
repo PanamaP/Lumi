@@ -86,9 +86,23 @@ public static class SelectorMatcher
         var current = new System.Text.StringBuilder();
         int i = 0;
 
+        int parenDepth = 0;
+
         while (i < selector.Length)
         {
             char c = selector[i];
+
+            // Track parenthesis depth so spaces inside pseudo-class args
+            // (e.g. ":is(.a, .b)") are not treated as combinators.
+            if (c == '(') { parenDepth++; current.Append(c); i++; continue; }
+            if (c == ')') { parenDepth--; current.Append(c); i++; continue; }
+
+            if (parenDepth > 0)
+            {
+                current.Append(c);
+                i++;
+                continue;
+            }
 
             if (c == '>')
             {
@@ -220,11 +234,18 @@ public static class SelectorMatcher
     {
         var state = pseudoState ?? new PseudoClassState();
 
-        // Extract pseudo-class name (without args)
+        // Extract pseudo-class name and argument
         var name = pseudo;
+        string? arg = null;
         var argStart = pseudo.IndexOf('(');
         if (argStart >= 0)
+        {
             name = pseudo[..argStart];
+            var argEnd = pseudo.LastIndexOf(')');
+            arg = argEnd > argStart
+                ? pseudo[(argStart + 1)..argEnd].Trim()
+                : pseudo[(argStart + 1)..].Trim();
+        }
 
         return name switch
         {
@@ -235,9 +256,96 @@ public static class SelectorMatcher
             ":root" => element.Parent == null,
             ":first-child" => IsFirstChild(element),
             ":last-child" => IsLastChild(element),
-            ":nth-child" => false, // TODO: parse An+B syntax
+            ":nth-child" => MatchesNthChild(element, arg, fromEnd: false),
+            ":nth-last-child" => MatchesNthChild(element, arg, fromEnd: true),
+            ":not" => arg != null && !MatchesCompound(element, arg, pseudoState),
+            ":is" => arg != null && MatchesIs(element, arg, pseudoState),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Matches :nth-child(An+B) or :nth-last-child(An+B).
+    /// </summary>
+    private static bool MatchesNthChild(Element element, string? arg, bool fromEnd)
+    {
+        if (arg == null || element.Parent == null) return false;
+
+        var (a, b) = ParseAnPlusB(arg);
+        int index = -1;
+        var siblings = element.Parent.Children;
+        for (int j = 0; j < siblings.Count; j++)
+        {
+            if (siblings[j] == element) { index = j; break; }
+        }
+        if (index < 0) return false;
+
+        int pos = fromEnd ? siblings.Count - index : index + 1;
+        return MatchesAnPlusB(a, b, pos);
+    }
+
+    /// <summary>
+    /// Returns true if there exists a non-negative integer k such that A*k + B == pos.
+    /// </summary>
+    private static bool MatchesAnPlusB(int a, int b, int pos)
+    {
+        if (a == 0)
+            return pos == b;
+
+        int diff = pos - b;
+        if (diff % a != 0) return false;
+        return diff / a >= 0;
+    }
+
+    /// <summary>
+    /// Parses CSS An+B microsyntax: odd, even, 3, 2n, 2n+1, -n+3, 3n-2, etc.
+    /// Returns (A, B) tuple.
+    /// </summary>
+    internal static (int A, int B) ParseAnPlusB(string input)
+    {
+        var s = input.Trim().ToLowerInvariant().Replace(" ", "");
+
+        if (s == "odd") return (2, 1);
+        if (s == "even") return (2, 0);
+
+        int nIndex = s.IndexOf('n');
+        if (nIndex < 0)
+        {
+            // Pure integer: "3" → (0, 3)
+            return (0, int.Parse(s));
+        }
+
+        // Parse A (coefficient of n)
+        int a;
+        var aPart = s[..nIndex];
+        if (aPart is "" or "+")
+            a = 1;
+        else if (aPart == "-")
+            a = -1;
+        else
+            a = int.Parse(aPart);
+
+        // Parse B (constant term after n)
+        int b = 0;
+        var rest = s[(nIndex + 1)..];
+        if (rest.Length > 0)
+            b = int.Parse(rest);
+
+        return (a, b);
+    }
+
+    /// <summary>
+    /// Matches :is(.a, .b) — any of the comma-separated selectors.
+    /// </summary>
+    private static bool MatchesIs(Element element, string arg, PseudoClassState? pseudoState)
+    {
+        var selectors = SplitSelectorGroups(arg);
+        foreach (var sel in selectors)
+        {
+            if (MatchesCompound(element, sel.Trim(), pseudoState))
+                return true;
+        }
+        return false;
     }
 
     private static bool IsFirstChild(Element element) =>
