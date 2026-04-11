@@ -52,15 +52,26 @@ public sealed class TextMeasurer
     }
 
     /// <summary>
-    /// Create an SKFont with the given parameters.
+    /// Create an SKFont with the given parameters. Checks <see cref="FontManager"/>
+    /// for registered custom fonts before falling back to system fonts.
     /// </summary>
     public static SKFont CreateFont(string fontFamily, float fontSize, int fontWeight, bool italic)
     {
-        var skStyle = fontWeight >= 700
-            ? (italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-            : (italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+        SKTypeface typeface;
 
-        var typeface = SKTypeface.FromFamilyName(fontFamily, skStyle) ?? SKTypeface.Default;
+        if (FontManager.IsRegistered(fontFamily))
+        {
+            typeface = FontManager.GetTypeface(fontFamily, fontWeight, italic)
+                       ?? SKTypeface.Default;
+        }
+        else
+        {
+            var skStyle = fontWeight >= 700
+                ? (italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
+                : (italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+
+            typeface = SKTypeface.FromFamilyName(fontFamily, skStyle) ?? SKTypeface.Default;
+        }
 
         return new SKFont(typeface, fontSize)
         {

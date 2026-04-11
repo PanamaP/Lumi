@@ -101,6 +101,15 @@ public class Window
     }
 
     /// <summary>
+    /// Register a custom font file under the given family name.
+    /// The family name can then be used in CSS font-family declarations.
+    /// </summary>
+    public void RegisterFont(string familyName, string filePath)
+    {
+        FontManager.RegisterFont(familyName, filePath);
+    }
+
+    /// <summary>
     /// Called once after template and styles are loaded. Wire up events and logic here.
     /// </summary>
     public virtual void OnReady() { }
