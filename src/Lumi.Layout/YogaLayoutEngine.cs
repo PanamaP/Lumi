@@ -43,6 +43,25 @@ public unsafe class YogaLayoutEngine : IDisposable
 
         NodeCalculateLayout(rootNode, availableWidth, availableHeight, YGDirection.YGDirectionLTR);
         ReadLayoutResults(root, 0, 0);
+
+        // Second pass: compute grid layout for any display:grid elements.
+        // Yoga treats them as flex containers, so their own box is sized correctly,
+        // but their children need to be repositioned by the grid engine.
+        ApplyGridLayouts(root);
+    }
+
+    private static void ApplyGridLayouts(Element element)
+    {
+        if (element.ComputedStyle.Display == DisplayMode.Grid && element.Children.Count > 0)
+        {
+            GridLayoutEngine.CalculateGridLayout(
+                element,
+                element.LayoutBox.Width,
+                element.LayoutBox.Height);
+        }
+
+        foreach (var child in element.Children)
+            ApplyGridLayouts(child);
     }
 
     private YGNode* SyncNode(Element element)
@@ -125,7 +144,7 @@ public unsafe class YogaLayoutEngine : IDisposable
 
     private static void ApplyStyle(YGNode* node, ComputedStyle style)
     {
-        // Display (Block maps to Flex since Yoga is flex-only)
+        // Display (Block and Grid map to Flex since Yoga is flex-only)
         NodeStyleSetDisplay(node, style.Display == DisplayMode.None
             ? YGDisplay.YGDisplayNone
             : YGDisplay.YGDisplayFlex);

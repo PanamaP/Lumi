@@ -41,6 +41,11 @@ public class ComputedStyle
     public float RowGap { get; set; } = float.NaN;
     public float ColumnGap { get; set; } = float.NaN;
 
+    // Grid layout
+    public string? GridTemplateColumns { get; set; }
+    public string? GridTemplateRows { get; set; }
+    public float GridGap { get; set; } = 0;
+
     // Visual
     public Color BackgroundColor { get; set; } = Color.Transparent;
     public Color BorderColor { get; set; } = Color.Transparent;
@@ -136,6 +141,10 @@ public class ComputedStyle
         Gap = 0;
         RowGap = float.NaN;
         ColumnGap = float.NaN;
+
+        GridTemplateColumns = null;
+        GridTemplateRows = null;
+        GridGap = 0;
 
         BackgroundColor = Color.Transparent;
         BorderColor = Color.Transparent;

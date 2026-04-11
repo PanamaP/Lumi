@@ -152,6 +152,7 @@ public static class PropertyApplier
                 {
                     "block" => DisplayMode.Block,
                     "flex" => DisplayMode.Flex,
+                    "grid" => DisplayMode.Grid,
                     "none" => DisplayMode.None,
                     _ => style.Display
                 };
@@ -241,6 +242,17 @@ public static class PropertyApplier
                 break;
             case "column-gap":
                 style.ColumnGap = ParseLengthOrZero(value);
+                break;
+
+            // --- Grid layout ---
+            case "grid-template-columns":
+                style.GridTemplateColumns = value;
+                break;
+            case "grid-template-rows":
+                style.GridTemplateRows = value;
+                break;
+            case "grid-gap":
+                style.GridGap = ParseLengthOrZero(value);
                 break;
 
             // --- Offsets ---
