@@ -1,0 +1,245 @@
+/* ── Base ─────────────────────────────────────────── */
+
+.app {
+  --accent: #6366F1;
+  --accent-hover: #818CF8;
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #334155;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --danger-hover: #F87171;
+
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  background-color: var(--bg-primary);
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0px 32px;
+  background-color: var(--bg-secondary);
+}
+
+.logo {
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.header-count {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ── Main ────────────────────────────────────────── */
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  overflow: scroll;
+}
+
+/* ── Input Row ───────────────────────────────────── */
+
+.input-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 500px;
+  margin: 0px 0px 24px 0px;
+}
+
+.todo-input {
+  flex-grow: 1;
+  height: 44px;
+  padding: 0px 16px;
+  background-color: var(--bg-card);
+  border-radius: 10px;
+  border-width: 2px;
+  border-color: #475569;
+  border-style: solid;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+/* ── Buttons ─────────────────────────────────────── */
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: 0.15s;
+}
+
+.btn-add {
+  background-color: var(--accent);
+  padding: 12px 24px;
+}
+
+.btn-clear {
+  background-color: #475569;
+  font-size: 13px;
+  padding: 8px 16px;
+}
+
+.btn-delete {
+  background-color: var(--danger);
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+/* ── Filters ─────────────────────────────────────── */
+
+.filters {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin: 0px 0px 20px 0px;
+}
+
+.filter-btn {
+  padding: 8px 18px;
+  background-color: var(--bg-card);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition-property: background-color;
+  transition-duration: 0.15s;
+}
+
+.filter-btn.active {
+  background-color: var(--accent);
+  color: #FFFFFF;
+}
+
+/* ── Todo List ───────────────────────────────────── */
+
+.todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 500px;
+  margin: 0px 0px 20px 0px;
+}
+
+.todo-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 14px 16px;
+  background-color: var(--bg-secondary);
+  border-radius: 10px;
+  border-width: 1px;
+  border-color: #475569;
+  border-style: solid;
+  gap: 12px;
+  transition-property: opacity;
+  transition-duration: 0.3s;
+}
+
+.todo-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border-width: 2px;
+  border-color: #64748B;
+  border-style: solid;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.todo-checkbox.checked {
+  background-color: var(--success);
+  border-color: var(--success);
+}
+
+.todo-checkbox-mark {
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.todo-text {
+  flex-grow: 1;
+  color: var(--text-primary);
+  font-size: 15px;
+}
+
+.todo-text.completed {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+/* ── Footer Bar ──────────────────────────────────── */
+
+.footer-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 500px;
+  padding: 12px 0px;
+}
+
+.remaining {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* ── App Footer ──────────────────────────────────── */
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  background-color: var(--bg-secondary);
+}
+
+.footer-text {
+  color: #64748B;
+  font-size: 12px;
+}
+
+/* ── Empty State ─────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #475569;
+  margin: 0px 0px 12px 0px;
+}
+
+.empty-text {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
