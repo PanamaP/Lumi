@@ -10,6 +10,7 @@ public class MainWindow : Window
 {
     private bool _isDark = true;
     private string _activeTab = "overview";
+    private bool _settingsBuilt;
 
     public MainWindow()
     {
@@ -211,6 +212,9 @@ public class MainWindow : Window
 
     private void BuildSettingsPanel()
     {
+        if (_settingsBuilt) return;
+        _settingsBuilt = true;
+
         var container = FindById("settings-list");
         if (container == null) return;
 

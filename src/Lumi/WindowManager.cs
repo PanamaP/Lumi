@@ -37,6 +37,8 @@ public class WindowManager
         }
         catch
         {
+            renderer?.Dispose();
+            renderer = new SkiaRenderer();
             useGpu = false;
         }
 
@@ -48,6 +50,10 @@ public class WindowManager
         platformWindow.Show();
         window.OnReady();
         window.Root.MarkDirty();
+
+        var app = new Application { Root = window.Root };
+        app.Start();
+        window.App = app;
 
         _windows.Add(new ManagedWindow(window, platformWindow, renderer, useGpu));
         return window;
@@ -94,10 +100,14 @@ public class WindowManager
                 }
             }
 
+            // Route input events through the secondary window's Application
+            managed.Window.App?.ProcessInput(events);
+
             var win = managed.Window;
 
             // Update the window
             win.OnUpdate();
+            managed.Window.App?.Update();
 
             if (win.Root.IsDirty)
             {
@@ -121,19 +131,11 @@ public class WindowManager
                     managed.PlatformWindow.SwapBuffers();
                 }
 
-                MarkClean(win.Root);
+                managed.Window.App?.MarkClean();
             }
 
             next:;
         }
-    }
-
-    private static void MarkClean(Element element)
-    {
-        element.IsDirty = false;
-        element.IsLayoutDirty = false;
-        foreach (var child in element.Children)
-            MarkClean(child);
     }
 
     private static (float Width, float Height) MeasureElement(

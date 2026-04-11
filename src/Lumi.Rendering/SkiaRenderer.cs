@@ -356,18 +356,13 @@ public class SkiaRenderer : IDisposable
 
             if (colors.Length >= 2)
             {
-                SKShader shader;
-                if (gradient.Type == GradientType.Linear)
-                {
-                    var (start, end) = ComputeLinearGradientPoints(w, h, gradient.Angle);
-                    shader = SKShader.CreateLinearGradient(start, end, colors, positions, SKShaderTileMode.Clamp);
-                }
-                else
-                {
-                    var center = new SKPoint(w / 2, h / 2);
-                    float gradRadius = MathF.Max(w, h) / 2;
-                    shader = SKShader.CreateRadialGradient(center, gradRadius, colors, positions, SKShaderTileMode.Clamp);
-                }
+                var (start, end) = ComputeLinearGradientPoints(w, h, gradient.Angle);
+                var center = new SKPoint(w / 2, h / 2);
+                float gradRadius = MathF.Max(w, h) / 2;
+
+                using var shader = gradient.Type == GradientType.Linear
+                    ? SKShader.CreateLinearGradient(start, end, colors, positions, SKShaderTileMode.Clamp)
+                    : SKShader.CreateRadialGradient(center, gradRadius, colors, positions, SKShaderTileMode.Clamp);
 
                 using var gradPaint = new SKPaint
                 {
@@ -380,8 +375,6 @@ public class SkiaRenderer : IDisposable
                     canvas.DrawRoundRect(rrect, gradPaint);
                 else
                     canvas.DrawRect(rect, gradPaint);
-
-                shader.Dispose();
             }
         }
 

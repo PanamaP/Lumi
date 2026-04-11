@@ -136,6 +136,8 @@ public abstract class Element
     public bool IsDraggable { get; set; } = false;
     public event Action<DragData>? OnDragStart;
     public event Action<DragData>? OnDragOver;
+    public event Action<DragData>? OnDragEnter;
+    public event Action<DragData>? OnDragLeave;
     public event Action<DragData>? OnDrop;
     public event Action? OnDragEnd;
 
@@ -167,8 +169,19 @@ public abstract class Element
             list.Remove(handler);
     }
 
+    /// <summary>
+    /// Remove all event handlers from this element.
+    /// Call before discarding an element to break closure references and prevent leaks.
+    /// </summary>
+    public void RemoveAllEventHandlers()
+    {
+        _eventHandlers.Clear();
+    }
+
     internal void RaiseDragStart(DragData data) => OnDragStart?.Invoke(data);
     internal void RaiseDragOver(DragData data) => OnDragOver?.Invoke(data);
+    internal void RaiseDragEnter(DragData data) => OnDragEnter?.Invoke(data);
+    internal void RaiseDragLeave(DragData data) => OnDragLeave?.Invoke(data);
     internal void RaiseDrop(DragData data) => OnDrop?.Invoke(data);
     internal void RaiseDragEnd() => OnDragEnd?.Invoke();
 

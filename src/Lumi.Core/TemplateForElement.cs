@@ -40,6 +40,7 @@ public class TemplateForElement : Element
     /// </summary>
     internal List<TemplateBinding> _bindings = [];
 
+    private Func<object, Element>? _createInstance;
     private NotifyCollectionChangedEventHandler? _collectionHandler;
     private INotifyCollectionChanged? _observableSource;
 
@@ -66,6 +67,8 @@ public class TemplateForElement : Element
     /// </summary>
     internal void BindCollection(IEnumerable source, Func<object, Element> createInstance)
     {
+        _createInstance = createInstance;
+
         // Keep existing bindings — only re-subscribe to collection changes
         if (_observableSource != null && _collectionHandler != null)
         {
@@ -75,7 +78,7 @@ public class TemplateForElement : Element
         if (source is INotifyCollectionChanged observable)
         {
             _observableSource = observable;
-            _collectionHandler = (sender, e) => OnCollectionChanged(e, createInstance);
+            _collectionHandler = (sender, e) => OnCollectionChanged(e, _createInstance);
             observable.CollectionChanged += _collectionHandler;
         }
     }
@@ -135,19 +138,19 @@ public class TemplateForElement : Element
             case NotifyCollectionChangedAction.Reset:
                 // Save source before Unbind() nulls it
                 var currentSource = _observableSource;
+                var savedCreateInstance = _createInstance;
                 Unbind();
                 ClearChildren();
-                if (currentSource is IEnumerable enumerable)
+                if (currentSource is IEnumerable enumerable && savedCreateInstance != null)
                 {
                     foreach (var item in enumerable)
                     {
-                        var element = createInstance(item);
+                        var element = savedCreateInstance(item);
                         AddChild(element);
                     }
+                    // Re-subscribe so future mutations are still tracked
+                    BindCollection(enumerable, savedCreateInstance);
                 }
-                // Re-subscribe so future mutations are still tracked
-                if (currentSource is IEnumerable enumerableSource)
-                    BindCollection(enumerableSource, createInstance);
                 break;
         }
     }

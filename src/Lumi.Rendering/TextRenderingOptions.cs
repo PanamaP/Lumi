@@ -10,13 +10,13 @@ using SkiaSharp;
 /// </summary>
 public static class TextRenderingOptions
 {
-    private static bool _useHarfBuzz;
-    private static TextShaper? _shaper;
+    private static bool _useHarfBuzz = true;
+    private static volatile TextShaper? _shaper;
     private static readonly object _lock = new();
 
     /// <summary>
     /// When true, text goes through HarfBuzz shaping before rendering.
-    /// Default is false for backward compatibility (uses SkiaSharp's built-in text rendering).
+    /// Default is true (uses HarfBuzz shaping for accurate glyph positioning).
     /// </summary>
     public static bool UseHarfBuzz
     {
@@ -45,8 +45,8 @@ public static class TextRenderingOptions
         lock (_lock)
         {
             if (_shaper != null) return;
-            _shaper = new TextShaper();
             TextShaper.CustomTypefaceResolver = ResolveTypeface;
+            _shaper = new TextShaper();
         }
     }
 
@@ -64,7 +64,7 @@ public static class TextRenderingOptions
     {
         lock (_lock)
         {
-            _useHarfBuzz = false;
+            _useHarfBuzz = true;
             _shaper?.Dispose();
             _shaper = null;
             TextShaper.CustomTypefaceResolver = null;

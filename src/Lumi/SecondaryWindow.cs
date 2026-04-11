@@ -1,3 +1,4 @@
+using Lumi.Core;
 using Lumi.Platform;
 using Lumi.Rendering;
 
@@ -11,6 +12,7 @@ public class SecondaryWindow : Window
 {
     internal Sdl3Window? PlatformWindow { get; set; }
     internal SkiaRenderer? SecondaryRenderer { get; set; }
+    internal Application? App { get; set; }
 
     /// <summary>
     /// Whether this secondary window is currently open and visible.

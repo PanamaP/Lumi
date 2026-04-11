@@ -11,7 +11,7 @@ public class LumiRadioGroup
     private int _selectedIndex;
 
     public Element Root => _container;
-    public List<string> Options => _options;
+    public IReadOnlyList<string> Options => _options;
     public Action<int>? OnSelectionChanged { get; set; }
 
     public int SelectedIndex

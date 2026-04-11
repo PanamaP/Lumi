@@ -93,7 +93,7 @@ public static class SelectorMatcher
                         found = true;
                         break;
                     }
-                    current = current.Parent;;
+                    current = current.Parent;
                 }
                 if (!found) return false;
             }
@@ -378,7 +378,7 @@ public static class SelectorMatcher
         return op switch
         {
             "=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase),
-            "~=" => attrValue.Split(' ').Any(w => string.Equals(w, valueStr, StringComparison.OrdinalIgnoreCase)),
+            "~=" => attrValue.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(w => string.Equals(w, valueStr, StringComparison.OrdinalIgnoreCase)),
             "|=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase) ||
                     attrValue.StartsWith(valueStr + "-", StringComparison.OrdinalIgnoreCase),
             "^=" => attrValue.StartsWith(valueStr, StringComparison.OrdinalIgnoreCase),
@@ -399,7 +399,9 @@ public static class SelectorMatcher
             return element.Id;
 
         if (string.Equals(name, "class", StringComparison.OrdinalIgnoreCase))
-            return element.Classes.Count > 0 ? string.Join(" ", element.Classes) : null;
+            return element.Classes.Count > 0
+                ? string.Join(" ", element.Classes)
+                : element.Attributes.TryGetValue("class", out var classAttr) ? classAttr : null;
 
         if (element is InputElement input)
         {

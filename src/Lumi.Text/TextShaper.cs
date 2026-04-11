@@ -54,7 +54,13 @@ public sealed class TextShaper : IDisposable
     /// falls back to system font resolution via <see cref="SKTypeface.FromFamilyName"/>.
     /// Signature: (familyName, weight, italic) → SKTypeface?
     /// </summary>
-    public static Func<string, int, bool, SKTypeface?>? CustomTypefaceResolver { get; set; }
+    private static volatile Func<string, int, bool, SKTypeface?>? _customTypefaceResolver;
+
+    public static Func<string, int, bool, SKTypeface?>? CustomTypefaceResolver
+    {
+        get => _customTypefaceResolver;
+        set => _customTypefaceResolver = value;
+    }
 
     private readonly ConcurrentDictionary<FontKey, CachedHarfBuzzFont> _fontCache = new();
 

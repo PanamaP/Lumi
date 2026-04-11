@@ -10,6 +10,8 @@ namespace Lumi.Layout;
 /// </summary>
 public static class GridLayoutEngine
 {
+    private static readonly Regex RepeatRegex = new(@"repeat\(\s*(\d+)\s*,\s*(.+?)\s*\)", RegexOptions.Compiled);
+
     internal enum TrackSizeKind { Pixel, Fractional, Auto }
 
     internal readonly record struct TrackSize(TrackSizeKind Kind, float Value);
@@ -93,14 +95,14 @@ public static class GridLayoutEngine
     private static string ExpandRepeat(string template)
     {
         // Match repeat(N, trackDef) — supports nested tokens like "1fr 100px"
-        var match = Regex.Match(template, @"repeat\(\s*(\d+)\s*,\s*(.+?)\s*\)");
+        var match = RepeatRegex.Match(template);
         while (match.Success)
         {
             int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             string trackDef = match.Groups[2].Value.Trim();
             string expanded = string.Join(" ", Enumerable.Repeat(trackDef, count));
             template = template[..match.Index] + expanded + template[(match.Index + match.Length)..];
-            match = Regex.Match(template, @"repeat\(\s*(\d+)\s*,\s*(.+?)\s*\)");
+            match = RepeatRegex.Match(template);
         }
 
         return template;
@@ -208,8 +210,12 @@ public static class GridLayoutEngine
 
             var cs = children[i].ComputedStyle;
             float size = isColumn
-                ? (float.IsNaN(cs.Width) ? 0 : cs.Width)
-                : (float.IsNaN(cs.Height) ? 0 : cs.Height);
+                ? (float.IsNaN(children[i].LayoutBox.Width) || children[i].LayoutBox.Width <= 0
+                    ? (float.IsNaN(cs.Width) ? 0 : cs.Width)
+                    : children[i].LayoutBox.Width)
+                : (float.IsNaN(children[i].LayoutBox.Height) || children[i].LayoutBox.Height <= 0
+                    ? (float.IsNaN(cs.Height) ? 0 : cs.Height)
+                    : children[i].LayoutBox.Height);
             maxSize = Math.Max(maxSize, size);
         }
 

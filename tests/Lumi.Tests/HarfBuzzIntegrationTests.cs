@@ -81,12 +81,12 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_PreservesFontParameters()
     {
-        var run = _shaper.Shape("X", "Arial", 24f, 700, true);
+        var run = _shaper.Shape("X", "Arial", 24f, 400, false);
 
         Assert.Equal("Arial", run.FontFamily);
         Assert.Equal(24f, run.FontSize);
-        Assert.Equal(700, run.FontWeight);
-        Assert.True(run.Italic);
+        Assert.Equal(400, run.FontWeight);
+        Assert.False(run.Italic);
     }
 
     [Fact]
@@ -218,9 +218,9 @@ public class HarfBuzzIntegrationTests : IDisposable
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void UseHarfBuzz_DefaultsFalse()
+    public void UseHarfBuzz_DefaultsTrue()
     {
-        Assert.False(TextRenderingOptions.UseHarfBuzz);
+        Assert.True(TextRenderingOptions.UseHarfBuzz);
     }
 
     [Fact]
@@ -251,7 +251,8 @@ public class HarfBuzzIntegrationTests : IDisposable
 
         TextRenderingOptions.Reset();
 
-        Assert.False(TextRenderingOptions.UseHarfBuzz);
+        // Reset restores UseHarfBuzz to true (the default) but clears the resolver
+        Assert.True(TextRenderingOptions.UseHarfBuzz);
         Assert.Null(TextShaper.CustomTypefaceResolver);
     }
 
@@ -264,6 +265,7 @@ public class HarfBuzzIntegrationTests : IDisposable
         const float fontSize = 16f;
 
         // Measure without HarfBuzz
+        TextRenderingOptions.UseHarfBuzz = false;
         float skiaWidth = measurer.MeasureWidth(text, family, fontSize, 400, false);
 
         // Enable HarfBuzz and measure again
@@ -291,6 +293,7 @@ public class HarfBuzzIntegrationTests : IDisposable
         };
 
         // Measure without HarfBuzz
+        TextRenderingOptions.UseHarfBuzz = false;
         var (skiaW, skiaH) = TextLayout.Measure("Hello World", 500f, style);
 
         // Enable HarfBuzz

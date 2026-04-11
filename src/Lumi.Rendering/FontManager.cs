@@ -8,7 +8,7 @@ using SkiaSharp;
 /// </summary>
 public static class FontManager
 {
-    private sealed record FontEntry(SKTypeface Typeface, int Weight, bool IsItalic);
+    private sealed record FontEntry(SKTypeface Typeface, int Weight, bool IsItalic, bool Owned);
 
     private static readonly Dictionary<string, List<FontEntry>> s_fonts = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object s_lock = new();
@@ -25,7 +25,7 @@ public static class FontManager
         var weight = typeface.FontWeight;
         var italic = typeface.FontSlant != SKFontStyleSlant.Upright;
 
-        AddEntry(familyName, new FontEntry(typeface, weight, italic));
+        AddEntry(familyName, new FontEntry(typeface, weight, italic, true));
         return familyName;
     }
 
@@ -42,7 +42,7 @@ public static class FontManager
         var weight = typeface.FontWeight;
         var italic = typeface.FontSlant != SKFontStyleSlant.Upright;
 
-        AddEntry(familyName, new FontEntry(typeface, weight, italic));
+        AddEntry(familyName, new FontEntry(typeface, weight, italic, true));
     }
 
     /// <summary>
@@ -60,17 +60,18 @@ public static class FontManager
         var weight = typeface.FontWeight;
         var italic = typeface.FontSlant != SKFontStyleSlant.Upright;
 
-        AddEntry(familyName, new FontEntry(typeface, weight, italic));
+        AddEntry(familyName, new FontEntry(typeface, weight, italic, true));
     }
 
     /// <summary>
     /// Register a pre-created typeface under a family name. Useful for testing.
+    /// Externally-provided typefaces are NOT disposed when <see cref="Clear"/> is called.
     /// </summary>
     public static void RegisterTypeface(string familyName, SKTypeface typeface, int weight = 400, bool italic = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(familyName);
         ArgumentNullException.ThrowIfNull(typeface);
-        AddEntry(familyName, new FontEntry(typeface, weight, italic));
+        AddEntry(familyName, new FontEntry(typeface, weight, italic, false));
     }
 
     /// <summary>
@@ -117,12 +118,21 @@ public static class FontManager
     }
 
     /// <summary>
-    /// Remove all registered fonts. Primarily useful for test isolation.
+    /// Remove all registered fonts. Disposes typefaces that were loaded from files
+    /// or byte arrays (owned by FontManager). Externally-provided typefaces are not disposed.
     /// </summary>
     public static void Clear()
     {
         lock (s_lock)
         {
+            foreach (var entries in s_fonts.Values)
+            {
+                foreach (var entry in entries)
+                {
+                    if (entry.Owned)
+                        entry.Typeface.Dispose();
+                }
+            }
             s_fonts.Clear();
         }
     }

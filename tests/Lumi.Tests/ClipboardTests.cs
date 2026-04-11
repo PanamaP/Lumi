@@ -4,28 +4,20 @@ namespace Lumi.Tests;
 
 public class ClipboardTests : IDisposable
 {
-    private readonly string? _origGetText;
-    private readonly Action<string>? _origSetText;
-
     public ClipboardTests()
     {
-        // Save original delegates so we can restore after each test
-        _origGetText = Clipboard.GetText?.Invoke();
-        _origSetText = Clipboard.SetText;
+        Clipboard.ResetForTesting();
     }
 
     public void Dispose()
     {
-        // Restore to avoid leaking between tests
-        Clipboard.GetText = null;
-        Clipboard.SetText = null;
+        Clipboard.ResetForTesting();
     }
 
     private static void SetupMockClipboard(out Func<string?> getContent)
     {
         string? content = null;
-        Clipboard.GetText = () => content;
-        Clipboard.SetText = t => content = t;
+        Clipboard.Initialize(() => content, t => content = t);
         getContent = () => content;
     }
 
@@ -60,11 +52,18 @@ public class ClipboardTests : IDisposable
     public void ClipboardDelegates_CanBeSetAndCalled()
     {
         string? stored = null;
-        Clipboard.SetText = t => stored = t;
-        Clipboard.GetText = () => stored;
+        Clipboard.Initialize(() => stored, t => stored = t);
 
         Clipboard.SetText("hello");
         Assert.Equal("hello", Clipboard.GetText());
+    }
+
+    [Fact]
+    public void ClipboardInitialize_ThrowsOnSecondCall()
+    {
+        Clipboard.Initialize(() => null, _ => { });
+        Assert.Throws<InvalidOperationException>(() =>
+            Clipboard.Initialize(() => null, _ => { }));
     }
 
     // ── Ctrl+C ───────────────────────────────────────────────────────
@@ -121,7 +120,7 @@ public class ClipboardTests : IDisposable
     public void CtrlV_PastesTextAtCursor()
     {
         SetupMockClipboard(out _);
-        Clipboard.SetText!("world");
+        Clipboard.SetText("world");
 
         var input = new InputElement { Value = "hello " };
         var app = CreateAppWithFocusedInput(input);
@@ -138,7 +137,7 @@ public class ClipboardTests : IDisposable
     public void CtrlV_ReplacesSelection()
     {
         SetupMockClipboard(out _);
-        Clipboard.SetText!("planet");
+        Clipboard.SetText("planet");
 
         var input = new InputElement { Value = "hello world" };
         var app = CreateAppWithFocusedInput(input);
@@ -157,7 +156,7 @@ public class ClipboardTests : IDisposable
     public void CtrlV_IntoEmptyInput()
     {
         SetupMockClipboard(out _);
-        Clipboard.SetText!("pasted");
+        Clipboard.SetText("pasted");
 
         var input = new InputElement { Value = "" };
         var app = CreateAppWithFocusedInput(input);
@@ -259,11 +258,9 @@ public class ClipboardTests : IDisposable
     // ── No clipboard delegates ───────────────────────────────────────
 
     [Fact]
-    public void CtrlC_WithNullDelegates_DoesNotCrash()
+    public void CtrlC_WithNoClipboard_DoesNotCrash()
     {
-        Clipboard.GetText = null;
-        Clipboard.SetText = null;
-
+        // Clipboard not initialized — delegates are null
         var input = new InputElement { Value = "hello" };
         var app = CreateAppWithFocusedInput(input);
 
@@ -273,11 +270,9 @@ public class ClipboardTests : IDisposable
     }
 
     [Fact]
-    public void CtrlV_WithNullDelegates_DoesNotCrash()
+    public void CtrlV_WithNoClipboard_DoesNotCrash()
     {
-        Clipboard.GetText = null;
-        Clipboard.SetText = null;
-
+        // Clipboard not initialized — delegates are null
         var input = new InputElement { Value = "hello" };
         var app = CreateAppWithFocusedInput(input);
 

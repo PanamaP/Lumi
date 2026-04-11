@@ -1285,6 +1285,10 @@ public static class PropertyApplier
         value.StartsWith("linear-gradient(", StringComparison.OrdinalIgnoreCase) ||
         value.StartsWith("radial-gradient(", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Parses a CSS gradient function string into a CssGradient object.
+    /// </summary>
+    /// <returns>The parsed gradient, or <c>null</c> if the input is not a valid gradient function.</returns>
     internal static CssGradient? ParseGradient(string value)
     {
         if (value.StartsWith("linear-gradient(", StringComparison.OrdinalIgnoreCase))
@@ -1313,6 +1317,7 @@ public static class PropertyApplier
         }
 
         var stops = ParseGradientStops(args, stopStart);
+        stops.Sort((a, b) => a.Position.CompareTo(b.Position));
 
         return new CssGradient
         {
@@ -1337,6 +1342,7 @@ public static class PropertyApplier
         }
 
         var stops = ParseGradientStops(args, stopStart);
+        stops.Sort((a, b) => a.Position.CompareTo(b.Position));
 
         return new CssGradient
         {
@@ -1364,7 +1370,7 @@ public static class PropertyApplier
         {
             char c = inner[i];
             if (c == '(') depth++;
-            else if (c == ')') depth--;
+            else if (c == ')' && depth > 0) depth--;
             else if (c == ',' && depth == 0)
             {
                 args.Add(inner[start..i].Trim());

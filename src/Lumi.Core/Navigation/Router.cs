@@ -59,6 +59,8 @@ public class Router
         _routes.Add(new RouteRegistration(normalized, segments, pageFactory));
     }
 
+    private bool _navigating;
+
     /// <summary>
     /// Navigate to the given route, swapping the container's content.
     /// If the route doesn't match any registration, the current page is preserved.
@@ -66,17 +68,27 @@ public class Router
     public void Navigate(string route)
     {
         ArgumentNullException.ThrowIfNull(route);
+        if (_navigating)
+            throw new InvalidOperationException("Cannot navigate while a navigation is already in progress.");
 
-        var normalized = NormalizePath(route);
-        var (registration, parameters) = MatchRoute(normalized);
-        if (registration is null)
-            return;
+        _navigating = true;
+        try
+        {
+            var normalized = NormalizePath(route);
+            var (registration, parameters) = MatchRoute(normalized);
+            if (registration is null)
+                return;
 
-        // Push current route onto history before switching.
-        if (!string.IsNullOrEmpty(CurrentRoute))
-            _history.Push(CurrentRoute);
+            // Push current route onto history before switching.
+            if (!string.IsNullOrEmpty(CurrentRoute))
+                _history.Push(CurrentRoute);
 
-        ApplyRoute(normalized, registration.Value, parameters);
+            ApplyRoute(normalized, registration.Value, parameters);
+        }
+        finally
+        {
+            _navigating = false;
+        }
     }
 
     /// <summary>
@@ -87,20 +99,31 @@ public class Router
         if (!CanGoBack)
             return;
 
-        var previousRoute = _history.Pop();
+        var previousRoute = _history.Peek();
         var (registration, parameters) = MatchRoute(previousRoute);
         if (registration is null)
             return;
 
+        _history.Pop();
         ApplyRoute(previousRoute, registration.Value, parameters);
     }
 
     private void ApplyRoute(string route, RouteRegistration registration, RouteParameters parameters)
     {
+        var previousRoute = CurrentRoute;
         Container.ClearChildren();
 
-        var page = registration.Factory(parameters);
-        Container.AddChild(page);
+        try
+        {
+            var page = registration.Factory(parameters);
+            Container.AddChild(page);
+        }
+        catch
+        {
+            // Rollback: restore CurrentRoute (container is already cleared)
+            CurrentRoute = previousRoute;
+            throw;
+        }
 
         CurrentRoute = route;
         RouteChanged?.Invoke(route);

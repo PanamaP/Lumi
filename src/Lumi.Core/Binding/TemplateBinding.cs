@@ -185,17 +185,20 @@ public sealed class TemplateBinding : IDisposable
                     if (remaining.StartsWith(ph.AsSpan()))
                     {
                         sb.Append(ph);
+                        // Advance past the entire placeholder including the closing '}'.
+                        // -1 compensates for the for-loop's i++ so we land exactly
+                        // one past the '}' on the next iteration.
                         i += ph.Length - 1;
                         isPlaceholder = true;
                         break;
                     }
                 }
-                if (!isPlaceholder)
-                    sb.Append("{{");
+                if (isPlaceholder)
+                    continue; // skip to next iteration — closing '}' already consumed
+                sb.Append("{{");
             }
             else if (template[i] == '}')
             {
-                // Check if this } closes a placeholder (already handled above)
                 sb.Append("}}");
             }
             else

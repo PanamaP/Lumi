@@ -45,8 +45,9 @@ public sealed class LumiApp : IDisposable
         _platformWindow.Create(window.Title, window.Width, window.Height);
 
         // Wire up clipboard delegates so Lumi.Core can access the OS clipboard
-        Clipboard.GetText = () => _platformWindow.GetClipboardText();
-        Clipboard.SetText = text => _platformWindow.SetClipboardText(text);
+        Clipboard.Initialize(
+            () => _platformWindow.GetClipboardText(),
+            text => _platformWindow.SetClipboardText(text));
 
         // Initialize frame clock with detected display refresh rate
         _frameClock = new FrameClock(_platformWindow.DisplayRefreshRate);

@@ -122,6 +122,10 @@ public class MainWindow : Window
     {
         if (_todoList == null) return;
 
+        // Dispose event handlers on old children to prevent closure-based memory leaks
+        foreach (var child in _todoList.Children)
+            DisposeElementTree(child);
+
         _todoList.ClearChildren();
 
         var filtered = _filter switch
@@ -224,6 +228,13 @@ public class MainWindow : Window
             _remainingText.Text = $"{remaining} item{(remaining != 1 ? "s" : "")} left";
             _remainingText.MarkDirty();
         }
+    }
+
+    private static void DisposeElementTree(Element element)
+    {
+        foreach (var child in element.Children)
+            DisposeElementTree(child);
+        element.RemoveAllEventHandlers();
     }
 
     private static string GetSourceDirectory([CallerFilePath] string callerPath = "")

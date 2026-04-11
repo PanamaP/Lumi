@@ -17,6 +17,7 @@ public class Application
     // Drag-and-drop state
     private readonly DragDropState _dragState = new();
     private Element? _potentialDragSource;
+    private Element? _lastDragOverElement;
     private float _dragStartX;
     private float _dragStartY;
     private const float DragThreshold = 5f;
@@ -106,8 +107,13 @@ public class Application
                 {
                     _dragState.X = mouse.X;
                     _dragState.Y = mouse.Y;
-                    if (target != null)
-                        target.RaiseDragOver(_dragState.Data!);
+                    if (target != _lastDragOverElement)
+                    {
+                        _lastDragOverElement?.RaiseDragLeave(_dragState.Data!);
+                        target?.RaiseDragEnter(_dragState.Data!);
+                        _lastDragOverElement = target;
+                    }
+                    target?.RaiseDragOver(_dragState.Data!);
                 }
                 else
                 {
@@ -338,13 +344,13 @@ public class Application
                     ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
                     : input.Value;
                 if (!string.IsNullOrEmpty(textToCopy))
-                    Clipboard.SetText?.Invoke(textToCopy);
+                    Clipboard.SetText(textToCopy);
                 break;
             }
 
             case KeyCode.V when keyboard.Ctrl:
             {
-                var pasteText = Clipboard.GetText?.Invoke();
+                var pasteText = Clipboard.GetText();
                 if (!string.IsNullOrEmpty(pasteText))
                 {
                     if (input.HasSelection)
@@ -366,7 +372,7 @@ public class Application
                     ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
                     : input.Value;
                 if (!string.IsNullOrEmpty(textToCut))
-                    Clipboard.SetText?.Invoke(textToCut);
+                    Clipboard.SetText(textToCut);
 
                 if (input.HasSelection)
                     input.DeleteSelection();
@@ -389,8 +395,11 @@ public class Application
                 }
                 else if (input.CursorPosition > 0)
                 {
-                    input.Value = input.Value[..(input.CursorPosition - 1)] + input.Value[input.CursorPosition..];
-                    input.CursorPosition--;
+                    int deleteCount = 1;
+                    if (input.CursorPosition >= 2 && char.IsSurrogatePair(input.Value[input.CursorPosition - 2], input.Value[input.CursorPosition - 1]))
+                        deleteCount = 2;
+                    input.Value = input.Value[..(input.CursorPosition - deleteCount)] + input.Value[input.CursorPosition..];
+                    input.CursorPosition -= deleteCount;
                     input.ClearSelection();
                 }
                 input.ResetBlink();
@@ -405,7 +414,10 @@ public class Application
                 }
                 else if (input.CursorPosition < input.Value.Length)
                 {
-                    input.Value = input.Value[..input.CursorPosition] + input.Value[(input.CursorPosition + 1)..];
+                    int deleteCount = 1;
+                    if (input.CursorPosition < input.Value.Length - 1 && char.IsSurrogatePair(input.Value[input.CursorPosition], input.Value[input.CursorPosition + 1]))
+                        deleteCount = 2;
+                    input.Value = input.Value[..input.CursorPosition] + input.Value[(input.CursorPosition + deleteCount)..];
                     input.ClearSelection();
                 }
                 input.ResetBlink();
@@ -462,6 +474,15 @@ public class Application
         switch (window.Type)
         {
             case WindowEventType.Close:
+                if (_dragState.IsDragging)
+                {
+                    _dragState.Source?.RaiseDragEnd();
+                    _dragState.IsDragging = false;
+                    _dragState.Source = null;
+                    _dragState.Data = null;
+                    _potentialDragSource = null;
+                    _lastDragOverElement = null;
+                }
                 RequestStop();
                 break;
             case WindowEventType.Resized:

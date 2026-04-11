@@ -21,9 +21,12 @@ public enum ThemeMode
 /// </summary>
 public class ThemeManager
 {
+    private readonly object _lock = new();
     private ThemeMode _mode = ThemeMode.System;
     private bool _systemDarkMode;
     private bool _isDarkMode;
+    private Element? _appliedRoot;
+    private bool _isApplying;
 
     // ── Light palette ──────────────────────────────────────────────
     public static readonly Dictionary<string, string> LightVariables = new()
@@ -59,15 +62,23 @@ public class ThemeManager
         ["--warning"]        = "#fbbf24",
     };
 
-    /// <summary>Current theme mode setting (Light, Dark, or System).</summary>
+    private static readonly HashSet<string> _allThemeKeys = new(
+        LightVariables.Keys.Concat(DarkVariables.Keys),
+        StringComparer.OrdinalIgnoreCase
+    );
+
+    /// <summary>Current theme mode setting(Light, Dark, or System).</summary>
     public ThemeMode Mode
     {
         get => _mode;
         set
         {
-            if (_mode == value) return;
-            _mode = value;
-            Recalculate();
+            lock (_lock)
+            {
+                if (_mode == value) return;
+                _mode = value;
+                Recalculate();
+            }
         }
     }
 
@@ -94,7 +105,10 @@ public class ThemeManager
     /// </summary>
     public void Toggle()
     {
-        Mode = _isDarkMode ? ThemeMode.Light : ThemeMode.Dark;
+        lock (_lock)
+        {
+            Mode = _isDarkMode ? ThemeMode.Light : ThemeMode.Dark;
+        }
     }
 
     /// <summary>
@@ -102,10 +116,13 @@ public class ThemeManager
     /// </summary>
     public void SetSystemPreference(bool systemIsDark)
     {
-        if (_systemDarkMode == systemIsDark) return;
-        _systemDarkMode = systemIsDark;
-        if (_mode == ThemeMode.System)
-            Recalculate();
+        lock (_lock)
+        {
+            if (_systemDarkMode == systemIsDark) return;
+            _systemDarkMode = systemIsDark;
+            if (_mode == ThemeMode.System)
+                Recalculate();
+        }
     }
 
     /// <summary>
@@ -114,32 +131,50 @@ public class ThemeManager
     /// </summary>
     public void ApplyTo(Element root)
     {
-        var variables = _isDarkMode ? DarkVariables : LightVariables;
+        _isApplying = true;
+        try
+        {
+            _appliedRoot = root;
+            var variables = _isDarkMode ? DarkVariables : LightVariables;
 
-        // Build CSS custom-property declarations
-        var varCss = string.Join("; ", variables.Select(kv => $"{kv.Key}: {kv.Value}"));
+            // Build CSS custom-property declarations
+            var varCss = string.Join("; ", variables.Select(kv => $"{kv.Key}: {kv.Value}"));
 
-        // Preserve any non-theme-variable inline styles the user set
-        var existing = StripThemeVariables(root.InlineStyle);
-        root.InlineStyle = string.IsNullOrEmpty(existing)
-            ? varCss
-            : varCss + "; " + existing;
+            // Preserve any non-theme-variable inline styles the user set
+            var existing = StripThemeVariables(root.InlineStyle);
+            root.InlineStyle = string.IsNullOrEmpty(existing)
+                ? varCss
+                : varCss + "; " + existing;
+        }
+        finally
+        {
+            _isApplying = false;
+        }
     }
 
     // ── Private helpers ────────────────────────────────────────────
 
     private void Recalculate()
     {
-        var newDark = _mode switch
+        lock (_lock)
         {
-            ThemeMode.Light => false,
-            ThemeMode.Dark  => true,
-            _               => _systemDarkMode
-        };
+            var newDark = _mode switch
+            {
+                ThemeMode.Light => false,
+                ThemeMode.Dark  => true,
+                _               => _systemDarkMode
+            };
 
-        if (newDark == _isDarkMode) return;
-        _isDarkMode = newDark;
-        ThemeChanged?.Invoke(_isDarkMode);
+            if (newDark == _isDarkMode) return;
+            _isDarkMode = newDark;
+            ThemeChanged?.Invoke(_isDarkMode);
+
+            if (_appliedRoot != null && !_isApplying)
+            {
+                ApplyTo(_appliedRoot);
+                _appliedRoot.MarkDirty();
+            }
+        }
     }
 
     /// <summary>
@@ -162,7 +197,7 @@ public class ThemeManager
             if (colonIdx > 0)
             {
                 var prop = trimmed[..colonIdx].Trim();
-                if (LightVariables.ContainsKey(prop) || DarkVariables.ContainsKey(prop))
+                if (_allThemeKeys.Contains(prop))
                     continue; // strip theme var
             }
 

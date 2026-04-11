@@ -166,6 +166,7 @@ public class InputElement : Element
         clone.CursorPosition = CursorPosition;
         clone.SelectionStart = SelectionStart;
         clone.SelectionEnd = SelectionEnd;
+        clone.LastEditTick = LastEditTick;
         return clone;
     }
 }
