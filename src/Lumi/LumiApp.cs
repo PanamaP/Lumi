@@ -38,6 +38,9 @@ public sealed class LumiApp : IDisposable
         _window = window;
         _app = new Application();
 
+        // Register platform-specific fallback fonts (emoji, symbols) before any rendering
+        SystemFontResolver.Initialize();
+
         // Wire up TemplateEngine's HTML parser so template directives can parse HTML
         Core.Binding.TemplateEngine.HtmlParser ??= HtmlTemplateParser.Parse;
 

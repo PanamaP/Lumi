@@ -49,6 +49,19 @@ public sealed class ShapedGlyphRun
 public sealed class TextShaper : IDisposable
 {
     /// <summary>
+    /// Default OpenType features applied during shaping. Modify to control ligatures,
+    /// kerning, and other typographic features globally.
+    /// Common tags: "liga" (standard ligatures), "kern" (kerning), "dlig" (discretionary ligatures),
+    /// "calt" (contextual alternates), "smcp" (small caps).
+    /// </summary>
+    public static List<Feature> DefaultFeatures { get; } =
+    [
+        Feature.Parse("+liga"),
+        Feature.Parse("+calt"),
+        Feature.Parse("+kern"),
+    ];
+
+    /// <summary>
     /// Optional external typeface resolver. When set, this is called first to resolve
     /// typefaces (e.g., from FontManager in Lumi.Rendering). If it returns null,
     /// falls back to system font resolution via <see cref="SKTypeface.FromFamilyName"/>.
@@ -61,6 +74,13 @@ public sealed class TextShaper : IDisposable
         get => _customTypefaceResolver;
         set => _customTypefaceResolver = value;
     }
+
+    /// <summary>
+    /// Optional resolver for fallback typefaces by category. Called when the primary font
+    /// doesn't cover a script segment (e.g., emoji, symbol).
+    /// Signature: (category) → SKTypeface?
+    /// </summary>
+    public static Func<string, SKTypeface?>? FallbackTypefaceResolver { get; set; }
 
     private readonly ConcurrentDictionary<FontKey, Lazy<CachedHarfBuzzFont>> _fontCache = new();
 
@@ -90,7 +110,7 @@ public sealed class TextShaper : IDisposable
     /// <summary>
     /// Shape text using HarfBuzz and produce a glyph run with pixel-space positions.
     /// </summary>
-    public ShapedGlyphRun Shape(string text, string fontFamily, float fontSize, int fontWeight, bool italic)
+    public ShapedGlyphRun Shape(string text, string fontFamily, float fontSize, int fontWeight, bool italic, Feature[]? features = null)
     {
         if (string.IsNullOrEmpty(text))
             return new ShapedGlyphRun([], [], [], 0, fontFamily, fontSize, fontWeight, italic);
@@ -103,12 +123,13 @@ public sealed class TextShaper : IDisposable
 
         using var buffer = new HarfBuzzSharp.Buffer();
         buffer.AddUtf16(text);
-        buffer.Direction = Direction.LeftToRight;
-        buffer.Script = Script.Parse("Latn");
+        var dominantScript = GetDominantScript(text);
+        buffer.Direction = UnicodeScript.GetDirection(dominantScript);
+        buffer.Script = UnicodeScript.GetHarfBuzzScript(dominantScript);
         buffer.Language = Language.Default;
-        buffer.GuessSegmentProperties();
 
-        cached.Font.Shape(buffer, Array.Empty<Feature>());
+        var effectiveFeatures = features ?? (DefaultFeatures.Count > 0 ? DefaultFeatures.ToArray() : Array.Empty<Feature>());
+        cached.Font.Shape(buffer, effectiveFeatures);
 
         var glyphInfos = buffer.GlyphInfos;
         var glyphPositions = buffer.GlyphPositions;
@@ -139,6 +160,145 @@ public sealed class TextShaper : IDisposable
 
         return new ShapedGlyphRun(glyphIds, positions, advances, cursorX,
             fontFamily, fontSize, fontWeight, italic);
+    }
+
+    /// <summary>
+    /// Shape text with automatic script detection and font fallback.
+    /// Returns multiple glyph runs — one per script segment — each with the
+    /// correct HarfBuzz script, direction, and potentially a different font family.
+    /// </summary>
+    public List<ShapedGlyphRun> ShapeMultiScript(string text, string fontFamily, float fontSize, int fontWeight, bool italic)
+    {
+        if (string.IsNullOrEmpty(text))
+            return [];
+
+        var segments = TextSegmenter.Segment(text);
+        if (segments.Count == 0)
+            return [];
+
+        // Fast path: single segment = single run
+        if (segments.Count == 1)
+            return [ShapeSegment(segments[0], fontFamily, fontSize, fontWeight, italic)];
+
+        var runs = new List<ShapedGlyphRun>(segments.Count);
+        float offsetX = 0;
+
+        foreach (var segment in segments)
+        {
+            var run = ShapeSegment(segment, fontFamily, fontSize, fontWeight, italic);
+
+            // Offset positions by accumulated advance
+            if (offsetX > 0 && run.Positions.Length > 0)
+            {
+                var adjustedPositions = new float[run.Positions.Length];
+                Array.Copy(run.Positions, adjustedPositions, run.Positions.Length);
+                for (int i = 0; i < adjustedPositions.Length; i += 2)
+                    adjustedPositions[i] += offsetX;
+                run = new ShapedGlyphRun(run.GlyphIds, adjustedPositions, run.Advances, run.TotalWidth,
+                    run.FontFamily, run.FontSize, run.FontWeight, run.Italic);
+            }
+
+            runs.Add(run);
+            offsetX += run.TotalWidth;
+        }
+
+        return runs;
+    }
+
+    private ShapedGlyphRun ShapeSegment(TextSegment segment, string primaryFamily, float fontSize, int fontWeight, bool italic)
+    {
+        // Determine if we should use a fallback font for this script category
+        string fontFamily = primaryFamily;
+        string? fallbackCategory = segment.Script switch
+        {
+            ScriptCategory.Emoji => "emoji",
+            ScriptCategory.Symbol => "symbol",
+            _ => null
+        };
+
+        // For emoji/symbol segments, try the fallback font
+        if (fallbackCategory != null)
+        {
+            var fallbackTypeface = FallbackTypefaceResolver?.Invoke(fallbackCategory);
+            if (fallbackTypeface != null)
+                fontFamily = fallbackTypeface.FamilyName;
+        }
+
+        // Shape with the correct script and direction
+        return ShapeWithScript(segment.Text, fontFamily, fontSize, fontWeight, italic, segment.Script);
+    }
+
+    /// <summary>
+    /// Shape text with an explicit script category (used by multi-script pipeline).
+    /// </summary>
+    private ShapedGlyphRun ShapeWithScript(string text, string fontFamily, float fontSize, int fontWeight, bool italic, ScriptCategory script)
+    {
+        if (string.IsNullOrEmpty(text))
+            return new ShapedGlyphRun([], [], [], 0, fontFamily, fontSize, fontWeight, italic);
+
+        var cached = GetOrCreateFont(fontFamily, fontWeight, italic);
+
+        int upem = cached.Face.UnitsPerEm;
+        if (upem <= 0) upem = 1000;
+        float scale = fontSize / upem;
+
+        using var buffer = new HarfBuzzSharp.Buffer();
+        buffer.AddUtf16(text);
+        buffer.Direction = UnicodeScript.GetDirection(script);
+        buffer.Script = UnicodeScript.GetHarfBuzzScript(script);
+        buffer.Language = Language.Default;
+
+        var effectiveFeatures = DefaultFeatures.Count > 0 ? DefaultFeatures.ToArray() : Array.Empty<Feature>();
+        cached.Font.Shape(buffer, effectiveFeatures);
+
+        var glyphInfos = buffer.GlyphInfos;
+        var glyphPositions = buffer.GlyphPositions;
+        int count = glyphInfos.Length;
+
+        var glyphIds = new ushort[count];
+        var positions = new float[count * 2];
+        var advances = new float[count];
+        float cursorX = 0;
+        float cursorY = 0;
+
+        for (int i = 0; i < count; i++)
+        {
+            glyphIds[i] = (ushort)glyphInfos[i].Codepoint;
+            float xOffset = glyphPositions[i].XOffset * scale;
+            float yOffset = glyphPositions[i].YOffset * scale;
+            float xAdvance = glyphPositions[i].XAdvance * scale;
+            float yAdvance = glyphPositions[i].YAdvance * scale;
+
+            positions[i * 2] = cursorX + xOffset;
+            positions[i * 2 + 1] = cursorY - yOffset;
+            advances[i] = xAdvance;
+
+            cursorX += xAdvance;
+            cursorY += yAdvance;
+        }
+
+        return new ShapedGlyphRun(glyphIds, positions, advances, cursorX,
+            fontFamily, fontSize, fontWeight, italic);
+    }
+
+    /// <summary>
+    /// Determine the dominant (most frequent non-Common) script in a text string.
+    /// </summary>
+    private static ScriptCategory GetDominantScript(string text)
+    {
+        ScriptCategory dominant = ScriptCategory.Latin;
+        int i = 0;
+        while (i < text.Length)
+        {
+            var sc = UnicodeScript.Classify(text, i);
+            if (sc != ScriptCategory.Common && sc != ScriptCategory.Unknown)
+            {
+                dominant = sc;
+                break;
+            }
+            i += char.IsHighSurrogate(text[i]) && i + 1 < text.Length ? 2 : 1;
+        }
+        return dominant;
     }
 
     private CachedHarfBuzzFont GetOrCreateFont(string family, int weight, bool italic)

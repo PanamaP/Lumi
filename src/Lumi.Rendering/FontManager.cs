@@ -11,6 +11,7 @@ public static class FontManager
     private sealed record FontEntry(SKTypeface Typeface, int Weight, bool IsItalic, bool Owned);
 
     private static readonly Dictionary<string, List<FontEntry>> s_fonts = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, List<FontEntry>> s_fallbacks = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object s_lock = new();
 
     /// <summary>
@@ -82,6 +83,51 @@ public static class FontManager
     }
 
     /// <summary>
+    /// Register a font file as a fallback for a given category (e.g., "emoji", "symbol", "cjk").
+    /// Fallback fonts are tried in registration order when the primary font is missing a glyph.
+    /// </summary>
+    public static string RegisterFallbackFont(string category, string filePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(category);
+        ArgumentNullException.ThrowIfNull(filePath);
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Font file not found: '{filePath}'", filePath);
+
+        var typeface = SKTypeface.FromFile(filePath)
+            ?? throw new ArgumentException($"Failed to load font from '{filePath}'.", nameof(filePath));
+
+        var familyName = typeface.FamilyName;
+        lock (s_lock)
+        {
+            if (!s_fallbacks.TryGetValue(category, out var list))
+            {
+                list = [];
+                s_fallbacks[category] = list;
+            }
+            list.Add(new FontEntry(typeface, typeface.FontWeight, typeface.FontSlant != SKFontStyleSlant.Upright, true));
+        }
+        return familyName;
+    }
+
+    /// <summary>
+    /// Register a pre-created typeface as a fallback for a category.
+    /// </summary>
+    public static void RegisterFallbackTypeface(string category, SKTypeface typeface)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(category);
+        ArgumentNullException.ThrowIfNull(typeface);
+        lock (s_lock)
+        {
+            if (!s_fallbacks.TryGetValue(category, out var list))
+            {
+                list = [];
+                s_fallbacks[category] = list;
+            }
+            list.Add(new FontEntry(typeface, typeface.FontWeight, false, false));
+        }
+    }
+
+    /// <summary>
     /// Try to get a registered custom typeface that best matches the requested weight and style.
     /// Returns null if no font is registered under the given family name.
     /// </summary>
@@ -125,6 +171,52 @@ public static class FontManager
     }
 
     /// <summary>
+    /// Get the first registered fallback typeface for a category.
+    /// Returns null if no fallback is registered for that category.
+    /// </summary>
+    public static SKTypeface? GetFallbackTypeface(string category)
+    {
+        lock (s_lock)
+        {
+            if (s_fallbacks.TryGetValue(category, out var entries) && entries.Count > 0)
+                return entries[0].Typeface;
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Check if a typeface contains a glyph for the given Unicode codepoint.
+    /// </summary>
+    public static bool HasGlyph(SKTypeface typeface, int codepoint)
+    {
+        if (typeface == null) return false;
+        var glyphs = typeface.GetGlyphs(new string(char.ConvertFromUtf32(codepoint)));
+        return glyphs.Length > 0 && glyphs[0] != 0;
+    }
+
+    /// <summary>
+    /// Resolve a typeface for the given text, trying the primary font first,
+    /// then falling back to registered fallback fonts by category.
+    /// </summary>
+    public static SKTypeface? ResolveWithFallback(string familyName, int weight, bool italic, string? fallbackCategory)
+    {
+        // Try primary font first
+        var primary = GetTypeface(familyName, weight, italic);
+        if (primary != null)
+            return primary;
+
+        // Try fallback by category
+        if (fallbackCategory != null)
+        {
+            var fallback = GetFallbackTypeface(fallbackCategory);
+            if (fallback != null)
+                return fallback;
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Remove all registered fonts. Disposes typefaces that were loaded from files
     /// or byte arrays (owned by FontManager). Externally-provided typefaces are not disposed.
     /// </summary>
@@ -141,6 +233,16 @@ public static class FontManager
                 }
             }
             s_fonts.Clear();
+
+            foreach (var entries in s_fallbacks.Values)
+            {
+                foreach (var entry in entries)
+                {
+                    if (entry.Owned)
+                        entry.Typeface.Dispose();
+                }
+            }
+            s_fallbacks.Clear();
         }
     }
 

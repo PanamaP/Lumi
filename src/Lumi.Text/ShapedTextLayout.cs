@@ -4,9 +4,34 @@ using SkiaSharp;
 using Lumi.Core;
 
 /// <summary>
-/// A single line of shaped text with its glyph run and position.
+/// A single line of shaped text with one or more glyph runs and position.
 /// </summary>
-public readonly record struct ShapedTextLine(ShapedGlyphRun Run, float X, float Y, float Width);
+public sealed class ShapedTextLine
+{
+    public List<ShapedGlyphRun> Runs { get; }
+    public float X { get; }
+    public float Y { get; }
+    public float Width { get; }
+
+    /// <summary>Convenience: the first (or only) run. For backward compatibility.</summary>
+    public ShapedGlyphRun Run => Runs[0];
+
+    public ShapedTextLine(ShapedGlyphRun run, float x, float y, float width)
+    {
+        Runs = [run];
+        X = x;
+        Y = y;
+        Width = width;
+    }
+
+    public ShapedTextLine(List<ShapedGlyphRun> runs, float x, float y, float width)
+    {
+        Runs = runs;
+        X = x;
+        Y = y;
+        Width = width;
+    }
+}
 
 /// <summary>
 /// Result of laying out shaped text within constrained dimensions.
@@ -53,18 +78,22 @@ public static class ShapedTextLayout
         // No-wrap mode
         if (style.WhiteSpace == WhiteSpace.NoWrap)
         {
-            var run = shaper.Shape(text, fontFamily, fontSize, fontWeight, italic);
-            float textWidth = run.TotalWidth;
+            var runs = shaper.ShapeMultiScript(text, fontFamily, fontSize, fontWeight, italic);
+            float textWidth = runs.Sum(r => r.TotalWidth);
 
             if (style.TextOverflow == TextOverflow.Ellipsis && textWidth > availableWidth)
             {
-                run = TruncateWithEllipsis(text, availableWidth, shaper, fontFamily, fontSize, fontWeight, italic);
+                var run = TruncateWithEllipsis(text, availableWidth, shaper, fontFamily, fontSize, fontWeight, italic);
                 textWidth = run.TotalWidth;
                 result.WasTruncated = true;
+                float x = AlignX(textWidth, availableWidth, style.TextAlign);
+                result.Lines.Add(new ShapedTextLine(run, x, ascent, textWidth));
             }
-
-            float x = AlignX(textWidth, availableWidth, style.TextAlign);
-            result.Lines.Add(new ShapedTextLine(run, x, ascent, textWidth));
+            else
+            {
+                float x = AlignX(textWidth, availableWidth, style.TextAlign);
+                result.Lines.Add(new ShapedTextLine(runs, x, ascent, textWidth));
+            }
             result.TotalHeight = lineHeight;
             result.MaxWidth = textWidth;
             return result;
@@ -171,9 +200,10 @@ public static class ShapedTextLayout
         TextShaper shaper, string fontFamily, float fontSize, int fontWeight, bool italic)
     {
         string lineText = string.Join(' ', words);
-        var run = shaper.Shape(lineText, fontFamily, fontSize, fontWeight, italic);
-        float x = AlignX(run.TotalWidth, availableWidth, align);
-        result.Lines.Add(new ShapedTextLine(run, x, y, run.TotalWidth));
+        var runs = shaper.ShapeMultiScript(lineText, fontFamily, fontSize, fontWeight, italic);
+        float totalWidth = runs.Sum(r => r.TotalWidth);
+        float x = AlignX(totalWidth, availableWidth, align);
+        result.Lines.Add(new ShapedTextLine(runs, x, y, totalWidth));
     }
 
     private static float AlignX(float textWidth, float availableWidth, TextAlign align) => align switch

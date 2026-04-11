@@ -575,7 +575,10 @@ public class SkiaRenderer : IDisposable
 
         foreach (var line in layout.Lines)
         {
-            ShapedTextRenderer.Draw(canvas, line.Run, line.X, line.Y, textPaint);
+            foreach (var run in line.Runs)
+            {
+                ShapedTextRenderer.Draw(canvas, run, line.X, line.Y, textPaint);
+            }
         }
 
         // Draw text decoration (underline, line-through)

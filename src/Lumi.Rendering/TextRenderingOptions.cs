@@ -46,6 +46,7 @@ public static class TextRenderingOptions
         {
             if (_shaper != null) return;
             TextShaper.CustomTypefaceResolver = ResolveTypeface;
+            TextShaper.FallbackTypefaceResolver = ResolveFallbackTypeface;
             _shaper = new TextShaper();
         }
     }
@@ -55,6 +56,11 @@ public static class TextRenderingOptions
         if (FontManager.IsRegistered(family))
             return FontManager.GetTypeface(family, weight, italic);
         return null;
+    }
+
+    private static SKTypeface? ResolveFallbackTypeface(string category)
+    {
+        return FontManager.GetFallbackTypeface(category);
     }
 
     /// <summary>
@@ -68,6 +74,7 @@ public static class TextRenderingOptions
             _shaper?.Dispose();
             _shaper = null;
             TextShaper.CustomTypefaceResolver = null;
+            TextShaper.FallbackTypefaceResolver = null;
         }
     }
 }
