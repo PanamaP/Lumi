@@ -97,4 +97,44 @@ public static class ComponentStyles
                          $"border-color: {ToRgba(Border)}; cursor: pointer; " +
                          $"color: {ToRgba(TextColor)}";
     }
+
+    public static void ApplyRadioGroup(Element el)
+    {
+        el.InlineStyle = "display: flex; flex-direction: column; gap: 4px";
+    }
+
+    public static void ApplyToggleTrack(Element el, bool isOn)
+    {
+        var bg = isOn ? Accent : Border;
+        el.InlineStyle = $"width: 44px; height: 24px; border-radius: 12px; position: relative; " +
+                         $"background-color: {ToRgba(bg)}";
+    }
+
+    public static void ApplyProgressTrack(Element el)
+    {
+        el.InlineStyle = $"width: 100%; height: 8px; border-radius: 4px; overflow: hidden; " +
+                         $"background-color: {ToRgba(Border)}";
+    }
+
+    public static void ApplyTabHeader(Element el)
+    {
+        el.InlineStyle = $"display: flex; flex-direction: row; " +
+                         $"border-width: 0px 0px 1px 0px; border-color: {ToRgba(Border)}; " +
+                         $"background-color: {ToRgba(Surface)}";
+    }
+
+    public static void ApplyTooltip(Element el)
+    {
+        el.InlineStyle = $"position: absolute; padding: 4px 8px; border-radius: 4px; " +
+                         $"background-color: rgba(0,0,0,0.85); z-index: 999";
+    }
+
+    /// <summary>
+    /// Sets an element's display to none (hidden) or restores to flex (visible).
+    /// </summary>
+    public static void SetVisible(Element el, bool visible)
+    {
+        el.ComputedStyle.Display = visible ? DisplayMode.Flex : DisplayMode.None;
+        el.MarkDirty();
+    }
 }
