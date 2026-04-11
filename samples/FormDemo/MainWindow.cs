@@ -247,7 +247,17 @@ public class MainWindow : Window
 
     private void ClearValidation()
     {
-        _validationArea?.ClearChildren();
+        if (_validationArea == null) return;
+        foreach (var child in _validationArea.Children)
+            DisposeElementTree(child);
+        _validationArea.ClearChildren();
+    }
+
+    private static void DisposeElementTree(Element element)
+    {
+        foreach (var child in element.Children)
+            DisposeElementTree(child);
+        element.RemoveAllEventHandlers();
     }
 
     private static string GetSourceDirectory([CallerFilePath] string callerPath = "")

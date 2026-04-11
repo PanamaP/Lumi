@@ -1,15 +1,12 @@
 namespace Lumi.Text;
 
 using SkiaSharp;
-using System.Collections.Concurrent;
 
 /// <summary>
 /// Renders shaped glyph runs to an SKCanvas using precise glyph positioning.
 /// </summary>
 public static class ShapedTextRenderer
 {
-    private static readonly ConcurrentDictionary<(string Family, bool Bold, bool Italic), SKTypeface> s_systemTypefaceCache = new();
-
     /// <summary>
     /// Draw a shaped glyph run at the specified origin using pre-computed glyph positions.
     /// </summary>
@@ -49,13 +46,7 @@ public static class ShapedTextRenderer
 
         if (typeface == null)
         {
-            typeface = s_systemTypefaceCache.GetOrAdd((fontFamily, fontWeight >= 700, italic), key =>
-            {
-                var skStyle = key.Bold
-                    ? (key.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-                    : (key.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
-                return SKTypeface.FromFamilyName(key.Family, skStyle) ?? SKTypeface.Default;
-            });
+            typeface = TypefaceCache.GetOrCreate(fontFamily, fontWeight >= 700, italic);
         }
 
         return new SKFont(typeface, fontSize)

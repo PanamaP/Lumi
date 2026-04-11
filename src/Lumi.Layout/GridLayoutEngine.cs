@@ -10,7 +10,7 @@ namespace Lumi.Layout;
 /// </summary>
 public static class GridLayoutEngine
 {
-    private static readonly Regex RepeatRegex = new(@"repeat\(\s*(\d+)\s*,\s*(.+?)\s*\)", RegexOptions.Compiled);
+    private static readonly Regex RepeatRegex = new(@"repeat\(\s*(\d+)\s*,\s*(.+?)\s*\)", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
 
     internal enum TrackSizeKind { Pixel, Fractional, Auto }
 
@@ -98,6 +98,7 @@ public static class GridLayoutEngine
         return RepeatRegex.Replace(template, match =>
         {
             int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            if (count > 10000) count = 10000;
             string trackDef = match.Groups[2].Value.Trim();
             return string.Join(" ", Enumerable.Repeat(trackDef, count));
         });

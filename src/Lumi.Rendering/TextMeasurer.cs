@@ -16,8 +16,6 @@ public sealed class TextMeasurer
 
     private readonly record struct CachedFontMetrics(float Ascent, float Descent, float Leading, float LineHeight);
 
-    private static readonly ConcurrentDictionary<(string Family, bool Bold, bool Italic), SKTypeface> s_systemTypefaceCache = new();
-
     /// <summary>
     /// Measure the pixel width of a string with the given font settings.
     /// When <see cref="TextRenderingOptions.UseHarfBuzz"/> is enabled, uses
@@ -78,13 +76,7 @@ public sealed class TextMeasurer
         }
         else
         {
-            typeface = s_systemTypefaceCache.GetOrAdd((fontFamily, fontWeight >= 700, italic), key =>
-            {
-                var skStyle = key.Bold
-                    ? (key.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-                    : (key.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
-                return SKTypeface.FromFamilyName(key.Family, skStyle) ?? SKTypeface.Default;
-            });
+            typeface = TypefaceCache.GetOrCreate(fontFamily, fontWeight >= 700, italic);
         }
 
         return new SKFont(typeface, fontSize)

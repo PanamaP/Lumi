@@ -178,7 +178,7 @@ public class MainWindow : Window
         container.AddChild(updateToggle.Root);
 
         // Slider: refresh interval
-        var slider = new LumiSlider { Min = 5, Max = 60, Value = 15 };
+        var slider = new LumiSlider { Min = 1, Max = 60, Value = 15 };
         container.AddChild(slider.Root);
 
         // Dropdown: timezone
@@ -205,6 +205,13 @@ public class MainWindow : Window
                 .Start();
             delay += 0.1f;
         }
+    }
+
+    private static void DisposeElementTree(Element element)
+    {
+        foreach (var child in element.Children)
+            DisposeElementTree(child);
+        element.RemoveAllEventHandlers();
     }
 
     private static string GetSourceDirectory([CallerFilePath] string callerPath = "")

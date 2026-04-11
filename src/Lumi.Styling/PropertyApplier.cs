@@ -1136,8 +1136,8 @@ public static class PropertyApplier
             string funcName = value[nameStart..i].Trim().ToLowerInvariant();
             i++; // skip '('
 
-            // Find closing paren
-            int parenEnd = value.IndexOf(')', i);
+            // Find matching closing paren (handles nested parens in calc(), etc.)
+            int parenEnd = FindMatchingParen(value, i);
             if (parenEnd < 0) break;
             string args = value[i..parenEnd].Trim();
             i = parenEnd + 1;
@@ -1503,5 +1503,20 @@ public static class PropertyApplier
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Finds the matching closing parenthesis starting from position <paramref name="start"/>,
+    /// accounting for nested parentheses.
+    /// </summary>
+    private static int FindMatchingParen(string s, int start)
+    {
+        int depth = 1;
+        for (int i = start; i < s.Length; i++)
+        {
+            if (s[i] == '(') depth++;
+            else if (s[i] == ')' && --depth == 0) return i;
+        }
+        return -1;
     }
 }

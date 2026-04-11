@@ -121,6 +121,14 @@ public class WindowManager
                 win.OnUpdate();
                 managed.Window.App?.Update();
 
+                // Re-check after update — callbacks may have closed the window
+                if (!managed.Window.IsOpen || !managed.PlatformWindow.IsOpen)
+                {
+                    DisposeManaged(managed);
+                    _windows.RemoveAt(i);
+                    continue;
+                }
+
                 if (win.Root.IsDirty)
                 {
                     var (w, h) = managed.PlatformWindow.GetPixelSize();

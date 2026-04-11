@@ -349,7 +349,7 @@ public class SkiaRenderer : IDisposable
         }
 
         // Paint background gradient
-        if (style.BackgroundGradient is { } gradient)
+        if (style.BackgroundGradient is { } gradient && gradient.Stops != null)
         {
             var colors = gradient.Stops.Select(s => s.Color.ToSkColor()).ToArray();
             var positions = gradient.Stops.Select(s => s.Position).ToArray();

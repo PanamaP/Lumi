@@ -533,5 +533,6 @@ public sealed class LumiApp : IDisposable
         _renderer.Dispose();
         _platformWindow.Dispose();
         FontManager.Clear();
+        Lumi.Text.TypefaceCache.Clear();
     }
 }

@@ -390,8 +390,8 @@ public static class CssParser
         {
             char c = s[i];
 
-            if (inSingle) { if (c == '\'' && s[i - 1] != '\\') inSingle = false; continue; }
-            if (inDouble) { if (c == '"' && s[i - 1] != '\\') inDouble = false; continue; }
+            if (inSingle) { if (c == '\'' && !IsEscaped(s, i)) inSingle = false; continue; }
+            if (inDouble) { if (c == '"' && !IsEscaped(s, i)) inDouble = false; continue; }
 
             switch (c)
             {
@@ -689,5 +689,21 @@ public static class CssParser
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Returns true if the character at position <paramref name="i"/> is preceded by an
+    /// odd number of backslashes (i.e. it is escaped).
+    /// </summary>
+    private static bool IsEscaped(string s, int i)
+    {
+        int backslashes = 0;
+        int j = i - 1;
+        while (j >= 0 && s[j] == '\\')
+        {
+            backslashes++;
+            j--;
+        }
+        return (backslashes & 1) != 0;
     }
 }

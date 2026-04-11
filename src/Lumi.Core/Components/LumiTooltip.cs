@@ -7,6 +7,7 @@ public class LumiTooltip : IDisposable
 {
     private readonly BoxElement _container;
     private readonly TextElement _textElement;
+    private Element? _target;
     private string _text = "";
 
     public Element Root => _container;
@@ -34,6 +35,7 @@ public class LumiTooltip : IDisposable
     public static LumiTooltip Attach(Element target, string text)
     {
         var tooltip = new LumiTooltip { Text = text };
+        tooltip._target = target;
         ComponentStyles.SetVisible(tooltip._container, false);
         target.AddChild(tooltip._container);
 
@@ -79,6 +81,8 @@ public class LumiTooltip : IDisposable
 
     public void Dispose()
     {
+        _target?.RemoveAllEventHandlers();
         Root.RemoveAllEventHandlers();
+        _target = null;
     }
 }

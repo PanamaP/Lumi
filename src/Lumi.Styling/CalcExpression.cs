@@ -13,13 +13,16 @@ internal static class CalcExpression
 
     /// <summary>
     /// Evaluate a calc() expression body (without the outer "calc(" and ")").
+    /// <paramref name="percentBase"/> is the reference dimension for percentage
+    /// values. When zero, percentages are resolved relative to viewport width.
     /// </summary>
-    public static float Evaluate(string expr, float fontSize, float viewportWidth, float viewportHeight, float fallback)
+    public static float Evaluate(string expr, float fontSize, float viewportWidth, float viewportHeight, float fallback, float percentBase = 0)
     {
         try
         {
+            float pctRef = percentBase > 0 ? percentBase : viewportWidth;
             int pos = 0;
-            float result = ParseAddSub(expr.AsSpan(), ref pos, fontSize, viewportWidth, viewportHeight);
+            float result = ParseAddSub(expr.AsSpan(), ref pos, fontSize, viewportWidth, viewportHeight, pctRef);
             return float.IsNaN(result) ? fallback : result;
         }
         catch
@@ -29,9 +32,9 @@ internal static class CalcExpression
     }
 
     // Addition and subtraction (lowest precedence)
-    private static float ParseAddSub(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh)
+    private static float ParseAddSub(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
     {
-        float left = ParseMulDiv(expr, ref pos, fontSize, vw, vh);
+        float left = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef);
 
         while (pos < expr.Length)
         {
@@ -44,7 +47,7 @@ internal static class CalcExpression
                 && expr[pos - 1] == ' ' && expr[pos + 1] == ' ')
             {
                 pos++;
-                float right = ParseMulDiv(expr, ref pos, fontSize, vw, vh);
+                float right = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef);
                 left = op == '+' ? left + right : left - right;
             }
             else
@@ -57,9 +60,9 @@ internal static class CalcExpression
     }
 
     // Multiplication and division (higher precedence)
-    private static float ParseMulDiv(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh)
+    private static float ParseMulDiv(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
     {
-        float left = ParseUnary(expr, ref pos, fontSize, vw, vh);
+        float left = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef);
 
         while (pos < expr.Length)
         {
@@ -70,7 +73,7 @@ internal static class CalcExpression
             if (op == '*' || op == '/')
             {
                 pos++;
-                float right = ParseUnary(expr, ref pos, fontSize, vw, vh);
+                float right = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef);
                 left = op == '*' ? left * right : (right != 0 ? left / right : 0);
             }
             else
@@ -82,7 +85,7 @@ internal static class CalcExpression
         return left;
     }
 
-    private static float ParseUnary(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh)
+    private static float ParseUnary(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
     {
         SkipSpaces(expr, ref pos);
 
@@ -90,17 +93,17 @@ internal static class CalcExpression
         if (pos < expr.Length && expr[pos] == '(')
         {
             pos++; // skip '('
-            float val = ParseAddSub(expr, ref pos, fontSize, vw, vh);
+            float val = ParseAddSub(expr, ref pos, fontSize, vw, vh, pctRef);
             SkipSpaces(expr, ref pos);
             if (pos < expr.Length && expr[pos] == ')')
                 pos++; // skip ')'
             return val;
         }
 
-        return ParseValue(expr, ref pos, fontSize, vw, vh);
+        return ParseValue(expr, ref pos, fontSize, vw, vh, pctRef);
     }
 
-    private static float ParseValue(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh)
+    private static float ParseValue(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
     {
         SkipSpaces(expr, ref pos);
 
@@ -143,7 +146,7 @@ internal static class CalcExpression
         if (unit.Equals("px", StringComparison.OrdinalIgnoreCase))
             return number;
         if (unit.Equals("%", StringComparison.Ordinal))
-            return -number; // percentage encoding (negative = %)
+            return number * pctRef / 100f;
         if (unit.Equals("em", StringComparison.OrdinalIgnoreCase))
             return number * fontSize;
         if (unit.Equals("rem", StringComparison.OrdinalIgnoreCase))

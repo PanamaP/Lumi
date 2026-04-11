@@ -289,9 +289,21 @@ public class TransitionManagerTests
         element.ComputedStyle.Opacity = 0.0f;
         manager.DetectChanges(element);
 
+        // Advance partway — opacity should be moving toward 0.0
+        manager.Update(0.5);
+        float midValue = element.ComputedStyle.Opacity;
+        Assert.True(midValue > 0.0f && midValue < 1.0f,
+            $"Expected mid-transition value between 0 and 1, got {midValue}");
+
         // Try to trigger another change while first is active
         element.ComputedStyle.Opacity = 0.5f;
         manager.DetectChanges(element);
+
+        // Advance slightly — should still be heading toward original target (0.0), not 0.5
+        manager.Update(0.1);
+        float afterDuplicate = element.ComputedStyle.Opacity;
+        Assert.True(afterDuplicate < midValue,
+            $"After duplicate change, value should still decrease toward 0.0 (was {midValue}, now {afterDuplicate})");
 
         // Complete — should reach the original target
         manager.Update(2.0);

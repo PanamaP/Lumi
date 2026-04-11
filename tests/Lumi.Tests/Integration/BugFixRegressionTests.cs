@@ -712,6 +712,11 @@ public class BugFixRegressionTests
 
             Assert.Null(ex);
             Assert.True(hotReload.HasPendingChanges, "Should have pending changes even without wakeUp callback");
+
+            // Verify pending changes can be applied successfully
+            var applyEx = Record.Exception(() => hotReload.ApplyPendingChanges());
+            Assert.Null(applyEx);
+            Assert.False(hotReload.HasPendingChanges, "Pending changes should be consumed after ApplyPendingChanges");
         }
         finally
         {

@@ -24,7 +24,7 @@ public class ThemeManager
     private readonly object _lock = new();
     private ThemeMode _mode = ThemeMode.System;
     private bool _systemDarkMode;
-    private bool _isDarkMode;
+    private volatile bool _isDarkMode;
     private Element? _appliedRoot;
     private bool _isApplying;
 

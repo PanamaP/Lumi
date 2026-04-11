@@ -140,20 +140,36 @@ public static class ComponentStyles
                          $"background-color: rgba(0,0,0,0.85); z-index: 999";
     }
 
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Element, string> s_savedDisplay = new();
+
     /// <summary>
-    /// Sets an element's display to none (hidden) or restores to flex (visible).
+    /// Sets an element's display to none (hidden) or restores the previous display value.
     /// </summary>
     public static void SetVisible(Element el, bool visible)
     {
         if (visible)
         {
-            el.InlineStyle = (el.InlineStyle ?? "").Replace("display: none", "").Replace("display:none", "").Trim().TrimEnd(';');
+            // Restore original display value if we saved one
+            if (s_savedDisplay.TryGetValue(el, out var saved))
+            {
+                el.InlineStyle = saved;
+                s_savedDisplay.Remove(el);
+            }
+            else
+            {
+                // Fallback: strip display:none from inline style
+                el.InlineStyle = (el.InlineStyle ?? "").Replace("display: none", "").Replace("display:none", "").Trim().TrimEnd(';');
+            }
         }
         else
         {
             var existing = el.InlineStyle ?? "";
             if (!existing.Contains("display: none") && !existing.Contains("display:none"))
+            {
+                // Save current inline style before hiding
+                s_savedDisplay.AddOrUpdate(el, existing);
                 el.InlineStyle = string.IsNullOrEmpty(existing) ? "display: none" : existing.TrimEnd(';') + "; display: none";
+            }
         }
         el.MarkDirty();
     }

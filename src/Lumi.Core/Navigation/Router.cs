@@ -115,13 +115,22 @@ public class Router
         if (registration is null)
             return;
 
-        _history.RemoveAt(_history.Count - 1);
         ApplyRoute(previousRoute, registration.Value, parameters);
+        _history.RemoveAt(_history.Count - 1);
     }
 
     private void ApplyRoute(string route, RouteRegistration registration, RouteParameters parameters)
     {
-        var page = registration.Factory(parameters);
+        Element page;
+        try
+        {
+            page = registration.Factory(parameters);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create page for route '{route}'.", ex);
+        }
+
         Container.ClearChildren();
         Container.AddChild(page);
 
