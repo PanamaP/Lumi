@@ -131,15 +131,35 @@ public class Application
         if (_focusedElement == element) return;
 
         if (_focusedElement != null)
+        {
+            _focusedElement.IsFocused = false;
             EventDispatcher.Dispatch(new RoutedEvent("Blur"), _focusedElement);
+        }
 
         _focusedElement = element;
+        element.IsFocused = true;
         EventDispatcher.Dispatch(new RoutedEvent("Focus"), element);
     }
 
     private void HandleKeyboard(KeyboardEvent keyboard)
     {
         var target = _focusedElement ?? Root;
+
+        // Handle keyboard for focused InputElement
+        if (keyboard.Type == KeyboardEventType.KeyDown)
+        {
+            var inputTarget = _focusedElement;
+            while (inputTarget != null)
+            {
+                if (inputTarget is InputElement input && !input.IsDisabled)
+                {
+                    HandleInputKeyDown(input, keyboard);
+                    break;
+                }
+                inputTarget = inputTarget.Parent;
+            }
+        }
+
         var eventName = keyboard.Type == KeyboardEventType.KeyDown ? "KeyDown" : "KeyUp";
         EventDispatcher.Dispatch(
             new RoutedKeyEvent(eventName)
@@ -152,9 +172,156 @@ public class Application
             target);
     }
 
+    private static void HandleInputKeyDown(InputElement input, KeyboardEvent keyboard)
+    {
+        switch (keyboard.Key)
+        {
+            case KeyCode.Left:
+                if (keyboard.Shift)
+                {
+                    if (!input.HasSelection)
+                        input.SelectionStart = input.CursorPosition;
+                    input.CursorPosition = Math.Max(0, input.CursorPosition - 1);
+                    input.SelectionEnd = input.CursorPosition;
+                }
+                else
+                {
+                    if (input.HasSelection)
+                    {
+                        input.CursorPosition = Math.Min(input.SelectionStart, input.SelectionEnd);
+                        input.ClearSelection();
+                    }
+                    else
+                    {
+                        input.CursorPosition = Math.Max(0, input.CursorPosition - 1);
+                        input.ClearSelection();
+                    }
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                break;
+
+            case KeyCode.Right:
+                if (keyboard.Shift)
+                {
+                    if (!input.HasSelection)
+                        input.SelectionStart = input.CursorPosition;
+                    input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + 1);
+                    input.SelectionEnd = input.CursorPosition;
+                }
+                else
+                {
+                    if (input.HasSelection)
+                    {
+                        input.CursorPosition = Math.Max(input.SelectionStart, input.SelectionEnd);
+                        input.ClearSelection();
+                    }
+                    else
+                    {
+                        input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + 1);
+                        input.ClearSelection();
+                    }
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                break;
+
+            case KeyCode.Home:
+                if (keyboard.Shift)
+                {
+                    if (!input.HasSelection)
+                        input.SelectionStart = input.CursorPosition;
+                    input.CursorPosition = 0;
+                    input.SelectionEnd = input.CursorPosition;
+                }
+                else
+                {
+                    input.CursorPosition = 0;
+                    input.ClearSelection();
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                break;
+
+            case KeyCode.End:
+                if (keyboard.Shift)
+                {
+                    if (!input.HasSelection)
+                        input.SelectionStart = input.CursorPosition;
+                    input.CursorPosition = input.Value.Length;
+                    input.SelectionEnd = input.CursorPosition;
+                }
+                else
+                {
+                    input.CursorPosition = input.Value.Length;
+                    input.ClearSelection();
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                break;
+
+            case KeyCode.A when keyboard.Ctrl:
+                input.SelectionStart = 0;
+                input.SelectionEnd = input.Value.Length;
+                input.CursorPosition = input.Value.Length;
+                input.ResetBlink();
+                input.MarkDirty();
+                break;
+
+            case KeyCode.Backspace:
+                if (input.HasSelection)
+                {
+                    input.DeleteSelection();
+                }
+                else if (input.CursorPosition > 0)
+                {
+                    input.Value = input.Value[..(input.CursorPosition - 1)] + input.Value[input.CursorPosition..];
+                    input.CursorPosition--;
+                    input.ClearSelection();
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                EventDispatcher.Dispatch(new RoutedEvent("input"), input);
+                break;
+
+            case KeyCode.Delete:
+                if (input.HasSelection)
+                {
+                    input.DeleteSelection();
+                }
+                else if (input.CursorPosition < input.Value.Length)
+                {
+                    input.Value = input.Value[..input.CursorPosition] + input.Value[(input.CursorPosition + 1)..];
+                    input.ClearSelection();
+                }
+                input.ResetBlink();
+                input.MarkDirty();
+                EventDispatcher.Dispatch(new RoutedEvent("input"), input);
+                break;
+        }
+    }
+
     private void HandleTextInput(TextInputEvent textInput)
     {
-        // Future: route to focused input element
+        // Route text input to the focused InputElement
+        var target = _focusedElement;
+        while (target != null)
+        {
+            if (target is InputElement input && !input.IsDisabled)
+            {
+                if (input.HasSelection)
+                    input.DeleteSelection();
+
+                input.Value = input.Value[..input.CursorPosition] + textInput.Text + input.Value[input.CursorPosition..];
+                input.CursorPosition += textInput.Text.Length;
+                input.ClearSelection();
+                input.ResetBlink();
+                input.MarkDirty();
+                EventDispatcher.Dispatch(new RoutedEvent("input"), input);
+                return;
+            }
+            target = target.Parent;
+        }
     }
 
     private void HandleScroll(ScrollEvent scroll)

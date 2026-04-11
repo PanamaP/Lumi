@@ -347,6 +347,43 @@ public class SkiaRenderer : IDisposable
                 canvas.DrawRect(rect, bgPaint);
         }
 
+        // Paint background gradient
+        if (style.BackgroundGradient is { } gradient)
+        {
+            var colors = gradient.Stops.Select(s => s.Color.ToSkColor()).ToArray();
+            var positions = gradient.Stops.Select(s => s.Position).ToArray();
+
+            if (colors.Length >= 2)
+            {
+                SKShader shader;
+                if (gradient.Type == GradientType.Linear)
+                {
+                    var (start, end) = ComputeLinearGradientPoints(w, h, gradient.Angle);
+                    shader = SKShader.CreateLinearGradient(start, end, colors, positions, SKShaderTileMode.Clamp);
+                }
+                else
+                {
+                    var center = new SKPoint(w / 2, h / 2);
+                    float radius = MathF.Max(w, h) / 2;
+                    shader = SKShader.CreateRadialGradient(center, radius, colors, positions, SKShaderTileMode.Clamp);
+                }
+
+                using var gradPaint = new SKPaint
+                {
+                    Shader = shader,
+                    Style = SKPaintStyle.Fill,
+                    IsAntialias = true
+                };
+
+                if (rrect != null)
+                    canvas.DrawRoundRect(rrect, gradPaint);
+                else
+                    canvas.DrawRect(rect, gradPaint);
+
+                shader.Dispose();
+            }
+        }
+
         // Paint background image (after background color, before border)
         if (!string.IsNullOrEmpty(style.BackgroundImage))
         {
@@ -461,16 +498,37 @@ public class SkiaRenderer : IDisposable
             DrawText(canvas, textElement, style, w, h);
         }
 
+        // Draw text for InputElement (value or placeholder)
+        if (element is InputElement inputElement)
+        {
+            DrawInputText(canvas, inputElement, style, w, h);
+        }
+
         // Draw image for ImageElement
         if (element is ImageElement imageElement && !string.IsNullOrEmpty(imageElement.Source))
         {
             DrawImage(canvas, imageElement, w, h);
         }
 
-        // Recursively paint children
-        foreach (var child in element.Children)
+        // Recursively paint children — sort by z-index so higher values paint on top
+        var children = element.Children;
+        bool needsSort = false;
+        for (int i = 0; i < children.Count; i++)
         {
-            PaintElement(canvas, child, box.X, box.Y);
+            if (children[i].ComputedStyle.ZIndex != 0) { needsSort = true; break; }
+        }
+
+        if (needsSort)
+        {
+            var sorted = new List<Element>(children);
+            sorted.Sort((a, b) => a.ComputedStyle.ZIndex.CompareTo(b.ComputedStyle.ZIndex));
+            foreach (var child in sorted)
+                PaintElement(canvas, child, box.X, box.Y);
+        }
+        else
+        {
+            foreach (var child in children)
+                PaintElement(canvas, child, box.X, box.Y);
         }
 
         if (hasOpacity)
@@ -530,6 +588,118 @@ public class SkiaRenderer : IDisposable
         }
 
         canvas.RestoreToCount(textSave);
+    }
+
+    private static void DrawInputText(SKCanvas canvas, InputElement input, ComputedStyle style, float width, float height)
+    {
+        bool hasValue = !string.IsNullOrEmpty(input.Value);
+        bool hasPlaceholder = !string.IsNullOrEmpty(input.Placeholder);
+
+        if (!hasValue && !hasPlaceholder) return;
+
+        // Determine display text and color
+        string displayText;
+        SKColor textColor;
+
+        if (hasValue)
+        {
+            // Mask password fields
+            displayText = input.InputType.Equals("password", StringComparison.OrdinalIgnoreCase)
+                ? new string('●', input.Value.Length)
+                : input.Value;
+            textColor = style.Color.ToSkColor();
+        }
+        else
+        {
+            displayText = input.Placeholder;
+            // Placeholder in dimmed color
+            var c = style.Color;
+            textColor = new SKColor(c.R, c.G, c.B, 128);
+        }
+
+        // Account for border width — Yoga layout doesn't include border, so the
+        // renderer draws borders inside the box. Offset text by border + padding.
+        var bw = style.BorderWidth;
+        float bL = bw.Left, bT = bw.Top, bR = bw.Right, bB = bw.Bottom;
+        float insetL = bL + style.Padding.Left;
+        float insetT = bT + style.Padding.Top;
+        float insetR = bR + style.Padding.Right;
+        float insetB = bB + style.Padding.Bottom;
+        float contentW = width - insetL - insetR;
+        float contentH = height - insetT - insetB;
+        if (contentW <= 0) contentW = width;
+        if (contentH <= 0) contentH = height;
+
+        using var textPaint = new SKPaint
+        {
+            Color = textColor,
+            IsAntialias = true
+        };
+
+        float fontSize = style.FontSize > 0 ? style.FontSize : 14;
+        using var font = TextMeasurer.CreateFont(
+            style.FontFamily, fontSize, style.FontWeight,
+            style.FontStyle == FontStyle.Italic);
+
+        // Vertically center the text within the content area
+        font.GetFontMetrics(out var metrics);
+        float textY = insetT + (contentH - (metrics.Descent - metrics.Ascent)) / 2 - metrics.Ascent;
+
+        int save = canvas.Save();
+        canvas.ClipRect(new SKRect(insetL, insetT, insetL + contentW, insetT + contentH));
+        canvas.DrawText(displayText, insetL, textY, SKTextAlign.Left, font, textPaint);
+
+        // Draw caret and selection if focused
+        if (input.IsFocused)
+        {
+            // Caret blink: visible for 530ms, hidden for 530ms
+            long elapsed = Environment.TickCount64 - input.LastEditTick;
+            bool caretVisible = (elapsed % 1060) < 530;
+
+            string valueText = hasValue
+                ? (input.InputType.Equals("password", StringComparison.OrdinalIgnoreCase)
+                    ? new string('●', input.Value.Length)
+                    : input.Value)
+                : "";
+
+            // Draw selection highlight
+            if (input.HasSelection && hasValue)
+            {
+                int lo = Math.Min(input.SelectionStart, input.SelectionEnd);
+                int hi = Math.Max(input.SelectionStart, input.SelectionEnd);
+                lo = Math.Clamp(lo, 0, valueText.Length);
+                hi = Math.Clamp(hi, 0, valueText.Length);
+
+                float selStartX = lo > 0 ? insetL + font.MeasureText(valueText[..lo], textPaint) : insetL;
+                float selEndX = hi > 0 ? insetL + font.MeasureText(valueText[..hi], textPaint) : insetL;
+
+                using var selPaint = new SKPaint
+                {
+                    Color = new SKColor(66, 135, 245, 80),
+                    Style = SKPaintStyle.Fill
+                };
+                canvas.DrawRect(selStartX, insetT + 2, selEndX - selStartX, contentH - 4, selPaint);
+            }
+
+            // Draw caret
+            if (caretVisible)
+            {
+                int cursorPos = Math.Clamp(input.CursorPosition, 0, valueText.Length);
+                float caretX = cursorPos > 0
+                    ? insetL + font.MeasureText(valueText[..cursorPos], textPaint)
+                    : insetL;
+
+                using var caretPaint = new SKPaint
+                {
+                    Color = style.Color.ToSkColor(),
+                    StrokeWidth = 1.5f,
+                    IsAntialias = true
+                };
+                canvas.DrawLine(caretX, insetT + 2, caretX, insetT + contentH - 2, caretPaint);
+            }
+        }
+
+        canvas.RestoreToCount(save);
     }
 
     private static void DrawTextWithLetterSpacing(SKCanvas canvas, TextLine line, float spacing, SKFont font, SKPaint paint)

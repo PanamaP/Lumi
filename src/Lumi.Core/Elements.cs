@@ -77,6 +77,9 @@ public class InputElement : Element
         {
             if (_value == value) return;
             _value = value;
+            CursorPosition = Math.Clamp(CursorPosition, 0, _value.Length);
+            SelectionStart = Math.Clamp(SelectionStart, 0, _value.Length);
+            SelectionEnd = Math.Clamp(SelectionEnd, 0, _value.Length);
             ValueChanged?.Invoke(value);
         }
     }
@@ -86,6 +89,31 @@ public class InputElement : Element
     public bool IsChecked { get; set; }
 
     /// <summary>
+    /// 0-based cursor index within <see cref="Value"/>.
+    /// </summary>
+    public int CursorPosition { get; set; }
+
+    /// <summary>
+    /// Start of the text selection range.
+    /// </summary>
+    public int SelectionStart { get; set; }
+
+    /// <summary>
+    /// End of the text selection range.
+    /// </summary>
+    public int SelectionEnd { get; set; }
+
+    /// <summary>
+    /// True when a non-empty selection exists.
+    /// </summary>
+    public bool HasSelection => SelectionStart != SelectionEnd;
+
+    /// <summary>
+    /// Tick count (ms) of the last edit or cursor movement, used for caret blink.
+    /// </summary>
+    public long LastEditTick { get; set; }
+
+    /// <summary>
     /// Raised when the Value property changes, enabling two-way data binding.
     /// </summary>
     public event Action<string>? ValueChanged;
@@ -93,6 +121,36 @@ public class InputElement : Element
     public InputElement()
     {
         IsFocusable = true;
+    }
+
+    /// <summary>
+    /// Delete the currently selected text and place the cursor at the selection start.
+    /// </summary>
+    public void DeleteSelection()
+    {
+        if (!HasSelection) return;
+        int lo = Math.Min(SelectionStart, SelectionEnd);
+        int hi = Math.Max(SelectionStart, SelectionEnd);
+        Value = Value[..lo] + Value[hi..];
+        CursorPosition = lo;
+        ClearSelection();
+    }
+
+    /// <summary>
+    /// Collapse the selection so that Start == End == <see cref="CursorPosition"/>.
+    /// </summary>
+    public void ClearSelection()
+    {
+        SelectionStart = CursorPosition;
+        SelectionEnd = CursorPosition;
+    }
+
+    /// <summary>
+    /// Reset the caret blink timer (should be called on every keystroke / cursor move).
+    /// </summary>
+    public void ResetBlink()
+    {
+        LastEditTick = Environment.TickCount64;
     }
 
     protected override Element CreateCloneInstance() => new InputElement();
@@ -105,6 +163,9 @@ public class InputElement : Element
         clone.Placeholder = Placeholder;
         clone.IsDisabled = IsDisabled;
         clone.IsChecked = IsChecked;
+        clone.CursorPosition = CursorPosition;
+        clone.SelectionStart = SelectionStart;
+        clone.SelectionEnd = SelectionEnd;
         return clone;
     }
 }
