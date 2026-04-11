@@ -24,6 +24,7 @@ public sealed class LumiApp : IDisposable
     private readonly DirtyRegionTracker _dirtyTracker = new();
     private readonly TransitionManager _transitionManager = new();
     private readonly Inspector _inspector = new();
+    private readonly WindowManager _windowManager = new();
     private HotReload? _hotReload;
     private bool _disposed;
     private bool _useGpuRendering;
@@ -50,9 +51,10 @@ public sealed class LumiApp : IDisposable
         // Initialize frame clock with detected display refresh rate
         _frameClock = new FrameClock(_platformWindow.DisplayRefreshRate);
 
-        // Expose frame metrics to the window for app-level access
+        // Expose frame metrics and window manager to the window for app-level access
         _window.FrameMetrics = _frameMetrics;
         _window.Renderer = _renderer;
+        _window.Windows = _windowManager;
 
         // Try GPU-accelerated rendering
         _renderer = new SkiaRenderer();
@@ -156,6 +158,7 @@ public sealed class LumiApp : IDisposable
 
             _frameMetrics.BeginStage();
             _window.OnUpdate();
+            _windowManager.Update();
             _app.Update();
             _transitionManager.Update(_frameClock.DeltaTime);
             AnimationExtensions.GlobalTweenEngine.Update((float)_frameClock.DeltaTime);
@@ -509,6 +512,7 @@ public sealed class LumiApp : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _windowManager.CloseAll();
         _hotReload?.Dispose();
         _window.LayoutEngine.Dispose();
         _renderTarget?.Dispose();

@@ -65,6 +65,12 @@ public class Window
     internal SkiaRenderer? Renderer { get; set; }
 
     /// <summary>
+    /// Window manager for opening and managing secondary windows.
+    /// Set by LumiApp during initialization.
+    /// </summary>
+    public WindowManager? Windows { get; internal set; }
+
+    /// <summary>
     /// Save a PNG screenshot of the current rendered frame.
     /// </summary>
     public bool SaveScreenshot(string filePath)
