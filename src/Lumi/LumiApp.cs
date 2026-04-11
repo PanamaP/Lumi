@@ -91,6 +91,12 @@ public sealed class LumiApp : IDisposable
 
     private void Start()
     {
+        // Detect OS dark-mode preference and apply initial theme
+        var prefs = new SystemPreferences();
+        prefs.Detect();
+        _window.Theme.SetSystemPreference(prefs.IsDarkMode);
+        _window.Theme.ApplyTo(_window.Root);
+
         _app.Root = _window.Root;
         _window.OnReady();
         _app.Root = _window.Root;

@@ -88,6 +88,13 @@ public class StyleResolver
         // 1. Reset temp style to defaults
         _tempStyle.Reset();
 
+        // Pre-seed inherited custom properties so var() in rules can resolve them
+        if (parentStyle?.HasCustomProperties == true)
+        {
+            foreach (var kvp in parentStyle.CustomProperties)
+                _tempStyle.CustomProperties[kvp.Key] = kvp.Value;
+        }
+
         // 2. Get matching rules (cached or computed)
         var matchingRules = GetMatchingRules(element, pseudoState);
 

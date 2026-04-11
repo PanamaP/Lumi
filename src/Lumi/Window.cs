@@ -34,6 +34,12 @@ public class Window
     private readonly ElementIndex _index = new();
     private bool _indexAttached;
 
+    /// <summary>
+    /// Theme manager for light/dark mode switching.
+    /// Theme CSS variables are applied to the root element and cascade to all descendants.
+    /// </summary>
+    public ThemeManager Theme { get; } = new();
+
     public Element Root
     {
         get => _root;
