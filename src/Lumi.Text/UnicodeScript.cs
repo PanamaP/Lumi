@@ -12,6 +12,7 @@ public enum ScriptCategory
     Arabic,
     Hebrew,
     CJK,
+    Hangul,
     Devanagari,
     Thai,
     Emoji,
@@ -32,6 +33,7 @@ public static class UnicodeScript
     private static readonly Script ScriptArabic     = Script.Parse("Arab");
     private static readonly Script ScriptHebrew     = Script.Parse("Hebr");
     private static readonly Script ScriptHani       = Script.Parse("Hani");
+    private static readonly Script ScriptHangul     = Script.Parse("Hang");
     private static readonly Script ScriptDevanagari = Script.Parse("Deva");
     private static readonly Script ScriptThai       = Script.Parse("Thai");
     private static readonly Script ScriptCommon     = Script.Parse("Zyyy");
@@ -91,8 +93,21 @@ public static class UnicodeScript
         // ── CJK unified range (U+2E80 – U+9FFF) ────────────────────────
         if (codepoint >= 0x2E80 && codepoint <= 0x9FFF) return ScriptCategory.CJK;
 
+        // ── Hangul Syllables (U+AC00 – U+D7AF) ─────────────────────────
+        if (codepoint >= 0xAC00 && codepoint <= 0xD7AF) return ScriptCategory.Hangul;
+
+        // ── Hangul Jamo (U+1100 – U+11FF) and Compatibility Jamo (U+3130 – U+318F) ──
+        if (codepoint >= 0x1100 && codepoint <= 0x11FF) return ScriptCategory.Hangul;
+        if (codepoint >= 0x3130 && codepoint <= 0x318F) return ScriptCategory.Hangul;
+
+        // ── CJK Compatibility Ideographs (U+F900 – U+FAFF) ─────────────
+        if (codepoint >= 0xF900 && codepoint <= 0xFAFF) return ScriptCategory.CJK;
+
         // ── CJK Compatibility Forms (U+FE30 – U+FE4F) ──────────────────
         if (codepoint >= 0xFE30 && codepoint <= 0xFE4F) return ScriptCategory.CJK;
+
+        // ── Halfwidth and Fullwidth Forms (U+FF00 – U+FFEF) ─────────────
+        if (codepoint >= 0xFF00 && codepoint <= 0xFFEF) return ScriptCategory.CJK;
 
         // ── Emoji & pictographic symbols (U+1F000 – U+1FAFF) ────────────
         if (codepoint >= 0x1F000 && codepoint <= 0x1FAFF) return ScriptCategory.Emoji;
@@ -137,6 +152,7 @@ public static class UnicodeScript
             ScriptCategory.Arabic     => ScriptArabic,
             ScriptCategory.Hebrew     => ScriptHebrew,
             ScriptCategory.CJK        => ScriptHani,
+            ScriptCategory.Hangul     => ScriptHangul,
             ScriptCategory.Devanagari => ScriptDevanagari,
             ScriptCategory.Thai       => ScriptThai,
             _                         => ScriptCommon

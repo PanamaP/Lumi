@@ -70,6 +70,19 @@ public class EmojiAndScriptTests : IDisposable
     {
         // CJK unified ideograph = U+4E00
         Assert.Equal(ScriptCategory.CJK, UnicodeScript.Classify(0x4E00));
+        // CJK Compatibility Ideograph = U+F900
+        Assert.Equal(ScriptCategory.CJK, UnicodeScript.Classify(0xF900));
+        // Fullwidth Latin A = U+FF21
+        Assert.Equal(ScriptCategory.CJK, UnicodeScript.Classify(0xFF21));
+    }
+
+    [Fact]
+    public void Classify_Hangul_ReturnsHangul()
+    {
+        // Hangul syllable "가" = U+AC00
+        Assert.Equal(ScriptCategory.Hangul, UnicodeScript.Classify(0xAC00));
+        // Hangul syllable "힣" = U+D7A3
+        Assert.Equal(ScriptCategory.Hangul, UnicodeScript.Classify(0xD7A3));
     }
 
     [Fact]

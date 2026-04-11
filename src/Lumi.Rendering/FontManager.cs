@@ -190,15 +190,16 @@ public static class FontManager
     public static bool HasGlyph(SKTypeface typeface, int codepoint)
     {
         if (typeface == null) return false;
-        var glyphs = typeface.GetGlyphs(new string(char.ConvertFromUtf32(codepoint)));
+        var glyphs = typeface.GetGlyphs(char.ConvertFromUtf32(codepoint));
         return glyphs.Length > 0 && glyphs[0] != 0;
     }
 
     /// <summary>
-    /// Resolve a typeface for the given text, trying the primary font first,
-    /// then falling back to registered fallback fonts by category.
+    /// Try to get a registered typeface for the given family name, falling back to
+    /// a category-based fallback typeface if no primary font is registered.
+    /// Note: this checks typeface registration, not per-glyph coverage.
     /// </summary>
-    public static SKTypeface? ResolveWithFallback(string familyName, int weight, bool italic, string? fallbackCategory)
+    public static SKTypeface? GetTypefaceWithFallback(string familyName, int weight, bool italic, string? fallbackCategory)
     {
         // Try primary font first
         var primary = GetTypeface(familyName, weight, italic);

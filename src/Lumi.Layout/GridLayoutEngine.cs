@@ -98,7 +98,11 @@ public static class GridLayoutEngine
         return RepeatRegex.Replace(template, match =>
         {
             int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
-            if (count > 10000) count = 10000;
+            if (count > 10000)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Lumi.Layout] CSS repeat() count {count} exceeds maximum; capped to 10000");
+                count = 10000;
+            }
             string trackDef = match.Groups[2].Value.Trim();
             return string.Join(" ", Enumerable.Repeat(trackDef, count));
         });

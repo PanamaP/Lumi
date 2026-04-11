@@ -54,12 +54,26 @@ public sealed class TextShaper : IDisposable
     /// Common tags: "liga" (standard ligatures), "kern" (kerning), "dlig" (discretionary ligatures),
     /// "calt" (contextual alternates), "smcp" (small caps).
     /// </summary>
-    public static List<Feature> DefaultFeatures { get; } =
+    private static volatile Feature[] _defaultFeatures =
     [
         Feature.Parse("+liga"),
         Feature.Parse("+calt"),
         Feature.Parse("+kern"),
     ];
+
+    /// <summary>
+    /// Gets the default OpenType features applied during shaping.
+    /// </summary>
+    public static IReadOnlyList<Feature> DefaultFeatures => _defaultFeatures;
+
+    /// <summary>
+    /// Replaces the default OpenType features applied during shaping.
+    /// </summary>
+    public static void SetDefaultFeatures(params Feature[] features)
+    {
+        ArgumentNullException.ThrowIfNull(features);
+        _defaultFeatures = (Feature[])features.Clone();
+    }
 
     /// <summary>
     /// Optional external typeface resolver. When set, this is called first to resolve
@@ -80,7 +94,13 @@ public sealed class TextShaper : IDisposable
     /// doesn't cover a script segment (e.g., emoji, symbol).
     /// Signature: (category) → SKTypeface?
     /// </summary>
-    public static Func<string, SKTypeface?>? FallbackTypefaceResolver { get; set; }
+    private static volatile Func<string, SKTypeface?>? _fallbackTypefaceResolver;
+
+    public static Func<string, SKTypeface?>? FallbackTypefaceResolver
+    {
+        get => _fallbackTypefaceResolver;
+        set => _fallbackTypefaceResolver = value;
+    }
 
     private readonly ConcurrentDictionary<FontKey, Lazy<CachedHarfBuzzFont>> _fontCache = new();
 
@@ -115,57 +135,20 @@ public sealed class TextShaper : IDisposable
         if (string.IsNullOrEmpty(text))
             return new ShapedGlyphRun([], [], [], 0, fontFamily, fontSize, fontWeight, italic);
 
-        var cached = GetOrCreateFont(fontFamily, fontWeight, italic);
-
-        int upem = cached.Face.UnitsPerEm;
-        if (upem <= 0) upem = 1000;
-        float scale = fontSize / upem;
-
-        using var buffer = new HarfBuzzSharp.Buffer();
-        buffer.AddUtf16(text);
         var dominantScript = GetDominantScript(text);
-        buffer.Direction = UnicodeScript.GetDirection(dominantScript);
-        buffer.Script = UnicodeScript.GetHarfBuzzScript(dominantScript);
-        buffer.Language = Language.Default;
-
-        var effectiveFeatures = features ?? (DefaultFeatures.Count > 0 ? DefaultFeatures.ToArray() : Array.Empty<Feature>());
-        cached.Font.Shape(buffer, effectiveFeatures);
-
-        var glyphInfos = buffer.GlyphInfos;
-        var glyphPositions = buffer.GlyphPositions;
-        int count = glyphInfos.Length;
-
-        var glyphIds = new ushort[count];
-        var positions = new float[count * 2];
-        var advances = new float[count];
-        float cursorX = 0;
-        float cursorY = 0;
-
-        for (int i = 0; i < count; i++)
-        {
-            glyphIds[i] = (ushort)glyphInfos[i].Codepoint;
-
-            float xOffset = glyphPositions[i].XOffset * scale;
-            float yOffset = glyphPositions[i].YOffset * scale;
-            float xAdvance = glyphPositions[i].XAdvance * scale;
-            float yAdvance = glyphPositions[i].YAdvance * scale;
-
-            positions[i * 2] = cursorX + xOffset;
-            positions[i * 2 + 1] = cursorY - yOffset; // negate for top-down coordinates
-            advances[i] = xAdvance;
-
-            cursorX += xAdvance;
-            cursorY += yAdvance;
-        }
-
-        return new ShapedGlyphRun(glyphIds, positions, advances, cursorX,
-            fontFamily, fontSize, fontWeight, italic);
+        return ShapeWithScript(text, fontFamily, fontSize, fontWeight, italic, dominantScript, features);
     }
 
     /// <summary>
     /// Shape text with automatic script detection and font fallback.
     /// Returns multiple glyph runs — one per script segment — each with the
     /// correct HarfBuzz script, direction, and potentially a different font family.
+    /// <para>
+    /// <b>Limitation:</b> Segments are positioned left-to-right in sequence order.
+    /// RTL segments (Arabic, Hebrew) are shaped correctly internally, but mixed
+    /// LTR/RTL text in a single line requires the Unicode BiDi algorithm (UAX #9)
+    /// for proper visual reordering, which is not yet implemented.
+    /// </para>
     /// </summary>
     public List<ShapedGlyphRun> ShapeMultiScript(string text, string fontFamily, float fontSize, int fontWeight, bool italic)
     {
@@ -231,7 +214,7 @@ public sealed class TextShaper : IDisposable
     /// <summary>
     /// Shape text with an explicit script category (used by multi-script pipeline).
     /// </summary>
-    private ShapedGlyphRun ShapeWithScript(string text, string fontFamily, float fontSize, int fontWeight, bool italic, ScriptCategory script)
+    private ShapedGlyphRun ShapeWithScript(string text, string fontFamily, float fontSize, int fontWeight, bool italic, ScriptCategory script, Feature[]? features = null)
     {
         if (string.IsNullOrEmpty(text))
             return new ShapedGlyphRun([], [], [], 0, fontFamily, fontSize, fontWeight, italic);
@@ -248,7 +231,7 @@ public sealed class TextShaper : IDisposable
         buffer.Script = UnicodeScript.GetHarfBuzzScript(script);
         buffer.Language = Language.Default;
 
-        var effectiveFeatures = DefaultFeatures.Count > 0 ? DefaultFeatures.ToArray() : Array.Empty<Feature>();
+        var effectiveFeatures = features ?? _defaultFeatures;
         cached.Font.Shape(buffer, effectiveFeatures);
 
         var glyphInfos = buffer.GlyphInfos;

@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 public static class TypefaceCache
 {
     private static readonly ConcurrentDictionary<(string Family, bool Bold, bool Italic), SKTypeface> s_cache = new();
+    private static readonly object s_clearLock = new();
 
     /// <summary>
     /// Get or create a system typeface for the given font description.
@@ -31,11 +32,19 @@ public static class TypefaceCache
     /// </summary>
     public static void Clear()
     {
-        foreach (var kvp in s_cache)
+        // Swap the cache contents out atomically, then dispose offline
+        // so no concurrent reader can obtain a disposed typeface.
+        KeyValuePair<(string Family, bool Bold, bool Italic), SKTypeface>[] snapshot;
+        lock (s_clearLock)
+        {
+            snapshot = s_cache.ToArray();
+            s_cache.Clear();
+        }
+
+        foreach (var kvp in snapshot)
         {
             if (kvp.Value != SKTypeface.Default)
                 kvp.Value.Dispose();
         }
-        s_cache.Clear();
     }
 }

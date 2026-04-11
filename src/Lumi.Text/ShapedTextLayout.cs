@@ -79,7 +79,7 @@ public static class ShapedTextLayout
         if (style.WhiteSpace == WhiteSpace.NoWrap)
         {
             var runs = shaper.ShapeMultiScript(text, fontFamily, fontSize, fontWeight, italic);
-            float textWidth = runs.Sum(r => r.TotalWidth);
+            float textWidth = SumRunWidths(runs);
 
             if (style.TextOverflow == TextOverflow.Ellipsis && textWidth > availableWidth)
             {
@@ -201,7 +201,7 @@ public static class ShapedTextLayout
     {
         string lineText = string.Join(' ', words);
         var runs = shaper.ShapeMultiScript(lineText, fontFamily, fontSize, fontWeight, italic);
-        float totalWidth = runs.Sum(r => r.TotalWidth);
+        float totalWidth = SumRunWidths(runs);
         float x = AlignX(totalWidth, availableWidth, align);
         result.Lines.Add(new ShapedTextLine(runs, x, y, totalWidth));
     }
@@ -270,6 +270,14 @@ public static class ShapedTextLayout
             start = lo;
             if (start < word.Length) y += lineHeight;
         }
+    }
+
+    private static float SumRunWidths(List<ShapedGlyphRun> runs)
+    {
+        float total = 0;
+        for (int i = 0; i < runs.Count; i++)
+            total += runs[i].TotalWidth;
+        return total;
     }
 
     private static List<string> SplitWords(string text)

@@ -8,6 +8,9 @@ public class LumiTooltip : IDisposable
     private readonly BoxElement _container;
     private readonly TextElement _textElement;
     private Element? _target;
+    private RoutedEventHandler? _mouseEnterHandler;
+    private RoutedEventHandler? _mouseLeaveHandler;
+    private RoutedEventHandler? _containerLeaveHandler;
     private string _text = "";
 
     public Element Root => _container;
@@ -39,17 +42,15 @@ public class LumiTooltip : IDisposable
         ComponentStyles.SetVisible(tooltip._container, false);
         target.AddChild(tooltip._container);
 
-        target.On("mouseenter", (_, _) =>
+        tooltip._mouseEnterHandler = (_, _) =>
         {
             ComponentStyles.SetVisible(tooltip._container, true);
             target.MarkDirty();
-        });
+        };
+        target.On("mouseenter", tooltip._mouseEnterHandler);
 
-        target.On("mouseleave", (_, e) =>
+        tooltip._mouseLeaveHandler = (_, e) =>
         {
-            // When the mouse moves to the tooltip (a child of the target),
-            // the event system fires mouseleave on the target. Don't hide
-            // if the mouse is still within the tooltip or target bounds.
             if (e is RoutedMouseEvent me &&
                 (tooltip._container.LayoutBox.Contains(me.X, me.Y) ||
                  target.LayoutBox.Contains(me.X, me.Y)))
@@ -59,11 +60,10 @@ public class LumiTooltip : IDisposable
 
             ComponentStyles.SetVisible(tooltip._container, false);
             target.MarkDirty();
-        });
+        };
+        target.On("mouseleave", tooltip._mouseLeaveHandler);
 
-        // Hide when the mouse leaves the tooltip itself,
-        // unless it moved back to the target.
-        tooltip._container.On("mouseleave", (_, e) =>
+        tooltip._containerLeaveHandler = (_, e) =>
         {
             if (e is RoutedMouseEvent me &&
                 (target.LayoutBox.Contains(me.X, me.Y) ||
@@ -74,15 +74,26 @@ public class LumiTooltip : IDisposable
 
             ComponentStyles.SetVisible(tooltip._container, false);
             target.MarkDirty();
-        });
+        };
+        tooltip._container.On("mouseleave", tooltip._containerLeaveHandler);
 
         return tooltip;
     }
 
     public void Dispose()
     {
-        _target?.RemoveAllEventHandlers();
-        Root.RemoveAllEventHandlers();
+        if (_target != null)
+        {
+            if (_mouseEnterHandler != null)
+                _target.Off("mouseenter", _mouseEnterHandler);
+            if (_mouseLeaveHandler != null)
+                _target.Off("mouseleave", _mouseLeaveHandler);
+        }
+        if (_containerLeaveHandler != null)
+            Root.Off("mouseleave", _containerLeaveHandler);
+        _mouseEnterHandler = null;
+        _mouseLeaveHandler = null;
+        _containerLeaveHandler = null;
         _target = null;
     }
 }

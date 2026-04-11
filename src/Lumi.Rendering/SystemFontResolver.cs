@@ -8,7 +8,7 @@ using SkiaSharp;
 /// </summary>
 public static class SystemFontResolver
 {
-    private static bool _initialized;
+    private static int _initialized;
 
     /// <summary>
     /// Detect and register system fallback fonts. Safe to call multiple times —
@@ -16,8 +16,8 @@ public static class SystemFontResolver
     /// </summary>
     public static void Initialize()
     {
-        if (_initialized) return;
-        _initialized = true;
+        if (Interlocked.CompareExchange(ref _initialized, 1, 0) != 0)
+            return;
 
         RegisterEmojiFallback();
         RegisterSymbolFallback();
@@ -70,6 +70,6 @@ public static class SystemFontResolver
     /// </summary>
     internal static void Reset()
     {
-        _initialized = false;
+        Interlocked.Exchange(ref _initialized, 0);
     }
 }
