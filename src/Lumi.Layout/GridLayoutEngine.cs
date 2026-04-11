@@ -95,17 +95,12 @@ public static class GridLayoutEngine
     private static string ExpandRepeat(string template)
     {
         // Match repeat(N, trackDef) — supports nested tokens like "1fr 100px"
-        var match = RepeatRegex.Match(template);
-        while (match.Success)
+        return RepeatRegex.Replace(template, match =>
         {
             int count = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             string trackDef = match.Groups[2].Value.Trim();
-            string expanded = string.Join(" ", Enumerable.Repeat(trackDef, count));
-            template = template[..match.Index] + expanded + template[(match.Index + match.Length)..];
-            match = RepeatRegex.Match(template);
-        }
-
-        return template;
+            return string.Join(" ", Enumerable.Repeat(trackDef, count));
+        });
     }
 
     private static IEnumerable<string> SplitTokens(string template) =>

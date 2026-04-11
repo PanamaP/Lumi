@@ -18,6 +18,10 @@ public static class FontManager
     /// </summary>
     public static string RegisterFont(string filePath)
     {
+        ArgumentNullException.ThrowIfNull(filePath);
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Font file not found: '{filePath}'", filePath);
+
         var typeface = SKTypeface.FromFile(filePath)
             ?? throw new ArgumentException($"Failed to load font from '{filePath}'.", nameof(filePath));
 
@@ -35,6 +39,9 @@ public static class FontManager
     public static void RegisterFont(string familyName, string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(familyName);
+        ArgumentNullException.ThrowIfNull(filePath);
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Font file not found: '{filePath}'", filePath);
 
         var typeface = SKTypeface.FromFile(filePath)
             ?? throw new ArgumentException($"Failed to load font from '{filePath}'.", nameof(filePath));

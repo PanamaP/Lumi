@@ -5,9 +5,9 @@ namespace Lumi.Core.DragDrop;
 /// </summary>
 public class DragDropState
 {
-    public bool IsDragging { get; set; }
-    public Element? Source { get; set; }
-    public DragData? Data { get; set; }
-    public float X { get; set; }
-    public float Y { get; set; }
+    public bool IsDragging { get; internal set; }
+    public Element? Source { get; internal set; }
+    public DragData? Data { get; internal set; }
+    public float X { get; internal set; }
+    public float Y { get; internal set; }
 }

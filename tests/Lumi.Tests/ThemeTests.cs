@@ -116,10 +116,10 @@ public class ThemeTests
 
         tm.ApplyTo(root);
 
-        Assert.NotNull(root.InlineStyle);
-        Assert.Contains("--bg-primary: #ffffff", root.InlineStyle);
-        Assert.Contains("--text-primary: #0f172a", root.InlineStyle);
-        Assert.Contains("--accent: #3b82f6", root.InlineStyle);
+        Assert.NotNull(root.ThemeVariables);
+        Assert.Equal("#ffffff", root.ThemeVariables["--bg-primary"]);
+        Assert.Equal("#0f172a", root.ThemeVariables["--text-primary"]);
+        Assert.Equal("#3b82f6", root.ThemeVariables["--accent"]);
     }
 
     [Fact]
@@ -131,10 +131,10 @@ public class ThemeTests
 
         tm.ApplyTo(root);
 
-        Assert.NotNull(root.InlineStyle);
-        Assert.Contains("--bg-primary: #0f172a", root.InlineStyle);
-        Assert.Contains("--text-primary: #f8fafc", root.InlineStyle);
-        Assert.Contains("--accent-hover: #60a5fa", root.InlineStyle);
+        Assert.NotNull(root.ThemeVariables);
+        Assert.Equal("#0f172a", root.ThemeVariables["--bg-primary"]);
+        Assert.Equal("#f8fafc", root.ThemeVariables["--text-primary"]);
+        Assert.Equal("#60a5fa", root.ThemeVariables["--accent-hover"]);
     }
 
     [Fact]
@@ -187,7 +187,8 @@ public class ThemeTests
         tm.ApplyTo(root);
 
         Assert.Contains("padding: 10px", root.InlineStyle);
-        Assert.Contains("--bg-primary: #ffffff", root.InlineStyle);
+        Assert.NotNull(root.ThemeVariables);
+        Assert.Equal("#ffffff", root.ThemeVariables["--bg-primary"]);
     }
 
     [Fact]
@@ -198,12 +199,13 @@ public class ThemeTests
 
         tm.SetTheme(ThemeMode.Light);
         tm.ApplyTo(root);
-        Assert.Contains("--bg-primary: #ffffff", root.InlineStyle);
+        Assert.NotNull(root.ThemeVariables);
+        Assert.Equal("#ffffff", root.ThemeVariables["--bg-primary"]);
 
         tm.SetTheme(ThemeMode.Dark);
         tm.ApplyTo(root);
-        Assert.Contains("--bg-primary: #0f172a", root.InlineStyle);
-        Assert.DoesNotContain("#ffffff", root.InlineStyle);
+        Assert.Equal("#0f172a", root.ThemeVariables["--bg-primary"]);
+        Assert.DoesNotContain(root.ThemeVariables.Values, v => v == "#ffffff");
     }
 
     // ── Style resolution integration ───────────────────────────────

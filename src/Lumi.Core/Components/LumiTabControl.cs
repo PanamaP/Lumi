@@ -3,7 +3,7 @@ namespace Lumi.Core.Components;
 /// <summary>
 /// Tab navigation control with content panels.
 /// </summary>
-public class LumiTabControl
+public class LumiTabControl : IDisposable
 {
     private readonly BoxElement _container;
     private readonly BoxElement _headerRow;
@@ -95,5 +95,10 @@ public class LumiTabControl
             ComponentStyles.SetVisible(content, active);
         }
         _container.MarkDirty();
+    }
+
+    public void Dispose()
+    {
+        Root.RemoveAllEventHandlers();
     }
 }

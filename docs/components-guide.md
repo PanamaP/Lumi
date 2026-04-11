@@ -178,8 +178,7 @@ dialog panel.
 var dialog = new LumiDialog { Title = "Confirm Action" };
 
 // Build dialog content
-var message = new Element { TagName = "text" };
-message.TextContent = "Are you sure you want to proceed?";
+var message = new TextElement("Are you sure you want to proceed?");
 
 var confirmBtn = new LumiButton { Text = "Yes, proceed" };
 confirmBtn.OnClick = () =>
@@ -188,7 +187,7 @@ confirmBtn.OnClick = () =>
     dialog.IsOpen = false;
 };
 
-var wrapper = new Element();
+var wrapper = new BoxElement();
 wrapper.AddChild(message);
 wrapper.AddChild(confirmBtn.Root);
 dialog.Content = wrapper;
@@ -349,7 +348,7 @@ A group of radio buttons where only one option can be selected at a time.
 |--------|------|-------------|
 | Constructor | `LumiRadioGroup(List<string> options)` | Takes the list of option labels |
 | `Root` | `Element` | Root element |
-| `Options` | `List<string>` | The option labels (set at construction) |
+| `Options` | `IReadOnlyList<string>` | The option labels (set at construction) |
 | `SelectedIndex` | `int` | Index of the currently selected option |
 | `OnSelectionChanged` | `Action<int>?` | Fired when the selection changes (receives new index) |
 
@@ -543,8 +542,7 @@ protected override void OnReady()
 {
     var root = Document.Body;
 
-    var heading = new Element { TagName = "text" };
-    heading.TextContent = "My App";
+    var heading = new TextElement("My App");
 
     var btn = new LumiButton { Text = "Click Me" };
     btn.OnClick = () => Console.WriteLine("Clicked!");
@@ -598,8 +596,7 @@ dialog.OnClose = () => dialog.IsOpen = false;
 root.AddChild(dialog.Root);
 
 // Later — show with dynamic content
-var msg = new Element { TagName = "text" };
-msg.TextContent = "Your changes have been saved.";
+var msg = new TextElement("Your changes have been saved.");
 dialog.Content = msg;
 dialog.IsOpen = true;
 ```
@@ -612,12 +609,12 @@ Build each tab's content as an `Element`, then add tabs one by one:
 var tabs = new LumiTabControl();
 
 // Tab 1 — Profile
-var profilePanel = new Element();
+var profilePanel = new BoxElement();
 var nameField = new LumiTextBox { Label = "Display Name" };
 profilePanel.AddChild(nameField.Root);
 
 // Tab 2 — Preferences
-var prefsPanel = new Element();
+var prefsPanel = new BoxElement();
 var darkToggle = new LumiToggle { Label = "Dark Mode", IsOn = true };
 var fontSize = new LumiSlider { Min = 12, Max = 24, Value = 16 };
 prefsPanel.AddChild(darkToggle.Root);

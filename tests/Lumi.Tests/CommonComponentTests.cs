@@ -137,13 +137,13 @@ public class CommonComponentTests
         tc.AddTab("Tab 1", c1);
         tc.AddTab("Tab 2", c2);
         Assert.Equal(0, tc.SelectedIndex);
-        Assert.NotEqual(DisplayMode.None, c1.ComputedStyle.Display);
-        Assert.Equal(DisplayMode.None, c2.ComputedStyle.Display);
+        Assert.DoesNotContain("display: none", c1.InlineStyle ?? "");
+        Assert.Contains("display: none", c2.InlineStyle ?? "");
         var headerRow = tc.Root.Children[0];
-        SimulateClick(headerRow.Children[1]);
+        SimulateClick(FindChildByText(headerRow, "Tab 2")!);
         Assert.Equal(1, tc.SelectedIndex);
-        Assert.Equal(DisplayMode.None, c1.ComputedStyle.Display);
-        Assert.NotEqual(DisplayMode.None, c2.ComputedStyle.Display);
+        Assert.Contains("display: none", c1.InlineStyle ?? "");
+        Assert.DoesNotContain("display: none", c2.InlineStyle ?? "");
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class CommonComponentTests
         int? received = null;
         tc.OnTabChanged = idx => received = idx;
         var headerRow = tc.Root.Children[0];
-        SimulateClick(headerRow.Children[1]);
+        SimulateClick(FindChildByText(headerRow, "B")!);
         Assert.Equal(1, received);
     }
 
@@ -173,7 +173,7 @@ public class CommonComponentTests
     {
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Info");
-        Assert.Equal(DisplayMode.None, tooltip.Root.ComputedStyle.Display);
+        Assert.Contains("display: none", tooltip.Root.InlineStyle ?? "");
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class CommonComponentTests
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Info");
         EventDispatcher.Dispatch(new RoutedEvent("mouseenter"), target);
-        Assert.NotEqual(DisplayMode.None, tooltip.Root.ComputedStyle.Display);
+        Assert.DoesNotContain("display: none", tooltip.Root.InlineStyle ?? "");
     }
 
     [Fact]
@@ -192,7 +192,13 @@ public class CommonComponentTests
         var tooltip = LumiTooltip.Attach(target, "Info");
         EventDispatcher.Dispatch(new RoutedEvent("mouseenter"), target);
         EventDispatcher.Dispatch(new RoutedEvent("mouseleave"), target);
-        Assert.Equal(DisplayMode.None, tooltip.Root.ComputedStyle.Display);
+        Assert.Contains("display: none", tooltip.Root.InlineStyle ?? "");
+    }
+
+    private static Element? FindChildByText(Element parent, string text)
+    {
+        return parent.Children.FirstOrDefault(c => c is TextElement te && te.Text == text)
+            ?? parent.Children.FirstOrDefault(c => c.Children.Any(gc => gc is TextElement te && te.Text == text));
     }
 
     private static void SimulateClick(Element target)

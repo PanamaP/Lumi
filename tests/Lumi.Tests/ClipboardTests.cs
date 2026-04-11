@@ -86,7 +86,7 @@ public class ClipboardTests : IDisposable
     }
 
     [Fact]
-    public void CtrlC_CopiesFullValue_WhenNoSelection()
+    public void CtrlC_DoesNothing_WhenNoSelection()
     {
         SetupMockClipboard(out var getContent);
 
@@ -97,7 +97,7 @@ public class ClipboardTests : IDisposable
 
         SendKey(app, KeyCode.C, ctrl: true);
 
-        Assert.Equal("hello", getContent());
+        Assert.Null(getContent()); // no selection → nothing copied
         Assert.Equal("hello", input.Value); // value unchanged
     }
 
@@ -206,7 +206,7 @@ public class ClipboardTests : IDisposable
     }
 
     [Fact]
-    public void CtrlX_CutsFullValue_WhenNoSelection()
+    public void CtrlX_DoesNothing_WhenNoSelection()
     {
         SetupMockClipboard(out var getContent);
 
@@ -217,9 +217,9 @@ public class ClipboardTests : IDisposable
 
         SendKey(app, KeyCode.X, ctrl: true);
 
-        Assert.Equal("hello", getContent());
-        Assert.Equal("", input.Value);
-        Assert.Equal(0, input.CursorPosition);
+        Assert.Null(getContent()); // no selection → nothing cut
+        Assert.Equal("hello", input.Value); // value unchanged
+        Assert.Equal(3, input.CursorPosition); // cursor unchanged
     }
 
     [Fact]

@@ -145,7 +145,16 @@ public static class ComponentStyles
     /// </summary>
     public static void SetVisible(Element el, bool visible)
     {
-        el.ComputedStyle.Display = visible ? DisplayMode.Flex : DisplayMode.None;
+        if (visible)
+        {
+            el.InlineStyle = (el.InlineStyle ?? "").Replace("display: none", "").Replace("display:none", "").Trim().TrimEnd(';');
+        }
+        else
+        {
+            var existing = el.InlineStyle ?? "";
+            if (!existing.Contains("display: none") && !existing.Contains("display:none"))
+                el.InlineStyle = string.IsNullOrEmpty(existing) ? "display: none" : existing.TrimEnd(';') + "; display: none";
+        }
         el.MarkDirty();
     }
 }

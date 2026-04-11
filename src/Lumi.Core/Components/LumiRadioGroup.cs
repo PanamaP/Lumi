@@ -3,7 +3,7 @@ namespace Lumi.Core.Components;
 /// <summary>
 /// A radio button group where only one option can be selected at a time.
 /// </summary>
-public class LumiRadioGroup
+public class LumiRadioGroup : IDisposable
 {
     private readonly BoxElement _container;
     private readonly List<BoxElement> _indicators = [];
@@ -27,7 +27,7 @@ public class LumiRadioGroup
 
     public LumiRadioGroup(List<string> options)
     {
-        _options = options ?? [];
+        _options = new List<string>(options ?? []);
         _container = new BoxElement("div");
         ComponentStyles.ApplyRadioGroup(_container);
 
@@ -82,5 +82,10 @@ public class LumiRadioGroup
                                  $"display: flex; justify-content: center; align-items: center";
         }
         _container.MarkDirty();
+    }
+
+    public void Dispose()
+    {
+        Root.RemoveAllEventHandlers();
     }
 }

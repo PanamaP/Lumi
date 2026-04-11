@@ -441,9 +441,15 @@ public static class PropertyApplier
             // --- Background image ---
             case "background-image":
                 if (IsGradient(value))
+                {
                     style.BackgroundGradient = ParseGradient(value);
+                    style.BackgroundImage = null;
+                }
                 else
+                {
                     style.BackgroundImage = ParseUrl(value);
+                    style.BackgroundGradient = null;
+                }
                 break;
 
             // --- Shorthands ---
@@ -984,6 +990,7 @@ public static class PropertyApplier
         if (IsGradient(value))
         {
             style.BackgroundGradient = ParseGradient(value);
+            style.BackgroundImage = null;
             return;
         }
 
@@ -995,6 +1002,7 @@ public static class PropertyApplier
             if (urlEnd >= 0)
             {
                 style.BackgroundImage = ParseUrl(value[urlStart..(urlEnd + 1)]);
+                style.BackgroundGradient = null;
                 string rest = (value[..urlStart] + value[(urlEnd + 1)..]).Trim();
                 if (rest.Length > 0)
                     style.BackgroundColor = ParseColor(rest);
@@ -1004,6 +1012,8 @@ public static class PropertyApplier
 
         // No url() — treat entire value as color
         style.BackgroundColor = ParseColor(value);
+        style.BackgroundGradient = null;
+        style.BackgroundImage = null;
     }
 
     /// <summary>

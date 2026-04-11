@@ -54,11 +54,11 @@ public sealed class LumiApp : IDisposable
 
         // Expose frame metrics and window manager to the window for app-level access
         _window.FrameMetrics = _frameMetrics;
-        _window.Renderer = _renderer;
         _window.Windows = _windowManager;
 
         // Try GPU-accelerated rendering
         _renderer = new SkiaRenderer();
+        _window.Renderer = _renderer;
         try
         {
             _platformWindow.CreateGLContext();
@@ -165,6 +165,10 @@ public sealed class LumiApp : IDisposable
             AnimationExtensions.GlobalTweenEngine.Update((float)_frameClock.DeltaTime);
             _window.StyleResolver.KeyframePlayer.Update((float)_frameClock.DeltaTime);
             _frameMetrics.RecordUpdate();
+
+            // Keep input elements dirty for caret blink animation
+            if (_interaction.FocusedElement is InputElement)
+                _interaction.FocusedElement.MarkDirty();
 
             bool needsRepaint = _app.IsDirty || _inspector.IsEnabled;
 
@@ -297,9 +301,10 @@ public sealed class LumiApp : IDisposable
                         HitTester.HitTest(_window.Root, mouse.X, mouse.Y));
                     break;
                 case MouseEvent { Type: MouseEventType.ButtonDown } down:
-                    var target = HitTester.HitTest(_window.Root, down.X, down.Y);
-                    _interaction.SetActive(target);
-                    SetFocusedElement(target);
+                    _interaction.SetActive(
+                        HitTester.HitTest(_window.Root, down.X, down.Y));
+                    // Focus is handled by Application.SetFocus (single source of truth);
+                    // synced to _interaction below after the event loop.
                     break;
                 case MouseEvent { Type: MouseEventType.ButtonUp }:
                     _interaction.SetActive(null);
@@ -342,6 +347,11 @@ public sealed class LumiApp : IDisposable
             if (!wasDirtyBefore)
                 _resizeOnly = true;
         }
+
+        // Sync focus from Application (the single source of truth for click-based focus).
+        // Application.SetFocus walks to the nearest focusable ancestor and fires
+        // Focus/Blur routed events; we just mirror the result for pseudo-class matching.
+        SyncFocusFromApp();
     }
 
     private const float ScrollSpeed = 40f;
@@ -398,24 +408,27 @@ public sealed class LumiApp : IDisposable
         }
     }
 
+    /// <summary>
+    /// Update focus via Application (the single source of truth) and sync to interaction state.
+    /// Used by keyboard navigation (Tab) which originates in LumiApp, not Application.
+    /// </summary>
     private void SetFocusedElement(Element? element)
     {
-        // Clear previous focus
-        if (_interaction.FocusedElement != null)
-            _interaction.FocusedElement.IsFocused = false;
+        _app.SetFocus(element);
+        SyncFocusFromApp();
+    }
 
-        // Walk up to find a focusable element if the target isn't focusable
-        var focusTarget = element;
-        while (focusTarget != null && !focusTarget.IsFocusable)
-            focusTarget = focusTarget.Parent;
+    /// <summary>
+    /// Mirror Application's focused element into <see cref="InteractionState"/> for
+    /// pseudo-class matching and caret blink.
+    /// </summary>
+    private void SyncFocusFromApp()
+    {
+        var appFocus = _app.FocusedElement;
+        if (_interaction.FocusedElement == appFocus) return;
 
-        _interaction.SetFocused(focusTarget);
-
-        if (focusTarget != null)
-        {
-            focusTarget.IsFocused = true;
-            focusTarget.MarkDirty();
-        }
+        _interaction.SetFocused(appFocus);
+        appFocus?.MarkDirty();
     }
 
     private static List<Element> CollectFocusableElements(Element root)
@@ -519,5 +532,6 @@ public sealed class LumiApp : IDisposable
         _renderTarget?.Dispose();
         _renderer.Dispose();
         _platformWindow.Dispose();
+        FontManager.Clear();
     }
 }

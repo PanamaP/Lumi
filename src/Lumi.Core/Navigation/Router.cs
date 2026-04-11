@@ -9,7 +9,8 @@ public class Router
     private readonly record struct RouteRegistration(string Pattern, string[] Segments, Func<RouteParameters, Element> Factory);
 
     private readonly List<RouteRegistration> _routes = [];
-    private readonly Stack<string> _history = new();
+    private readonly List<string> _history = [];
+    private const int MaxHistorySize = 100;
 
     /// <summary>
     /// The container element whose children are swapped on navigation.
@@ -56,7 +57,11 @@ public class Router
 
         var normalized = NormalizePath(pattern);
         var segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        _routes.Add(new RouteRegistration(normalized, segments, pageFactory));
+        var existing = _routes.FindIndex(r => r.Pattern == normalized);
+        if (existing >= 0)
+            _routes[existing] = new RouteRegistration(normalized, segments, pageFactory);
+        else
+            _routes.Add(new RouteRegistration(normalized, segments, pageFactory));
     }
 
     private bool _navigating;
@@ -81,7 +86,11 @@ public class Router
 
             // Push current route onto history before switching.
             if (!string.IsNullOrEmpty(CurrentRoute))
-                _history.Push(CurrentRoute);
+            {
+                _history.Add(CurrentRoute);
+                if (_history.Count > MaxHistorySize)
+                    _history.RemoveAt(0);
+            }
 
             ApplyRoute(normalized, registration.Value, parameters);
         }
@@ -99,31 +108,20 @@ public class Router
         if (!CanGoBack)
             return;
 
-        var previousRoute = _history.Peek();
+        var previousRoute = _history[^1];
         var (registration, parameters) = MatchRoute(previousRoute);
         if (registration is null)
             return;
 
-        _history.Pop();
+        _history.RemoveAt(_history.Count - 1);
         ApplyRoute(previousRoute, registration.Value, parameters);
     }
 
     private void ApplyRoute(string route, RouteRegistration registration, RouteParameters parameters)
     {
-        var previousRoute = CurrentRoute;
+        var page = registration.Factory(parameters);
         Container.ClearChildren();
-
-        try
-        {
-            var page = registration.Factory(parameters);
-            Container.AddChild(page);
-        }
-        catch
-        {
-            // Rollback: restore CurrentRoute (container is already cleared)
-            CurrentRoute = previousRoute;
-            throw;
-        }
+        Container.AddChild(page);
 
         CurrentRoute = route;
         RouteChanged?.Invoke(route);

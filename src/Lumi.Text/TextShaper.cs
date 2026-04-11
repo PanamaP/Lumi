@@ -62,7 +62,7 @@ public sealed class TextShaper : IDisposable
         set => _customTypefaceResolver = value;
     }
 
-    private readonly ConcurrentDictionary<FontKey, CachedHarfBuzzFont> _fontCache = new();
+    private readonly ConcurrentDictionary<FontKey, Lazy<CachedHarfBuzzFont>> _fontCache = new();
 
     private readonly record struct FontKey(string Family, int Weight, bool Italic);
 
@@ -144,56 +144,64 @@ public sealed class TextShaper : IDisposable
     private CachedHarfBuzzFont GetOrCreateFont(string family, int weight, bool italic)
     {
         var key = new FontKey(family, weight, italic);
-        return _fontCache.GetOrAdd(key, k =>
+        // Use Lazy<T> to ensure the factory runs exactly once per key,
+        // preventing leaked native handles under contention.
+        var lazy = _fontCache.GetOrAdd(key, k => new Lazy<CachedHarfBuzzFont>(() => CreateFont(k)));
+        return lazy.Value;
+    }
+
+    private static CachedHarfBuzzFont CreateFont(FontKey k)
+    {
+        // Check the custom resolver first (e.g., FontManager-registered fonts)
+        SKTypeface? typeface = CustomTypefaceResolver?.Invoke(k.Family, k.Weight, k.Italic);
+        bool ownsTypeface = typeface == null;
+
+        if (typeface == null)
         {
-            // Check the custom resolver first (e.g., FontManager-registered fonts)
-            SKTypeface? typeface = CustomTypefaceResolver?.Invoke(k.Family, k.Weight, k.Italic);
-            bool ownsTypeface = typeface == null;
+            var skStyle = k.Weight >= 700
+                ? (k.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
+                : (k.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
 
-            if (typeface == null)
-            {
-                var skStyle = k.Weight >= 700
-                    ? (k.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-                    : (k.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+            typeface = SKTypeface.FromFamilyName(k.Family, skStyle) ?? SKTypeface.Default;
+        }
 
-                typeface = SKTypeface.FromFamilyName(k.Family, skStyle) ?? SKTypeface.Default;
-            }
+        try
+        {
+            using var skStream = typeface.OpenStream(out var ttcIndex);
 
-            try
-            {
-                using var skStream = typeface.OpenStream(out var ttcIndex);
+            var memBase = skStream.GetMemoryBase();
+            int length = (int)skStream.Length;
 
-                var memBase = skStream.GetMemoryBase();
-                int length = (int)skStream.Length;
+            if (memBase == IntPtr.Zero || length <= 0)
+                throw new InvalidOperationException($"Failed to read font data for '{k.Family}'");
 
-                if (memBase == IntPtr.Zero || length <= 0)
-                    throw new InvalidOperationException($"Failed to read font data for '{k.Family}'");
+            byte[] fontData = new byte[length];
+            Marshal.Copy(memBase, fontData, 0, length);
 
-                byte[] fontData = new byte[length];
-                Marshal.Copy(memBase, fontData, 0, length);
+            using var ms = new MemoryStream(fontData);
+            var blob = Blob.FromStream(ms);
+            blob.MakeImmutable();
 
-                using var ms = new MemoryStream(fontData);
-                var blob = Blob.FromStream(ms);
-                blob.MakeImmutable();
+            var face = new Face(blob, (uint)ttcIndex);
+            var font = new HarfBuzzSharp.Font(face);
+            font.SetFunctionsOpenType();
 
-                var face = new Face(blob, (uint)ttcIndex);
-                var font = new HarfBuzzSharp.Font(face);
-                font.SetFunctionsOpenType();
-
-                return new CachedHarfBuzzFont(blob, face, font);
-            }
-            finally
-            {
-                if (ownsTypeface)
-                    typeface.Dispose();
-            }
-        });
+            return new CachedHarfBuzzFont(blob, face, font);
+        }
+        finally
+        {
+            if (ownsTypeface)
+                typeface.Dispose();
+        }
     }
 
     public void Dispose()
     {
-        foreach (var cached in _fontCache.Values)
-            cached.Dispose();
+        foreach (var lazy in _fontCache.Values)
+        {
+            if (lazy.IsValueCreated)
+                lazy.Value.Dispose();
+        }
         _fontCache.Clear();
     }
 }

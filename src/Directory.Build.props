@@ -8,8 +8,8 @@
     <Version>0.3.0-preview.1</Version>
     <Authors>Lumi Contributors</Authors>
     <Copyright>Copyright (c) Lumi Contributors 2026</Copyright>
-    <PackageProjectUrl>https://github.com/example/lumi</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/example/lumi</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/PanamaP/Lumi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PanamaP/Lumi</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>gui;ui;framework;desktop;cross-platform;skia;sdl3</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

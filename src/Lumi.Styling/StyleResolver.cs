@@ -17,7 +17,7 @@ public class StyleResolver
     private readonly HashSet<string> _explicitBuffer = new(32);
     private readonly ComputedStyle _tempStyle = new();
 
-    // Selector match cache: key = element identity + class hash, value = matched rules
+    // Selector match cache: key = element identity + class hash + parent context, value = matched rules
     private readonly Dictionary<long, List<(ParsedStyleRule Rule, int SheetIndex, int RuleIndex)>> _selectorCache = new();
     private int _stylesheetVersion;
     private int _lastResolvedVersion;
@@ -104,6 +104,16 @@ public class StyleResolver
         // Set font-size context for em/rem unit resolution (parent's font-size)
         PropertyApplier.SetFontSizeContext(parentStyle?.FontSize ?? 16f);
 
+        // 2b. Apply theme variables (stylesheet-level specificity, overridable by rules and inline)
+        if (element.ThemeVariables != null)
+        {
+            foreach (var kvp in element.ThemeVariables)
+            {
+                PropertyApplier.Apply(_tempStyle, kvp.Key, kvp.Value);
+                _explicitBuffer.Add(kvp.Key);
+            }
+        }
+
         // 3. Apply declarations in cascade order (lower specificity first → higher overrides)
         foreach (var (rule, _, _) in matchingRules)
         {
@@ -158,7 +168,7 @@ public class StyleResolver
     private List<(ParsedStyleRule Rule, int SheetIndex, int RuleIndex)> GetMatchingRules(
         Element element, PseudoClassState? pseudoState)
     {
-        // Build a cache key from tag + classes (not identity — elements with same classes share cache)
+        // Build a cache key from tag + classes + parent context
         long key = ComputeCacheKey(element);
 
         if (_selectorCache.TryGetValue(key, out var cached))
@@ -215,8 +225,8 @@ public class StyleResolver
     }
 
     /// <summary>
-    /// Compute a cache key from element tag name + class list.
-    /// Elements with the same tag and classes will share matched rules.
+    /// Compute a cache key from element tag name, id, class list, parent identity, and child index.
+    /// Includes parent context so context-dependent selectors (descendant, child, sibling) resolve correctly.
     /// </summary>
     private static long ComputeCacheKey(Element element)
     {
@@ -229,7 +239,27 @@ public class StyleResolver
         foreach (var cls in element.Classes)
             hash = hash * 31 + cls.GetHashCode(StringComparison.Ordinal);
 
+        // Add parent context to cache key for context-dependent selectors
+        if (element.Parent != null)
+        {
+            hash = hash * 31 + (element.Parent.TagName?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0);
+            hash = hash * 31 + (element.Parent.Id?.GetHashCode(StringComparison.Ordinal) ?? 0);
+        }
+        // Include child index for sibling selectors
+        hash = hash * 31 + ChildIndex(element);
+
         return hash;
+    }
+
+    private static int ChildIndex(Element element)
+    {
+        if (element.Parent == null) return 0;
+        var siblings = element.Parent.Children;
+        for (int i = 0; i < siblings.Count; i++)
+        {
+            if (siblings[i] == element) return i;
+        }
+        return 0;
     }
 
     /// <summary>
@@ -271,6 +301,11 @@ public class StyleResolver
         target.RowGap = source.RowGap;
         target.ColumnGap = source.ColumnGap;
 
+        // Grid layout
+        target.GridTemplateColumns = source.GridTemplateColumns;
+        target.GridTemplateRows = source.GridTemplateRows;
+        target.GridGap = source.GridGap;
+
         // Visual
         target.BackgroundColor = source.BackgroundColor;
         target.BorderColor = source.BorderColor;
@@ -282,8 +317,9 @@ public class StyleResolver
         target.Cursor = source.Cursor;
         target.BoxShadow = source.BoxShadow;
         target.BackgroundImage = source.BackgroundImage;
+        target.BackgroundGradient = source.BackgroundGradient;
 
-        // CSS Custom Properties (only copy if source has any, to avoid lazy-init on target)
+        // CSS Custom Properties(only copy if source has any, to avoid lazy-init on target)
         if (source.HasCustomProperties)
         {
             foreach (var kvp in source.CustomProperties)
@@ -308,6 +344,7 @@ public class StyleResolver
         // Transitions
         target.TransitionProperty = source.TransitionProperty;
         target.TransitionDuration = source.TransitionDuration;
+        target.TransitionTimingFunction = source.TransitionTimingFunction;
 
         // Animation
         target.AnimationName = source.AnimationName;

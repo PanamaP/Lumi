@@ -3,7 +3,7 @@ namespace Lumi.Core.Components;
 /// <summary>
 /// A tooltip that appears on hover near a target element.
 /// </summary>
-public class LumiTooltip
+public class LumiTooltip : IDisposable
 {
     private readonly BoxElement _container;
     private readonly TextElement _textElement;
@@ -43,12 +43,42 @@ public class LumiTooltip
             target.MarkDirty();
         });
 
-        target.On("mouseleave", (_, _) =>
+        target.On("mouseleave", (_, e) =>
         {
+            // When the mouse moves to the tooltip (a child of the target),
+            // the event system fires mouseleave on the target. Don't hide
+            // if the mouse is still within the tooltip or target bounds.
+            if (e is RoutedMouseEvent me &&
+                (tooltip._container.LayoutBox.Contains(me.X, me.Y) ||
+                 target.LayoutBox.Contains(me.X, me.Y)))
+            {
+                return;
+            }
+
+            ComponentStyles.SetVisible(tooltip._container, false);
+            target.MarkDirty();
+        });
+
+        // Hide when the mouse leaves the tooltip itself,
+        // unless it moved back to the target.
+        tooltip._container.On("mouseleave", (_, e) =>
+        {
+            if (e is RoutedMouseEvent me &&
+                (target.LayoutBox.Contains(me.X, me.Y) ||
+                 tooltip._container.LayoutBox.Contains(me.X, me.Y)))
+            {
+                return;
+            }
+
             ComponentStyles.SetVisible(tooltip._container, false);
             target.MarkDirty();
         });
 
         return tooltip;
+    }
+
+    public void Dispose()
+    {
+        Root.RemoveAllEventHandlers();
     }
 }

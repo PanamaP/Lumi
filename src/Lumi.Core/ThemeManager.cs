@@ -73,12 +73,18 @@ public class ThemeManager
         get => _mode;
         set
         {
+            Action<bool>? handler;
+            bool isDark;
+            Element? root;
+
             lock (_lock)
             {
                 if (_mode == value) return;
                 _mode = value;
-                Recalculate();
+                (handler, isDark, root) = RecalculateCore();
             }
+
+            NotifyOutsideLock(handler, isDark, root);
         }
     }
 
@@ -105,10 +111,17 @@ public class ThemeManager
     /// </summary>
     public void Toggle()
     {
+        Action<bool>? handler;
+        bool isDark;
+        Element? root;
+
         lock (_lock)
         {
-            Mode = _isDarkMode ? ThemeMode.Light : ThemeMode.Dark;
+            _mode = _isDarkMode ? ThemeMode.Light : ThemeMode.Dark;
+            (handler, isDark, root) = RecalculateCore();
         }
+
+        NotifyOutsideLock(handler, isDark, root);
     }
 
     /// <summary>
@@ -116,18 +129,25 @@ public class ThemeManager
     /// </summary>
     public void SetSystemPreference(bool systemIsDark)
     {
+        Action<bool>? handler = null;
+        bool isDark = false;
+        Element? root = null;
+
         lock (_lock)
         {
             if (_systemDarkMode == systemIsDark) return;
             _systemDarkMode = systemIsDark;
             if (_mode == ThemeMode.System)
-                Recalculate();
+                (handler, isDark, root) = RecalculateCore();
         }
+
+        NotifyOutsideLock(handler, isDark, root);
     }
 
     /// <summary>
     /// Applies the current theme's CSS custom properties to <paramref name="root"/>
-    /// by setting them on the element's inline style so they cascade to all descendants.
+    /// via the <see cref="Element.ThemeVariables"/> dictionary so they resolve at
+    /// stylesheet specificity. User stylesheets and inline styles can override them.
     /// </summary>
     public void ApplyTo(Element root)
     {
@@ -137,14 +157,12 @@ public class ThemeManager
             _appliedRoot = root;
             var variables = _isDarkMode ? DarkVariables : LightVariables;
 
-            // Build CSS custom-property declarations
-            var varCss = string.Join("; ", variables.Select(kv => $"{kv.Key}: {kv.Value}"));
+            // Store theme variables at stylesheet specificity instead of inline
+            root.ThemeVariables = new Dictionary<string, string>(variables);
 
-            // Preserve any non-theme-variable inline styles the user set
+            // Strip any previously-injected theme variables from inline style
             var existing = StripThemeVariables(root.InlineStyle);
-            root.InlineStyle = string.IsNullOrEmpty(existing)
-                ? varCss
-                : varCss + "; " + existing;
+            root.InlineStyle = string.IsNullOrEmpty(existing) ? null : existing;
         }
         finally
         {
@@ -154,26 +172,43 @@ public class ThemeManager
 
     // ── Private helpers ────────────────────────────────────────────
 
-    private void Recalculate()
+    /// <summary>
+    /// Recalculates resolved dark-mode state. Must be called under <see cref="_lock"/>.
+    /// Returns the event handler to invoke, the new value, and the root element to
+    /// re-apply — all of which must be acted on <b>outside</b> the lock.
+    /// </summary>
+    private (Action<bool>? Handler, bool IsDark, Element? Root) RecalculateCore()
     {
-        lock (_lock)
+        var newDark = _mode switch
         {
-            var newDark = _mode switch
-            {
-                ThemeMode.Light => false,
-                ThemeMode.Dark  => true,
-                _               => _systemDarkMode
-            };
+            ThemeMode.Light => false,
+            ThemeMode.Dark  => true,
+            _               => _systemDarkMode
+        };
 
-            if (newDark == _isDarkMode) return;
-            _isDarkMode = newDark;
-            ThemeChanged?.Invoke(_isDarkMode);
+        if (newDark == _isDarkMode)
+            return (null, false, null);
 
-            if (_appliedRoot != null && !_isApplying)
-            {
-                ApplyTo(_appliedRoot);
-                _appliedRoot.MarkDirty();
-            }
+        _isDarkMode = newDark;
+
+        var handler = ThemeChanged;
+        var root = (_appliedRoot != null && !_isApplying) ? _appliedRoot : null;
+
+        return (handler, _isDarkMode, root);
+    }
+
+    /// <summary>
+    /// Raises <see cref="ThemeChanged"/> and re-applies the theme to the root element
+    /// outside the lock so subscribers cannot cause a deadlock.
+    /// </summary>
+    private void NotifyOutsideLock(Action<bool>? handler, bool isDark, Element? root)
+    {
+        handler?.Invoke(isDark);
+
+        if (root != null)
+        {
+            ApplyTo(root);
+            root.MarkDirty();
         }
     }
 

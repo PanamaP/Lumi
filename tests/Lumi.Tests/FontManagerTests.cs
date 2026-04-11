@@ -77,8 +77,8 @@ public sealed class FontManagerTests : IDisposable
     [Fact]
     public void MultipleFonts_SameFamily_DifferentWeights_AreStored()
     {
-        var regular = SKTypeface.Default;
-        var bold = SKTypeface.Default;
+        var regular = SKTypeface.FromFamilyName(null, SKFontStyle.Normal);
+        var bold = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
 
         FontManager.RegisterTypeface("MultiWeight", regular, 400, false);
         FontManager.RegisterTypeface("MultiWeight", bold, 700, false);
@@ -97,8 +97,8 @@ public sealed class FontManagerTests : IDisposable
     [Fact]
     public void GetTypeface_MatchesItalicPreference()
     {
-        var upright = SKTypeface.Default;
-        var italic = SKTypeface.Default;
+        var upright = SKTypeface.FromFamilyName(null, SKFontStyle.Normal);
+        var italic = SKTypeface.FromFamilyName(null, SKFontStyle.Italic);
 
         FontManager.RegisterTypeface("StyleFont", upright, 400, false);
         FontManager.RegisterTypeface("StyleFont", italic, 400, true);
@@ -113,8 +113,8 @@ public sealed class FontManagerTests : IDisposable
     [Fact]
     public void GetTypeface_SelectsClosestWeight()
     {
-        var light = SKTypeface.Default;
-        var bold = SKTypeface.Default;
+        var light = SKTypeface.FromFamilyName(null, new SKFontStyle(300, (int)SKFontStyleWidth.Normal, SKFontStyleSlant.Upright));
+        var bold = SKTypeface.FromFamilyName(null, SKFontStyle.Bold);
 
         FontManager.RegisterTypeface("WeightFont", light, 300, false);
         FontManager.RegisterTypeface("WeightFont", bold, 700, false);

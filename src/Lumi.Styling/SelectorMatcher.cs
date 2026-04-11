@@ -377,13 +377,13 @@ public static class SelectorMatcher
 
         return op switch
         {
-            "=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase),
-            "~=" => attrValue.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(w => string.Equals(w, valueStr, StringComparison.OrdinalIgnoreCase)),
-            "|=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase) ||
-                    attrValue.StartsWith(valueStr + "-", StringComparison.OrdinalIgnoreCase),
-            "^=" => attrValue.StartsWith(valueStr, StringComparison.OrdinalIgnoreCase),
-            "$=" => attrValue.EndsWith(valueStr, StringComparison.OrdinalIgnoreCase),
-            "*=" => attrValue.Contains(valueStr, StringComparison.OrdinalIgnoreCase),
+            "=" => string.Equals(attrValue, valueStr, StringComparison.Ordinal),
+            "~=" => attrValue.Split(' ', StringSplitOptions.RemoveEmptyEntries).Any(w => string.Equals(w, valueStr, StringComparison.Ordinal)),
+            "|=" => string.Equals(attrValue, valueStr, StringComparison.Ordinal) ||
+                    attrValue.StartsWith(valueStr + "-", StringComparison.Ordinal),
+            "^=" => attrValue.StartsWith(valueStr, StringComparison.Ordinal),
+            "$=" => attrValue.EndsWith(valueStr, StringComparison.Ordinal),
+            "*=" => attrValue.Contains(valueStr, StringComparison.Ordinal),
             _ => false
         };
     }
@@ -396,7 +396,7 @@ public static class SelectorMatcher
     private static string? ResolveAttributeValue(Element element, string name)
     {
         if (string.Equals(name, "id", StringComparison.OrdinalIgnoreCase))
-            return element.Id;
+            return string.IsNullOrEmpty(element.Id) ? null : element.Id;
 
         if (string.Equals(name, "class", StringComparison.OrdinalIgnoreCase))
             return element.Classes.Count > 0

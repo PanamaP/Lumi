@@ -10,7 +10,7 @@ using SkiaSharp;
 /// </summary>
 public static class TextRenderingOptions
 {
-    private static bool _useHarfBuzz = true;
+    private static volatile bool _useHarfBuzz = true;
     private static volatile TextShaper? _shaper;
     private static readonly object _lock = new();
 

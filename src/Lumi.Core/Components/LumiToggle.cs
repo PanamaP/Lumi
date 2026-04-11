@@ -3,7 +3,7 @@ namespace Lumi.Core.Components;
 /// <summary>
 /// A toggle/switch control with an optional label.
 /// </summary>
-public class LumiToggle
+public class LumiToggle : IDisposable
 {
     private readonly BoxElement _container;
     private readonly BoxElement _track;
@@ -82,5 +82,10 @@ public class LumiToggle
             $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; border-radius: {ThumbSize / 2:F0}px; " +
             $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
             $"position: absolute; top: {ThumbMargin:F0}px; left: {left:F0}px");
+    }
+
+    public void Dispose()
+    {
+        Root.RemoveAllEventHandlers();
     }
 }

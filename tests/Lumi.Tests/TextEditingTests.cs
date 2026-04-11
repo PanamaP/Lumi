@@ -37,12 +37,11 @@ public class TextEditingTests
     // ── Cursor positioning ────────────────────────────────────────────
 
     [Fact]
-    public void CursorStartsAtEndOfInitialValue()
+    public void CursorStartsAtBeginning()
     {
         var input = new InputElement { Value = "hello" };
         var app = CreateAppWithFocusedInput(input);
-        // After focus, cursor should be at end (set by initial value assignment)
-        // CursorPosition defaults to 0, but clamped on Value set
+        // CursorPosition defaults to 0 and Value setter clamps it within range
         Assert.Equal(0, input.CursorPosition);
     }
 

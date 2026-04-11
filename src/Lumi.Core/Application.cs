@@ -14,6 +14,11 @@ public class Application
     private Element? _hoveredElement;
     private Element? _focusedElement;
 
+    /// <summary>
+    /// The element that currently has focus, or null if nothing is focused.
+    /// </summary>
+    public Element? FocusedElement => _focusedElement;
+
     // Drag-and-drop state
     private readonly DragDropState _dragState = new();
     private Element? _potentialDragSource;
@@ -131,7 +136,7 @@ public class Application
                 if (target != null)
                 {
                     // Record potential drag source
-                    if (target.IsDraggable)
+                    if (target.IsDraggable && mouse.Button == MouseButton.Left)
                     {
                         _potentialDragSource = target;
                         _dragStartX = mouse.X;
@@ -157,6 +162,7 @@ public class Application
                     _dragState.Source = null;
                     _dragState.Data = null;
                     _potentialDragSource = null;
+                    _lastDragOverElement = null;
                 }
                 else
                 {
@@ -196,9 +202,18 @@ public class Application
         }
     }
 
-    private void SetFocus(Element element)
+    /// <summary>
+    /// Move focus to the given element (or its nearest focusable ancestor).
+    /// Pass null to clear focus.
+    /// </summary>
+    public void SetFocus(Element? element)
     {
-        if (_focusedElement == element) return;
+        // Walk up to the nearest focusable element
+        var target = element;
+        while (target != null && !target.IsFocusable)
+            target = target.Parent;
+
+        if (_focusedElement == target) return;
 
         if (_focusedElement != null)
         {
@@ -206,9 +221,13 @@ public class Application
             EventDispatcher.Dispatch(new RoutedEvent("Blur"), _focusedElement);
         }
 
-        _focusedElement = element;
-        element.IsFocused = true;
-        EventDispatcher.Dispatch(new RoutedEvent("Focus"), element);
+        _focusedElement = target;
+
+        if (target != null)
+        {
+            target.IsFocused = true;
+            EventDispatcher.Dispatch(new RoutedEvent("Focus"), target);
+        }
     }
 
     private void HandleKeyboard(KeyboardEvent keyboard)
@@ -223,7 +242,8 @@ public class Application
             {
                 if (inputTarget is InputElement input && !input.IsDisabled)
                 {
-                    HandleInputKeyDown(input, keyboard);
+                    if (HandleInputKeyDown(input, keyboard))
+                        return;
                     break;
                 }
                 inputTarget = inputTarget.Parent;
@@ -242,7 +262,7 @@ public class Application
             target);
     }
 
-    private static void HandleInputKeyDown(InputElement input, KeyboardEvent keyboard)
+    private static bool HandleInputKeyDown(InputElement input, KeyboardEvent keyboard)
     {
         switch (keyboard.Key)
         {
@@ -251,7 +271,10 @@ public class Application
                 {
                     if (!input.HasSelection)
                         input.SelectionStart = input.CursorPosition;
-                    input.CursorPosition = Math.Max(0, input.CursorPosition - 1);
+                    int moveBack = 1;
+                    if (input.CursorPosition >= 2 && char.IsSurrogatePair(input.Value[input.CursorPosition - 2], input.Value[input.CursorPosition - 1]))
+                        moveBack = 2;
+                    input.CursorPosition = Math.Max(0, input.CursorPosition - moveBack);
                     input.SelectionEnd = input.CursorPosition;
                 }
                 else
@@ -263,20 +286,26 @@ public class Application
                     }
                     else
                     {
-                        input.CursorPosition = Math.Max(0, input.CursorPosition - 1);
+                        int moveBack = 1;
+                        if (input.CursorPosition >= 2 && char.IsSurrogatePair(input.Value[input.CursorPosition - 2], input.Value[input.CursorPosition - 1]))
+                            moveBack = 2;
+                        input.CursorPosition = Math.Max(0, input.CursorPosition - moveBack);
                         input.ClearSelection();
                     }
                 }
                 input.ResetBlink();
                 input.MarkDirty();
-                break;
+                return true;
 
             case KeyCode.Right:
                 if (keyboard.Shift)
                 {
                     if (!input.HasSelection)
                         input.SelectionStart = input.CursorPosition;
-                    input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + 1);
+                    int moveForward = 1;
+                    if (input.CursorPosition < input.Value.Length - 1 && char.IsSurrogatePair(input.Value[input.CursorPosition], input.Value[input.CursorPosition + 1]))
+                        moveForward = 2;
+                    input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + moveForward);
                     input.SelectionEnd = input.CursorPosition;
                 }
                 else
@@ -288,13 +317,16 @@ public class Application
                     }
                     else
                     {
-                        input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + 1);
+                        int moveForward = 1;
+                        if (input.CursorPosition < input.Value.Length - 1 && char.IsSurrogatePair(input.Value[input.CursorPosition], input.Value[input.CursorPosition + 1]))
+                            moveForward = 2;
+                        input.CursorPosition = Math.Min(input.Value.Length, input.CursorPosition + moveForward);
                         input.ClearSelection();
                     }
                 }
                 input.ResetBlink();
                 input.MarkDirty();
-                break;
+                return true;
 
             case KeyCode.Home:
                 if (keyboard.Shift)
@@ -311,7 +343,7 @@ public class Application
                 }
                 input.ResetBlink();
                 input.MarkDirty();
-                break;
+                return true;
 
             case KeyCode.End:
                 if (keyboard.Shift)
@@ -328,7 +360,7 @@ public class Application
                 }
                 input.ResetBlink();
                 input.MarkDirty();
-                break;
+                return true;
 
             case KeyCode.A when keyboard.Ctrl:
                 input.SelectionStart = 0;
@@ -336,16 +368,16 @@ public class Application
                 input.CursorPosition = input.Value.Length;
                 input.ResetBlink();
                 input.MarkDirty();
-                break;
+                return true;
 
             case KeyCode.C when keyboard.Ctrl:
             {
-                var textToCopy = input.HasSelection
-                    ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
-                    : input.Value;
+                if (!input.HasSelection)
+                    return true;
+                var textToCopy = input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)];
                 if (!string.IsNullOrEmpty(textToCopy))
                     Clipboard.SetText(textToCopy);
-                break;
+                return true;
             }
 
             case KeyCode.V when keyboard.Ctrl:
@@ -363,29 +395,21 @@ public class Application
                     input.MarkDirty();
                     EventDispatcher.Dispatch(new RoutedEvent("input"), input);
                 }
-                break;
+                return true;
             }
 
             case KeyCode.X when keyboard.Ctrl:
             {
-                var textToCut = input.HasSelection
-                    ? input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)]
-                    : input.Value;
+                if (!input.HasSelection)
+                    return true;
+                var textToCut = input.Value[Math.Min(input.SelectionStart, input.SelectionEnd)..Math.Max(input.SelectionStart, input.SelectionEnd)];
                 if (!string.IsNullOrEmpty(textToCut))
                     Clipboard.SetText(textToCut);
-
-                if (input.HasSelection)
-                    input.DeleteSelection();
-                else
-                {
-                    input.Value = "";
-                    input.CursorPosition = 0;
-                    input.ClearSelection();
-                }
+                input.DeleteSelection();
                 input.ResetBlink();
                 input.MarkDirty();
                 EventDispatcher.Dispatch(new RoutedEvent("input"), input);
-                break;
+                return true;
             }
 
             case KeyCode.Backspace:
@@ -405,7 +429,7 @@ public class Application
                 input.ResetBlink();
                 input.MarkDirty();
                 EventDispatcher.Dispatch(new RoutedEvent("input"), input);
-                break;
+                return true;
 
             case KeyCode.Delete:
                 if (input.HasSelection)
@@ -423,7 +447,10 @@ public class Application
                 input.ResetBlink();
                 input.MarkDirty();
                 EventDispatcher.Dispatch(new RoutedEvent("input"), input);
-                break;
+                return true;
+
+            default:
+                return false;
         }
     }
 
@@ -493,24 +520,56 @@ public class Application
 
     /// <summary>
     /// Hit test: walk tree in reverse order (topmost first), return deepest hit.
-    /// Adjusts for scroll offset and clips to overflow:scroll/hidden bounds.
+    /// Adjusts for CSS transforms, scroll offset, and clips to overflow:scroll/hidden bounds.
     /// </summary>
     public static Element? HitTest(Element root, float x, float y)
     {
         if (root.ComputedStyle.Display == DisplayMode.None) return null;
         if (root.ComputedStyle.Visibility == Visibility.Hidden) return null;
 
+        // Apply inverse transform to convert hit point into element's local space
+        float localX = x;
+        float localY = y;
+        var transform = root.ComputedStyle.Transform;
+        if (!transform.IsIdentity)
+        {
+            var box = root.LayoutBox;
+            float originX = root.ComputedStyle.TransformOriginX / 100f * box.Width + box.X;
+            float originY = root.ComputedStyle.TransformOriginY / 100f * box.Height + box.Y;
+
+            float dx = localX - originX - transform.TranslateX;
+            float dy = localY - originY - transform.TranslateY;
+
+            if (transform.Rotate != 0)
+            {
+                float rad = -transform.Rotate * MathF.PI / 180f;
+                float cos = MathF.Cos(rad);
+                float sin = MathF.Sin(rad);
+                float rx = dx * cos - dy * sin;
+                float ry = dx * sin + dy * cos;
+                dx = rx;
+                dy = ry;
+            }
+
+            if (transform.ScaleX != 0 && transform.ScaleY != 0)
+            {
+                dx /= transform.ScaleX;
+                dy /= transform.ScaleY;
+            }
+
+            localX = dx + originX;
+            localY = dy + originY;
+        }
+
         bool isClipping = root.ComputedStyle.Overflow == Overflow.Scroll ||
                           root.ComputedStyle.Overflow == Overflow.Hidden;
 
-        // For scroll/hidden containers, only test children if point is within bounds
-        bool testChildren = !isClipping || root.LayoutBox.Contains(x, y);
+        bool testChildren = !isClipping || root.LayoutBox.Contains(localX, localY);
 
         if (testChildren)
         {
-            // Adjust coordinates for scroll offset
-            float childX = x;
-            float childY = y;
+            float childX = localX;
+            float childY = localY;
             if (root.ComputedStyle.Overflow == Overflow.Scroll)
             {
                 childX += root.ScrollLeft;
@@ -526,10 +585,7 @@ public class Application
 
         if (!root.ComputedStyle.PointerEvents) return null;
 
-        if (root.LayoutBox.Contains(x, y))
-            return root;
-
-        return null;
+        return root.LayoutBox.Contains(localX, localY) ? root : null;
     }
 
     /// <summary>

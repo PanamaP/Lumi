@@ -20,6 +20,7 @@ public class MainWindow : Window
     private LumiToggle? _darkMode;
     private LumiDialog? _dialog;
     private Element? _validationArea;
+    private Element? _currentSuccessDialog;
 
     public MainWindow()
     {
@@ -210,7 +211,11 @@ public class MainWindow : Window
             successDialog.Content = content;
             successDialog.OnClose = () => successDialog.IsOpen = false;
             successDialog.IsOpen = true;
-            Root.AddChild(successDialog.Root);
+
+            if (_currentSuccessDialog != null)
+                Root.RemoveChild(_currentSuccessDialog);
+            _currentSuccessDialog = successDialog.Root;
+            Root.AddChild(_currentSuccessDialog);
         }
     }
 

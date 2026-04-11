@@ -12,11 +12,15 @@ namespace Lumi;
 public class WindowManager
 {
     private readonly List<ManagedWindow> _windows = new();
+    private readonly object _lock = new();
 
     /// <summary>
     /// The number of currently managed secondary windows (including those pending close).
     /// </summary>
-    public int Count => _windows.Count;
+    public int Count
+    {
+        get { lock (_lock) { return _windows.Count; } }
+    }
 
     /// <summary>
     /// Open a secondary window. Creates the platform window, renderer,
@@ -55,7 +59,10 @@ public class WindowManager
         app.Start();
         window.App = app;
 
-        _windows.Add(new ManagedWindow(window, platformWindow, renderer, useGpu));
+        lock (_lock)
+        {
+            _windows.Add(new ManagedWindow(window, platformWindow, renderer, useGpu));
+        }
         return window;
     }
 
@@ -64,9 +71,12 @@ public class WindowManager
     /// </summary>
     public void CloseAll()
     {
-        foreach (var managed in _windows)
-            DisposeManaged(managed);
-        _windows.Clear();
+        lock (_lock)
+        {
+            foreach (var managed in _windows)
+                DisposeManaged(managed);
+            _windows.Clear();
+        }
     }
 
     /// <summary>
@@ -76,65 +86,69 @@ public class WindowManager
     /// </summary>
     internal void Update()
     {
-        for (int i = _windows.Count - 1; i >= 0; i--)
+        lock (_lock)
         {
-            var managed = _windows[i];
-
-            if (!managed.Window.IsOpen || !managed.PlatformWindow.IsOpen)
+            for (int i = _windows.Count - 1; i >= 0; i--)
             {
-                DisposeManaged(managed);
-                _windows.RemoveAt(i);
-                continue;
-            }
+                var managed = _windows[i];
 
-            // Poll events for this secondary window
-            var events = managed.PlatformWindow.PollEvents();
-            foreach (var evt in events)
-            {
-                if (evt is WindowEvent { Type: WindowEventType.Close })
+                if (!managed.Window.IsOpen || !managed.PlatformWindow.IsOpen)
                 {
-                    managed.Window.IsOpen = false;
                     DisposeManaged(managed);
                     _windows.RemoveAt(i);
-                    goto next;
+                    continue;
                 }
-            }
 
-            // Route input events through the secondary window's Application
-            managed.Window.App?.ProcessInput(events);
-
-            var win = managed.Window;
-
-            // Update the window
-            win.OnUpdate();
-            managed.Window.App?.Update();
-
-            if (win.Root.IsDirty)
-            {
-                var (w, h) = managed.PlatformWindow.GetPixelSize();
-
-                // Style resolution
-                var pseudoState = new PseudoClassState(false, false, false);
-                win.StyleResolver.SetViewport(w, h);
-                win.StyleResolver.ResolveStyles(win.Root, pseudoState);
-
-                // Layout
-                win.LayoutEngine.MeasureFunc = MeasureElement;
-                win.LayoutEngine.CalculateLayout(win.Root, w, h);
-
-                // Render
-                managed.Renderer.EnsureSize(w, h);
-                managed.Renderer.Paint(win.Root);
-
-                if (managed.UseGpu)
+                // Poll events for this secondary window
+                var events = managed.PlatformWindow.PollEvents();
+                foreach (var evt in events)
                 {
-                    managed.PlatformWindow.SwapBuffers();
+                    if (evt is WindowEvent { Type: WindowEventType.Close })
+                    {
+                        managed.Window.IsOpen = false;
+                        DisposeManaged(managed);
+                        _windows.RemoveAt(i);
+                        goto next;
+                    }
                 }
 
-                managed.Window.App?.MarkClean();
-            }
+                // Route input events through the secondary window's Application
+                managed.Window.App?.ProcessInput(events);
 
-            next:;
+                var win = managed.Window;
+
+                // Update the window
+                win.OnUpdate();
+                managed.Window.App?.Update();
+
+                if (win.Root.IsDirty)
+                {
+                    var (w, h) = managed.PlatformWindow.GetPixelSize();
+
+                    // Style resolution
+                    var pseudoState = new PseudoClassState(false, false, false);
+                    PropertyApplier.SetViewportContext(w, h);
+                    win.StyleResolver.SetViewport(w, h);
+                    win.StyleResolver.ResolveStyles(win.Root, pseudoState);
+
+                    // Layout
+                    win.LayoutEngine.MeasureFunc = MeasureElement;
+                    win.LayoutEngine.CalculateLayout(win.Root, w, h);
+
+                    // Render
+                    managed.Renderer.EnsureSize(w, h);
+                    managed.Renderer.Paint(win.Root);
+
+                    if (managed.UseGpu)
+                    {
+                        managed.PlatformWindow.SwapBuffers();
+                    }
+
+                    managed.Window.App?.MarkClean();
+                }
+
+                next:;
+            }
         }
     }
 
@@ -149,11 +163,13 @@ public class WindowManager
     private static void DisposeManaged(ManagedWindow managed)
     {
         managed.Window.IsOpen = false;
+        managed.Window.App?.RequestStop();
         managed.Window.LayoutEngine.Dispose();
         managed.Renderer.Dispose();
         managed.PlatformWindow.Dispose();
         managed.Window.PlatformWindow = null;
         managed.Window.SecondaryRenderer = null;
+        managed.Window.App = null;
     }
 
     internal sealed record ManagedWindow(

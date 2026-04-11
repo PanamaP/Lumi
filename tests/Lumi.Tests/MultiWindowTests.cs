@@ -1,5 +1,6 @@
 using Lumi;
 using Lumi.Core;
+using Lumi.Styling;
 
 namespace Lumi.Tests;
 
@@ -26,6 +27,11 @@ public class MultiWindowTests
         Assert.Equal(400, window.Width);
         Assert.Equal(300, window.Height);
         Assert.False(window.IsOpen);
+
+        // Verify the window is properly initialized with its own tree and resolver
+        Assert.NotNull(window.Root);
+        Assert.Equal("body", window.Root.TagName);
+        Assert.NotNull(window.StyleResolver);
     }
 
     [Fact]
@@ -120,12 +126,44 @@ public class MultiWindowTests
     }
 
     [Fact]
-    public void SecondaryWindow_LoadStyleSheetString_AddsStyles()
+    public void SecondaryWindow_LoadStyleSheetString_AppliesStyles()
     {
         var window = new SecondaryWindow();
+        window.LoadTemplateString("<div><span>Styled</span></div>");
         window.LoadStyleSheetString("div { color: red; }");
 
-        // Verify the style resolver has the stylesheet loaded (no exception)
-        Assert.NotNull(window.StyleResolver);
+        // Resolve styles and verify the CSS rule is applied
+        window.StyleResolver.ResolveStyles(window.Root, new PseudoClassState(false, false, false));
+
+        var div = window.Root.Children[0];
+        Assert.Equal(new Color(255, 0, 0, 255), div.ComputedStyle.Color);
+    }
+
+    [Fact]
+    public void SecondaryWindow_Lifecycle_OpenUpdateClose()
+    {
+        var window = new SecondaryWindow { Title = "Lifecycle Test" };
+        Assert.False(window.IsOpen);
+
+        // Simulate open
+        window.IsOpen = true;
+        Assert.True(window.IsOpen);
+
+        // Build content during the "open" phase
+        window.LoadTemplateString("<div id='main'><p>Content</p></div>");
+        var main = window.FindById("main");
+        Assert.NotNull(main);
+
+        // Simulate an update: add a child
+        var extra = new TextElement("Dynamic");
+        main!.AddChild(extra);
+        Assert.Equal(2, main.Children.Count);
+
+        // Close
+        window.Close();
+        Assert.False(window.IsOpen);
+
+        // Element tree is still intact after close (not disposed, just closed)
+        Assert.Equal(2, main.Children.Count);
     }
 }

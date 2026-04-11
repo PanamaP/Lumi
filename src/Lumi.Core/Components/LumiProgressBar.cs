@@ -3,7 +3,7 @@ namespace Lumi.Core.Components;
 /// <summary>
 /// A progress bar indicator with determinate and indeterminate modes.
 /// </summary>
-public class LumiProgressBar
+public class LumiProgressBar : IDisposable
 {
     private readonly BoxElement _container;
     private readonly BoxElement _fill;
@@ -50,5 +50,10 @@ public class LumiProgressBar
                                 $"border-radius: 4px; width: {widthPercent}";
         }
         _container.MarkDirty();
+    }
+
+    public void Dispose()
+    {
+        Root.RemoveAllEventHandlers();
     }
 }

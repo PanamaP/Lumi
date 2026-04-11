@@ -142,6 +142,13 @@ public abstract class Element
     public event Action? OnDragEnd;
 
     public string? InlineStyle { get; set; }
+
+    /// <summary>
+    /// Theme CSS custom-property declarations applied at stylesheet level
+    /// (lower specificity than inline styles). Set by <c>ThemeManager</c>.
+    /// </summary>
+    public Dictionary<string, string>? ThemeVariables { get; set; }
+
     public Dictionary<string, string> Attributes { get; set; } = [];
     public bool IsVisible => ComputedStyle.Display != DisplayMode.None;
 
@@ -176,6 +183,12 @@ public abstract class Element
     public void RemoveAllEventHandlers()
     {
         _eventHandlers.Clear();
+        OnDragStart = null;
+        OnDragOver = null;
+        OnDragEnter = null;
+        OnDragLeave = null;
+        OnDrop = null;
+        OnDragEnd = null;
     }
 
     internal void RaiseDragStart(DragData data) => OnDragStart?.Invoke(data);
@@ -300,6 +313,8 @@ public abstract class Element
         foreach (var cls in _classes)
             clone._classes.Add(cls);
         clone.InlineStyle = InlineStyle;
+        if (ThemeVariables != null)
+            clone.ThemeVariables = new Dictionary<string, string>(ThemeVariables);
         foreach (var kvp in Attributes)
             clone.Attributes[kvp.Key] = kvp.Value;
         clone.IsFocusable = IsFocusable;

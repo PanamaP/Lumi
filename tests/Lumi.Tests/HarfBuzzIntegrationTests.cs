@@ -64,7 +64,7 @@ public class HarfBuzzIntegrationTests : IDisposable
         var run = _shaper.Shape("Hello World", "Arial", 16f, 400, false);
 
         float sumAdvances = run.Advances.Sum();
-        Assert.Equal(sumAdvances, run.TotalWidth, precision: 2);
+        Assert.Equal(sumAdvances, run.TotalWidth, precision: 4);
     }
 
     [Fact]
@@ -103,7 +103,12 @@ public class HarfBuzzIntegrationTests : IDisposable
     // Shaped metrics match SkiaSharp direct measurement within tolerance
     // -----------------------------------------------------------------------
 
+    // HarfBuzz and SkiaSharp use different shaping engines with distinct glyph placement
+    // and advance-width calculations. HarfBuzz performs OpenType shaping (GSUB/GPOS),
+    // while SkiaSharp uses its own internal shaper. This produces small measurement
+    // differences, especially for kerned or ligature-heavy text.
     [Fact]
+    [Trait("Category", "PlatformDependent")]
     public void ShapedWidth_MatchesSkiaMeasurement_WithinTolerance()
     {
         const string text = "Hello World";
@@ -117,12 +122,12 @@ public class HarfBuzzIntegrationTests : IDisposable
         using var paint = new SKPaint();
         float skiaWidth = font.MeasureText(text, paint);
 
-        // HarfBuzz and Skia use different shaping; allow 15% tolerance
-        float tolerance = skiaWidth * 0.15f;
+        float tolerance = skiaWidth * 0.10f;
         Assert.InRange(run.TotalWidth, skiaWidth - tolerance, skiaWidth + tolerance);
     }
 
     [Fact]
+    [Trait("Category", "PlatformDependent")]
     public void ShapedWidth_MatchesSkia_ForMultipleStrings()
     {
         string[] testStrings = ["abc", "The quick brown fox", "12345", "Mixed 123 text!"];
@@ -135,7 +140,7 @@ public class HarfBuzzIntegrationTests : IDisposable
             using var paint = new SKPaint();
             float skiaWidth = font.MeasureText(text, paint);
 
-            float tolerance = skiaWidth * 0.15f;
+            float tolerance = skiaWidth * 0.10f;
             Assert.InRange(run.TotalWidth, skiaWidth - tolerance, skiaWidth + tolerance);
         }
     }
@@ -257,6 +262,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     }
 
     [Fact]
+    [Trait("Category", "PlatformDependent")]
     public void TextMeasurer_MeasureWidth_UsesHarfBuzz_WhenEnabled()
     {
         var measurer = new TextMeasurer();
@@ -276,12 +282,13 @@ public class HarfBuzzIntegrationTests : IDisposable
         Assert.True(skiaWidth > 0);
         Assert.True(hbWidth > 0);
 
-        // They should be reasonably close (within 15%)
-        float tolerance = skiaWidth * 0.15f;
+        // Different shaping engines produce slightly different glyph placements
+        float tolerance = skiaWidth * 0.10f;
         Assert.InRange(hbWidth, skiaWidth - tolerance, skiaWidth + tolerance);
     }
 
     [Fact]
+    [Trait("Category", "PlatformDependent")]
     public void TextLayout_Measure_UsesHarfBuzz_WhenEnabled()
     {
         var style = new Lumi.Core.ComputedStyle
@@ -306,8 +313,8 @@ public class HarfBuzzIntegrationTests : IDisposable
         Assert.True(skiaH > 0);
         Assert.True(hbH > 0);
 
-        // Widths should be reasonably close
-        float tolerance = skiaW * 0.15f;
+        // Different shaping engines produce slightly different glyph placements
+        float tolerance = skiaW * 0.10f;
         Assert.InRange(hbW, skiaW - tolerance, skiaW + tolerance);
     }
 }
