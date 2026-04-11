@@ -217,6 +217,28 @@ public static class SelectorMatcher
         {
             char c = compound[i];
 
+            // Attribute selector: consume entire [...] block as one part
+            if (c == '[')
+            {
+                if (current.Length > 0)
+                {
+                    parts.Add(current.ToString());
+                    current.Clear();
+                }
+                current.Append(c);
+                i++;
+                int depth = 1;
+                while (i < compound.Length && depth > 0)
+                {
+                    if (compound[i] == '[') depth++;
+                    else if (compound[i] == ']') depth--;
+                    current.Append(compound[i]);
+                    i++;
+                }
+                i--; // compensate for loop increment
+                continue;
+            }
+
             if ((c == '.' || c == '#' || c == ':') && current.Length > 0)
             {
                 parts.Add(current.ToString());
