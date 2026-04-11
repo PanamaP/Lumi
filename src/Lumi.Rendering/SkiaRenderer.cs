@@ -242,6 +242,27 @@ public class SkiaRenderer : IDisposable
         float relY = box.Y - parentAbsY;
         canvas.Translate(relX, relY);
 
+        // Apply CSS transform (translate, scale, rotate, skew)
+        var transform = style.Transform;
+        if (!transform.IsIdentity)
+        {
+            float w0 = box.Width;
+            float h0 = box.Height;
+            float originX = style.TransformOriginX / 100f * w0;
+            float originY = style.TransformOriginY / 100f * h0;
+
+            canvas.Translate(originX, originY);
+            canvas.Translate(transform.TranslateX, transform.TranslateY);
+            if (transform.Rotate != 0)
+                canvas.RotateDegrees(transform.Rotate);
+            if (transform.ScaleX != 1 || transform.ScaleY != 1)
+                canvas.Scale(transform.ScaleX, transform.ScaleY);
+            if (transform.SkewX != 0 || transform.SkewY != 0)
+                canvas.Skew(MathF.Tan(transform.SkewX * MathF.PI / 180f),
+                            MathF.Tan(transform.SkewY * MathF.PI / 180f));
+            canvas.Translate(-originX, -originY);
+        }
+
         // Handle opacity via SaveLayer with alpha paint
         bool hasOpacity = style.Opacity < 1f;
         if (hasOpacity)
