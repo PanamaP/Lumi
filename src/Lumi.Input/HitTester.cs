@@ -48,19 +48,18 @@ public static class HitTester
             dx /= transform.ScaleX;
             dy /= transform.ScaleY;
 
-            // Reverse skew
+            // Reverse skew — non-invertible skew means element is untargetable
             if (transform.SkewX != 0 || transform.SkewY != 0)
             {
                 float tanX = MathF.Tan(transform.SkewX * MathF.PI / 180f);
                 float tanY = MathF.Tan(transform.SkewY * MathF.PI / 180f);
                 float det = 1f - tanX * tanY;
-                if (MathF.Abs(det) > 1e-6f)
-                {
-                    float ux = (dx - tanX * dy) / det;
-                    float uy = (dy - tanY * dx) / det;
-                    dx = ux;
-                    dy = uy;
-                }
+                if (MathF.Abs(det) <= 1e-6f)
+                    return null;
+                float ux = (dx - tanX * dy) / det;
+                float uy = (dy - tanY * dx) / det;
+                dx = ux;
+                dy = uy;
             }
 
             localX = dx + originX;
