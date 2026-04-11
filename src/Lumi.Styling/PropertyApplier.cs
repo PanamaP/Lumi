@@ -428,7 +428,10 @@ public static class PropertyApplier
 
             // --- Background image ---
             case "background-image":
-                style.BackgroundImage = ParseUrl(value);
+                if (IsGradient(value))
+                    style.BackgroundGradient = ParseGradient(value);
+                else
+                    style.BackgroundImage = ParseUrl(value);
                 break;
 
             // --- Shorthands ---
@@ -954,8 +957,7 @@ public static class PropertyApplier
     }
 
     /// <summary>
-    /// Parse "background: [color] [url] ..." shorthand.
-    /// Currently handles color and url() components only.
+    /// Parse "background: [color] [url] [gradient] ..." shorthand.
     /// </summary>
     private static void ParseBackgroundShorthand(ComputedStyle style, string value)
     {
@@ -963,6 +965,13 @@ public static class PropertyApplier
         {
             style.BackgroundColor = Color.Transparent;
             style.BackgroundImage = null;
+            style.BackgroundGradient = null;
+            return;
+        }
+
+        if (IsGradient(value))
+        {
+            style.BackgroundGradient = ParseGradient(value);
             return;
         }
 
@@ -974,7 +983,6 @@ public static class PropertyApplier
             if (urlEnd >= 0)
             {
                 style.BackgroundImage = ParseUrl(value[urlStart..(urlEnd + 1)]);
-                // Rest is color
                 string rest = (value[..urlStart] + value[(urlEnd + 1)..]).Trim();
                 if (rest.Length > 0)
                     style.BackgroundColor = ParseColor(rest);
@@ -1257,5 +1265,215 @@ public static class PropertyApplier
             // Anything else is the animation name
             style.AnimationName = p;
         }
+    }
+
+    // ── Gradient parsers ─────────────────────────────────────────────────
+
+    private static bool IsGradient(string value) =>
+        value.StartsWith("linear-gradient(", StringComparison.OrdinalIgnoreCase) ||
+        value.StartsWith("radial-gradient(", StringComparison.OrdinalIgnoreCase);
+
+    internal static CssGradient? ParseGradient(string value)
+    {
+        if (value.StartsWith("linear-gradient(", StringComparison.OrdinalIgnoreCase))
+            return ParseLinearGradient(value);
+        if (value.StartsWith("radial-gradient(", StringComparison.OrdinalIgnoreCase))
+            return ParseRadialGradient(value);
+        return null;
+    }
+
+    private static CssGradient ParseLinearGradient(string value)
+    {
+        var inner = ExtractFunctionArgs(value, "linear-gradient");
+        var args = SplitGradientArgs(inner);
+
+        float angle = 180; // default: to bottom
+        int stopStart = 0;
+
+        if (args.Count > 0)
+        {
+            var first = args[0].Trim();
+            if (TryParseGradientDirection(first, out float parsedAngle))
+            {
+                angle = parsedAngle;
+                stopStart = 1;
+            }
+        }
+
+        var stops = ParseGradientStops(args, stopStart);
+
+        return new CssGradient
+        {
+            Type = GradientType.Linear,
+            Angle = angle,
+            Stops = stops
+        };
+    }
+
+    private static CssGradient ParseRadialGradient(string value)
+    {
+        var inner = ExtractFunctionArgs(value, "radial-gradient");
+        var args = SplitGradientArgs(inner);
+
+        int stopStart = 0;
+
+        if (args.Count > 0)
+        {
+            var first = args[0].Trim().ToLowerInvariant();
+            if (first is "circle" or "ellipse")
+                stopStart = 1;
+        }
+
+        var stops = ParseGradientStops(args, stopStart);
+
+        return new CssGradient
+        {
+            Type = GradientType.Radial,
+            Angle = 0,
+            Stops = stops
+        };
+    }
+
+    private static string ExtractFunctionArgs(string value, string funcName)
+    {
+        int start = funcName.Length + 1;
+        int end = value.LastIndexOf(')');
+        if (end <= start) return "";
+        return value[start..end];
+    }
+
+    private static List<string> SplitGradientArgs(string inner)
+    {
+        var args = new List<string>();
+        int depth = 0;
+        int start = 0;
+
+        for (int i = 0; i < inner.Length; i++)
+        {
+            char c = inner[i];
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                args.Add(inner[start..i].Trim());
+                start = i + 1;
+            }
+        }
+
+        if (start < inner.Length)
+            args.Add(inner[start..].Trim());
+
+        return args;
+    }
+
+    private static bool TryParseGradientDirection(string arg, out float angle)
+    {
+        angle = 180;
+        var lower = arg.ToLowerInvariant().Trim();
+
+        if (lower.EndsWith("deg") || lower.EndsWith("rad") || lower.EndsWith("turn"))
+        {
+            angle = ParseAngle(lower);
+            return true;
+        }
+
+        if (lower.StartsWith("to "))
+        {
+            var dir = lower[3..].Trim();
+            angle = dir switch
+            {
+                "top" => 0,
+                "right" => 90,
+                "bottom" => 180,
+                "left" => 270,
+                "top right" or "right top" => 45,
+                "top left" or "left top" => 315,
+                "bottom right" or "right bottom" => 135,
+                "bottom left" or "left bottom" => 225,
+                _ => 180
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    private static List<GradientStop> ParseGradientStops(List<string> args, int startIndex)
+    {
+        var stops = new List<GradientStop>();
+        int count = args.Count - startIndex;
+        if (count <= 0) return stops;
+
+        for (int i = startIndex; i < args.Count; i++)
+        {
+            var arg = args[i].Trim();
+            if (arg.Length == 0) continue;
+
+            SplitColorAndPosition(arg, out var colorStr, out var posStr);
+
+            var color = ParseColor(colorStr);
+            float position;
+
+            if (posStr != null)
+            {
+                position = ParseStopPosition(posStr);
+            }
+            else
+            {
+                int idx = i - startIndex;
+                position = count <= 1 ? 0 : (float)idx / (count - 1);
+            }
+
+            stops.Add(new GradientStop(color, position));
+        }
+
+        return stops;
+    }
+
+    private static void SplitColorAndPosition(string arg, out string colorStr, out string? posStr)
+    {
+        posStr = null;
+
+        int depth = 0;
+        int lastSpace = -1;
+
+        for (int i = 0; i < arg.Length; i++)
+        {
+            char c = arg[i];
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (c == ' ' && depth == 0) lastSpace = i;
+        }
+
+        if (lastSpace > 0)
+        {
+            var tail = arg[(lastSpace + 1)..].Trim();
+            if (tail.EndsWith('%') || float.TryParse(tail, NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out _))
+            {
+                colorStr = arg[..lastSpace].Trim();
+                posStr = tail;
+                return;
+            }
+        }
+
+        colorStr = arg;
+    }
+
+    private static float ParseStopPosition(string pos)
+    {
+        if (pos.EndsWith('%'))
+        {
+            if (float.TryParse(pos[..^1], NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out var pct))
+                return pct / 100f;
+        }
+        else if (float.TryParse(pos, NumberStyles.Float,
+                     CultureInfo.InvariantCulture, out var val))
+        {
+            return val;
+        }
+
+        return 0;
     }
 }

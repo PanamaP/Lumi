@@ -52,6 +52,7 @@ public class ComputedStyle
     public string Cursor { get; set; } = "default";
     public BoxShadow BoxShadow { get; set; } = BoxShadow.None;
     public string? BackgroundImage { get; set; }
+    public CssGradient? BackgroundGradient { get; set; }
 
     // CSS Custom Properties (lazy-initialized to save ~1KB per element when unused)
     private Dictionary<string, string>? _customProperties;
@@ -146,6 +147,7 @@ public class ComputedStyle
         Cursor = "default";
         BoxShadow = BoxShadow.None;
         BackgroundImage = null;
+        BackgroundGradient = null;
 
         _customProperties?.Clear();
 

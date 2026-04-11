@@ -364,8 +364,8 @@ public class SkiaRenderer : IDisposable
                 else
                 {
                     var center = new SKPoint(w / 2, h / 2);
-                    float radius = MathF.Max(w, h) / 2;
-                    shader = SKShader.CreateRadialGradient(center, radius, colors, positions, SKShaderTileMode.Clamp);
+                    float gradRadius = MathF.Max(w, h) / 2;
+                    shader = SKShader.CreateRadialGradient(center, gradRadius, colors, positions, SKShaderTileMode.Clamp);
                 }
 
                 using var gradPaint = new SKPaint
@@ -747,6 +747,26 @@ public class SkiaRenderer : IDisposable
         TextTransform.Capitalize => CapitalizeWords(text),
         _ => text
     };
+
+    private static (SKPoint start, SKPoint end) ComputeLinearGradientPoints(float w, float h, float angleDeg)
+    {
+        // CSS: 0deg = to top, 90deg = to right, 180deg = to bottom
+        float rad = (angleDeg - 90) * MathF.PI / 180f;
+        float sin = MathF.Sin(rad);
+        float cos = MathF.Cos(rad);
+
+        float halfW = w / 2;
+        float halfH = h / 2;
+        float length = MathF.Abs(halfW * cos) + MathF.Abs(halfH * sin);
+
+        float cx = halfW;
+        float cy = halfH;
+
+        return (
+            new SKPoint(cx - cos * length, cy - sin * length),
+            new SKPoint(cx + cos * length, cy + sin * length)
+        );
+    }
 
     private static string CapitalizeWords(string text)
     {
