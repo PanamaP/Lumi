@@ -2,8 +2,19 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <IsPackable>false</IsPackable>
+    <PackageId>Lumi.Rendering</PackageId>
+    <Description>SkiaSharp-based rendering pipeline for Lumi.</Description>
+    <IsPackable>true</IsPackable>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Lumi.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="3.*" />
@@ -15,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
     <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" />
+    <ProjectReference Include="..\Lumi.Text\Lumi.Text.csproj" />
   </ItemGroup>
 
 </Project>

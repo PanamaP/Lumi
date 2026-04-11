@@ -2,6 +2,7 @@ namespace Lumi.Rendering;
 
 using SkiaSharp;
 using Lumi.Core;
+using Lumi.Text;
 
 public class SkiaRenderer : IDisposable
 {
@@ -551,6 +552,58 @@ public class SkiaRenderer : IDisposable
         if (contentW <= 0) contentW = width;
         if (contentH <= 0) contentH = height;
 
+        // Offset all text drawing by padding
+        int textSave = canvas.Save();
+        canvas.Translate(padL, padT);
+
+        if (TextRenderingOptions.UseHarfBuzz)
+        {
+            DrawTextShaped(canvas, text, contentW, contentH, style);
+        }
+        else
+        {
+            DrawTextUnshaped(canvas, text, contentW, contentH, style);
+        }
+
+        canvas.RestoreToCount(textSave);
+    }
+
+    private static void DrawTextShaped(SKCanvas canvas, string text, float contentW, float contentH, ComputedStyle style)
+    {
+        var shaper = TextRenderingOptions.GetShaper();
+        var layout = ShapedTextLayout.Layout(text, contentW, contentH, style, shaper);
+        if (layout.Lines.Count == 0) return;
+
+        using var textPaint = new SKPaint
+        {
+            Color = style.Color.ToSkColor(),
+            IsAntialias = true
+        };
+
+        foreach (var line in layout.Lines)
+        {
+            ShapedTextRenderer.Draw(canvas, line.Run, line.X, line.Y, textPaint);
+        }
+
+        // Draw text decoration (underline, line-through)
+        if (style.TextDecoration != TextDecoration.None)
+        {
+            using var font = TextMeasurer.CreateFont(
+                style.FontFamily, style.FontSize, style.FontWeight,
+                style.FontStyle == FontStyle.Italic);
+
+            // Convert to TextLayoutResult for the shared decoration drawing
+            var unshaped = new TextLayoutResult();
+            foreach (var line in layout.Lines)
+                unshaped.Lines.Add(new TextLine(string.Empty, line.X, line.Y, line.Width));
+            unshaped.TotalHeight = layout.TotalHeight;
+
+            DrawTextDecoration(canvas, unshaped, style, font, textPaint);
+        }
+    }
+
+    private static void DrawTextUnshaped(SKCanvas canvas, string text, float contentW, float contentH, ComputedStyle style)
+    {
         var layout = TextLayout.Layout(text, contentW, contentH, style);
         if (layout.Lines.Count == 0) return;
 
@@ -563,10 +616,6 @@ public class SkiaRenderer : IDisposable
         using var font = TextMeasurer.CreateFont(
             style.FontFamily, style.FontSize, style.FontWeight,
             style.FontStyle == FontStyle.Italic);
-
-        // Offset all text drawing by padding
-        int textSave = canvas.Save();
-        canvas.Translate(padL, padT);
 
         // Draw each line
         foreach (var line in layout.Lines)
@@ -586,8 +635,6 @@ public class SkiaRenderer : IDisposable
         {
             DrawTextDecoration(canvas, layout, style, font, textPaint);
         }
-
-        canvas.RestoreToCount(textSave);
     }
 
     private static void DrawInputText(SKCanvas canvas, InputElement input, ComputedStyle style, float width, float height)

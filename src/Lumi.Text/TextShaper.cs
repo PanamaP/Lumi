@@ -48,6 +48,14 @@ public sealed class ShapedGlyphRun
 /// </summary>
 public sealed class TextShaper : IDisposable
 {
+    /// <summary>
+    /// Optional external typeface resolver. When set, this is called first to resolve
+    /// typefaces (e.g., from FontManager in Lumi.Rendering). If it returns null,
+    /// falls back to system font resolution via <see cref="SKTypeface.FromFamilyName"/>.
+    /// Signature: (familyName, weight, italic) → SKTypeface?
+    /// </summary>
+    public static Func<string, int, bool, SKTypeface?>? CustomTypefaceResolver { get; set; }
+
     private readonly ConcurrentDictionary<FontKey, CachedHarfBuzzFont> _fontCache = new();
 
     private readonly record struct FontKey(string Family, int Weight, bool Italic);
@@ -132,31 +140,47 @@ public sealed class TextShaper : IDisposable
         var key = new FontKey(family, weight, italic);
         return _fontCache.GetOrAdd(key, k =>
         {
-            var skStyle = k.Weight >= 700
-                ? (k.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-                : (k.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+            // Check the custom resolver first (e.g., FontManager-registered fonts)
+            SKTypeface? typeface = CustomTypefaceResolver?.Invoke(k.Family, k.Weight, k.Italic);
+            bool ownsTypeface = typeface == null;
 
-            using var typeface = SKTypeface.FromFamilyName(k.Family, skStyle) ?? SKTypeface.Default;
-            using var skStream = typeface.OpenStream(out var ttcIndex);
+            if (typeface == null)
+            {
+                var skStyle = k.Weight >= 700
+                    ? (k.Italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
+                    : (k.Italic ? SKFontStyle.Italic : SKFontStyle.Normal);
 
-            var memBase = skStream.GetMemoryBase();
-            int length = (int)skStream.Length;
+                typeface = SKTypeface.FromFamilyName(k.Family, skStyle) ?? SKTypeface.Default;
+            }
 
-            if (memBase == IntPtr.Zero || length <= 0)
-                throw new InvalidOperationException($"Failed to read font data for '{k.Family}'");
+            try
+            {
+                using var skStream = typeface.OpenStream(out var ttcIndex);
 
-            byte[] fontData = new byte[length];
-            Marshal.Copy(memBase, fontData, 0, length);
+                var memBase = skStream.GetMemoryBase();
+                int length = (int)skStream.Length;
 
-            using var ms = new MemoryStream(fontData);
-            var blob = Blob.FromStream(ms);
-            blob.MakeImmutable();
+                if (memBase == IntPtr.Zero || length <= 0)
+                    throw new InvalidOperationException($"Failed to read font data for '{k.Family}'");
 
-            var face = new Face(blob, (uint)ttcIndex);
-            var font = new HarfBuzzSharp.Font(face);
-            font.SetFunctionsOpenType();
+                byte[] fontData = new byte[length];
+                Marshal.Copy(memBase, fontData, 0, length);
 
-            return new CachedHarfBuzzFont(blob, face, font);
+                using var ms = new MemoryStream(fontData);
+                var blob = Blob.FromStream(ms);
+                blob.MakeImmutable();
+
+                var face = new Face(blob, (uint)ttcIndex);
+                var font = new HarfBuzzSharp.Font(face);
+                font.SetFunctionsOpenType();
+
+                return new CachedHarfBuzzFont(blob, face, font);
+            }
+            finally
+            {
+                if (ownsTypeface)
+                    typeface.Dispose();
+            }
         });
     }
 
