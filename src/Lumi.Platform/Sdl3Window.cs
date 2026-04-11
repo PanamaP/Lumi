@@ -86,6 +86,9 @@ public unsafe class Sdl3Window : IPlatformWindow
             ? (int)displayMode->refresh_rate
             : 60;
 
+        // SDL3 requires explicit opt-in for text input events (unlike SDL2 which enabled them by default).
+        SDL_StartTextInput(_window);
+
         _isOpen = true;
     }
 
