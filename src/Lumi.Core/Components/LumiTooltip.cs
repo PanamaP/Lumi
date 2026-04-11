@@ -88,6 +88,7 @@ public class LumiTooltip : IDisposable
                 _target.Off("mouseenter", _mouseEnterHandler);
             if (_mouseLeaveHandler != null)
                 _target.Off("mouseleave", _mouseLeaveHandler);
+            _target.RemoveChild(_container);
         }
         if (_containerLeaveHandler != null)
             Root.Off("mouseleave", _containerLeaveHandler);

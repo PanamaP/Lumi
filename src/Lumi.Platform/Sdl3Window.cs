@@ -8,6 +8,8 @@ namespace Lumi.Platform;
 
 public unsafe class Sdl3Window : IPlatformWindow
 {
+    private static int s_initCount;
+
     private SDL_Window* _window;
     private SDL_Renderer* _renderer;
     private SDL_GLContextState* _glContext;
@@ -70,8 +72,14 @@ public unsafe class Sdl3Window : IPlatformWindow
         if (_window != null)
             throw new InvalidOperationException("Window has already been created.");
 
-        if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO))
-            throw new InvalidOperationException($"SDL_Init failed: {SDL_GetError()}");
+        if (Interlocked.Increment(ref s_initCount) == 1)
+        {
+            if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO))
+            {
+                Interlocked.Decrement(ref s_initCount);
+                throw new InvalidOperationException($"SDL_Init failed: {SDL_GetError()}");
+            }
+        }
 
         _window = SDL_CreateWindow(title, width, height,
             SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL_WindowFlags.SDL_WINDOW_OPENGL);
@@ -117,6 +125,24 @@ public unsafe class Sdl3Window : IPlatformWindow
         // waits for VSync otherwise. Falls back to regular VSync if unsupported.
         if (!SDL_GL_SetSwapInterval(-1))
             SDL_GL_SetSwapInterval(1);
+    }
+
+    public void MakeCurrent()
+    {
+        EnsureWindow();
+        if (_glContext == null)
+            throw new InvalidOperationException("No GL context. Call CreateGLContext() first.");
+        if (!SDL_GL_MakeCurrent(_window, _glContext))
+            throw new InvalidOperationException($"SDL_GL_MakeCurrent failed: {SDL_GetError()}");
+    }
+
+    public void DestroyGLContext()
+    {
+        if (_glContext != null)
+        {
+            SDL_GL_DestroyContext(_glContext);
+            _glContext = null;
+        }
     }
 
     public void SwapBuffers()
@@ -573,7 +599,9 @@ public unsafe class Sdl3Window : IPlatformWindow
             _window = null;
         }
 
-        SDL_Quit();
+        if (Interlocked.Decrement(ref s_initCount) == 0)
+            SDL_Quit();
+
         GC.SuppressFinalize(this);
     }
 }

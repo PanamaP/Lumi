@@ -75,6 +75,9 @@ public class TemplateForElement : Element
             _observableSource.CollectionChanged -= _collectionHandler;
         }
 
+        _observableSource = null;
+        _collectionHandler = null;
+
         if (source is INotifyCollectionChanged observable)
         {
             _observableSource = observable;

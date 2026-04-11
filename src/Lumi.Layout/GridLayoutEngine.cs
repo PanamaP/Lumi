@@ -161,7 +161,7 @@ public static class GridLayoutEngine
         int count = definitions.Count;
         float[] sizes = new float[count];
         float totalGap = gap * Math.Max(0, count - 1);
-        float remaining = available - totalGap;
+        float remaining = Math.Max(0, available - totalGap);
 
         // First pass: resolve fixed and auto tracks
         float totalFr = 0;

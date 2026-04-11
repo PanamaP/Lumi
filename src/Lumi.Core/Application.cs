@@ -385,6 +385,8 @@ public class Application
                 var pasteText = Clipboard.GetText();
                 if (!string.IsNullOrEmpty(pasteText))
                 {
+                    if (input.InputType != "textarea")
+                        pasteText = pasteText.Replace("\r\n", " ").Replace("\n", " ").Replace("\r", " ");
                     if (input.HasSelection)
                         input.DeleteSelection();
 

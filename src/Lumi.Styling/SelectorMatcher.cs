@@ -112,6 +112,7 @@ public static class SelectorMatcher
         var current = new System.Text.StringBuilder();
         int i = 0;
 
+        const int MaxNestingDepth = 100;
         int parenDepth = 0;
         int bracketDepth = 0;
 
@@ -121,12 +122,12 @@ public static class SelectorMatcher
 
             // Track parenthesis depth so spaces inside pseudo-class args
             // (e.g. ":is(.a, .b)") are not treated as combinators.
-            if (c == '(') { parenDepth++; current.Append(c); i++; continue; }
+            if (c == '(') { parenDepth++; if (parenDepth > MaxNestingDepth) return []; current.Append(c); i++; continue; }
             if (c == ')') { parenDepth--; current.Append(c); i++; continue; }
 
             // Track bracket depth so characters inside attribute selectors
             // (e.g. "[class~=\"active\"]") are not treated as combinators.
-            if (c == '[') { bracketDepth++; current.Append(c); i++; continue; }
+            if (c == '[') { bracketDepth++; if (bracketDepth > MaxNestingDepth) return []; current.Append(c); i++; continue; }
             if (c == ']') { bracketDepth--; current.Append(c); i++; continue; }
 
             if (parenDepth > 0 || bracketDepth > 0)
@@ -217,6 +218,8 @@ public static class SelectorMatcher
         {
             char c = compound[i];
 
+            const int MaxNestingDepth = 100;
+
             // Attribute selector: consume entire [...] block as one part
             if (c == '[')
             {
@@ -232,6 +235,7 @@ public static class SelectorMatcher
                 {
                     if (compound[i] == '[') depth++;
                     else if (compound[i] == ']') depth--;
+                    if (depth > MaxNestingDepth) return [];
                     current.Append(compound[i]);
                     i++;
                 }
@@ -256,6 +260,7 @@ public static class SelectorMatcher
                 {
                     if (compound[i] == '(') depth++;
                     else if (compound[i] == ')') depth--;
+                    if (depth > MaxNestingDepth) return [];
                     current.Append(compound[i]);
                     i++;
                 }

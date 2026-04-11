@@ -144,6 +144,9 @@ src/
   Lumi.Text/                    HarfBuzz text shaping (implemented, integration in progress)
 samples/
   HelloWorld/                   Feature showcase sample app
+  TodoApp/                      Todo list with data binding
+  Dashboard/                    Dashboard with charts and widgets
+  FormDemo/                     Form validation and input showcase
   StressTest/                   Performance benchmark suite
 tests/
   Lumi.Tests/                   315 unit + integration tests

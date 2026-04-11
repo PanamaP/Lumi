@@ -42,6 +42,7 @@ public class WindowManager
         catch
         {
             renderer?.Dispose();
+            platformWindow.DestroyGLContext();
             renderer = new SkiaRenderer();
             useGpu = false;
         }
@@ -143,7 +144,10 @@ public class WindowManager
                     win.LayoutEngine.MeasureFunc = MeasureElement;
                     win.LayoutEngine.CalculateLayout(win.Root, w, h);
 
-                    // Render
+                    // Render — make this window's GL context current first
+                    if (managed.UseGpu)
+                        managed.PlatformWindow.MakeCurrent();
+
                     managed.Renderer.EnsureSize(w, h);
                     managed.Renderer.Paint(win.Root);
 

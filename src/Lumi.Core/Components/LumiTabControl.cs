@@ -54,9 +54,6 @@ public class LumiTabControl : IDisposable
         text.InlineStyle = $"color: {ComponentStyles.ToRgba(ComponentStyles.Subtle)}; font-size: 14px";
         header.AddChild(text);
 
-        content.InlineStyle = content.InlineStyle != null
-            ? content.InlineStyle + "; display: none"
-            : "display: none";
         ComponentStyles.SetVisible(content, false);
         _contentArea.AddChild(content);
 
@@ -99,6 +96,10 @@ public class LumiTabControl : IDisposable
 
     public void Dispose()
     {
+        foreach (var child in _headerRow.Children)
+            child.RemoveAllEventHandlers();
+        foreach (var child in _contentArea.Children)
+            child.RemoveAllEventHandlers();
         Root.RemoveAllEventHandlers();
     }
 }

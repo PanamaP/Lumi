@@ -275,6 +275,9 @@ public class SkiaRenderer : IDisposable
             canvas.SaveLayer(opacityPaint);
         }
 
+        try
+        {
+
         float w = box.Width;
         float h = box.Height;
         var rect = new SKRect(0, 0, w, h);
@@ -351,11 +354,17 @@ public class SkiaRenderer : IDisposable
         // Paint background gradient
         if (style.BackgroundGradient is { } gradient && gradient.Stops != null)
         {
-            var colors = gradient.Stops.Select(s => s.Color.ToSkColor()).ToArray();
-            var positions = gradient.Stops.Select(s => s.Position).ToArray();
-
-            if (colors.Length >= 2)
+            int stopCount = gradient.Stops.Count;
+            if (stopCount >= 2 && w > 0 && h > 0)
             {
+                var colors = new SKColor[stopCount];
+                var positions = new float[stopCount];
+                for (int i = 0; i < stopCount; i++)
+                {
+                    colors[i] = gradient.Stops[i].Color.ToSkColor();
+                    positions[i] = gradient.Stops[i].Position;
+                }
+
                 var (start, end) = ComputeLinearGradientPoints(w, h, gradient.Angle);
                 var center = new SKPoint(w / 2, h / 2);
                 float gradRadius = MathF.Max(w, h) / 2;
@@ -525,9 +534,13 @@ public class SkiaRenderer : IDisposable
                 PaintElement(canvas, child, box.X, box.Y);
         }
 
-        if (hasOpacity)
+        }
+        finally
         {
-            canvas.Restore();
+            if (hasOpacity)
+            {
+                canvas.Restore();
+            }
         }
 
         canvas.RestoreToCount(saveCount);

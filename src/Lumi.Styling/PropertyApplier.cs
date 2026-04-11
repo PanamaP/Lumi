@@ -800,7 +800,7 @@ public static class PropertyApplier
         return null;
     }
 
-    private static string ResolveVariables(string value, ComputedStyle style)
+    private static string ResolveVariables(string value, ComputedStyle style, HashSet<string>? resolving = null)
     {
         // Fast path: no var() references
         if (!value.Contains("var(", StringComparison.OrdinalIgnoreCase))
@@ -844,10 +844,23 @@ public static class PropertyApplier
             }
 
             string resolved;
-            if (style.CustomProperties.TryGetValue(varName, out var propValue))
-                resolved = propValue;
-            else
+            resolving ??= new HashSet<string>(StringComparer.Ordinal);
+
+            if (resolving.Contains(varName))
+            {
+                // Circular reference detected — use fallback or empty string
                 resolved = fallback ?? "";
+            }
+            else if (style.CustomProperties.TryGetValue(varName, out var propValue))
+            {
+                resolving.Add(varName);
+                resolved = ResolveVariables(propValue, style, resolving);
+                resolving.Remove(varName);
+            }
+            else
+            {
+                resolved = fallback ?? "";
+            }
 
             value = string.Concat(value.AsSpan(0, start), resolved, value.AsSpan(end + 1));
         }

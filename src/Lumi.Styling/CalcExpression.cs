@@ -16,13 +16,15 @@ internal static class CalcExpression
     /// <paramref name="percentBase"/> is the reference dimension for percentage
     /// values. When zero, percentages are resolved relative to viewport width.
     /// </summary>
+    private const int MaxDepth = 32;
+
     public static float Evaluate(string expr, float fontSize, float viewportWidth, float viewportHeight, float fallback, float percentBase = 0)
     {
         try
         {
             float pctRef = percentBase > 0 ? percentBase : viewportWidth;
             int pos = 0;
-            float result = ParseAddSub(expr.AsSpan(), ref pos, fontSize, viewportWidth, viewportHeight, pctRef);
+            float result = ParseAddSub(expr.AsSpan(), ref pos, fontSize, viewportWidth, viewportHeight, pctRef, 0);
             return float.IsNaN(result) ? fallback : result;
         }
         catch
@@ -32,9 +34,10 @@ internal static class CalcExpression
     }
 
     // Addition and subtraction (lowest precedence)
-    private static float ParseAddSub(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
+    private static float ParseAddSub(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef, int depth)
     {
-        float left = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef);
+        if (depth > MaxDepth) return 0;
+        float left = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef, depth);
 
         while (pos < expr.Length)
         {
@@ -47,7 +50,7 @@ internal static class CalcExpression
                 && expr[pos - 1] == ' ' && expr[pos + 1] == ' ')
             {
                 pos++;
-                float right = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef);
+                float right = ParseMulDiv(expr, ref pos, fontSize, vw, vh, pctRef, depth);
                 left = op == '+' ? left + right : left - right;
             }
             else
@@ -60,9 +63,10 @@ internal static class CalcExpression
     }
 
     // Multiplication and division (higher precedence)
-    private static float ParseMulDiv(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
+    private static float ParseMulDiv(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef, int depth)
     {
-        float left = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef);
+        if (depth > MaxDepth) return 0;
+        float left = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef, depth);
 
         while (pos < expr.Length)
         {
@@ -73,7 +77,7 @@ internal static class CalcExpression
             if (op == '*' || op == '/')
             {
                 pos++;
-                float right = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef);
+                float right = ParseUnary(expr, ref pos, fontSize, vw, vh, pctRef, depth);
                 left = op == '*' ? left * right : (right != 0 ? left / right : 0);
             }
             else
@@ -85,15 +89,16 @@ internal static class CalcExpression
         return left;
     }
 
-    private static float ParseUnary(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef)
+    private static float ParseUnary(ReadOnlySpan<char> expr, ref int pos, float fontSize, float vw, float vh, float pctRef, int depth)
     {
+        if (depth > MaxDepth) return 0;
         SkipSpaces(expr, ref pos);
 
         // Parenthesized sub-expression
         if (pos < expr.Length && expr[pos] == '(')
         {
             pos++; // skip '('
-            float val = ParseAddSub(expr, ref pos, fontSize, vw, vh, pctRef);
+            float val = ParseAddSub(expr, ref pos, fontSize, vw, vh, pctRef, depth + 1);
             SkipSpaces(expr, ref pos);
             if (pos < expr.Length && expr[pos] == ')')
                 pos++; // skip ')'

@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace Lumi.Core.Navigation;
 
 /// <summary>
@@ -57,6 +59,21 @@ public class Router
 
         var normalized = NormalizePath(pattern);
         var segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        // Validate parameter names: no empty names, no duplicates.
+        var paramNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var seg in segments)
+        {
+            if (seg.StartsWith('{') && seg.EndsWith('}'))
+            {
+                var name = seg[1..^1];
+                if (string.IsNullOrEmpty(name))
+                    throw new ArgumentException("Route pattern contains an empty parameter name '{}'.", nameof(pattern));
+                if (!paramNames.Add(name))
+                    throw new ArgumentException($"Route pattern contains duplicate parameter name '{{{name}}}'.", nameof(pattern));
+            }
+        }
+
         var existing = _routes.FindIndex(r => r.Pattern == normalized);
         if (existing >= 0)
             _routes[existing] = new RouteRegistration(normalized, segments, pageFactory);
@@ -64,7 +81,7 @@ public class Router
             _routes.Add(new RouteRegistration(normalized, segments, pageFactory));
     }
 
-    private bool _navigating;
+    private int _navigating;
 
     /// <summary>
     /// Navigate to the given route, swapping the container's content.
@@ -74,10 +91,9 @@ public class Router
     public bool Navigate(string route)
     {
         ArgumentNullException.ThrowIfNull(route);
-        if (_navigating)
+        if (Interlocked.CompareExchange(ref _navigating, 1, 0) != 0)
             throw new InvalidOperationException("Cannot navigate while a navigation is already in progress.");
 
-        _navigating = true;
         try
         {
             var normalized = NormalizePath(route);
@@ -85,20 +101,23 @@ public class Router
             if (registration is null)
                 return false;
 
-            // Push current route onto history before switching.
-            if (!string.IsNullOrEmpty(CurrentRoute))
+            ApplyRoute(normalized, registration.Value, parameters);
+
+            // Push previous route onto history after the page factory succeeded.
+            if (!string.IsNullOrEmpty(CurrentRoute) && CurrentRoute != normalized)
             {
                 _history.Add(CurrentRoute);
                 if (_history.Count > MaxHistorySize)
                     _history.RemoveAt(0);
             }
 
-            ApplyRoute(normalized, registration.Value, parameters);
+            CurrentRoute = normalized;
+            RouteChanged?.Invoke(normalized);
             return true;
         }
         finally
         {
-            _navigating = false;
+            Interlocked.Exchange(ref _navigating, 0);
         }
     }
 
@@ -109,23 +128,29 @@ public class Router
     {
         if (!CanGoBack)
             return;
-        if (_navigating)
+        if (Interlocked.CompareExchange(ref _navigating, 1, 0) != 0)
             throw new InvalidOperationException("Cannot navigate while a navigation is already in progress.");
 
-        _navigating = true;
         try
         {
-            var previousRoute = _history[^1];
-            var (registration, parameters) = MatchRoute(previousRoute);
-            if (registration is null)
-                return;
+            while (_history.Count > 0)
+            {
+                var previousRoute = _history[^1];
+                _history.RemoveAt(_history.Count - 1);
 
-            _history.RemoveAt(_history.Count - 1);
-            ApplyRoute(previousRoute, registration.Value, parameters);
+                var (registration, parameters) = MatchRoute(previousRoute);
+                if (registration is null)
+                    continue;
+
+                ApplyRoute(previousRoute, registration.Value, parameters);
+                CurrentRoute = previousRoute;
+                RouteChanged?.Invoke(previousRoute);
+                return;
+            }
         }
         finally
         {
-            _navigating = false;
+            Interlocked.Exchange(ref _navigating, 0);
         }
     }
 
@@ -143,9 +168,6 @@ public class Router
 
         Container.ClearChildren();
         Container.AddChild(page);
-
-        CurrentRoute = route;
-        RouteChanged?.Invoke(route);
     }
 
     private (RouteRegistration? Registration, RouteParameters Parameters) MatchRoute(string normalizedRoute)
@@ -190,6 +212,9 @@ public class Router
 
     private static string NormalizePath(string path)
     {
-        return path.Trim().TrimStart('/');
+        var result = path.Trim().TrimStart('/');
+        if (result.Length == 0)
+            throw new ArgumentException("Route path cannot be empty.", nameof(path));
+        return result;
     }
 }

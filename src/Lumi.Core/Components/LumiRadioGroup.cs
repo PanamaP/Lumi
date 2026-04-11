@@ -86,6 +86,8 @@ public class LumiRadioGroup : IDisposable
 
     public void Dispose()
     {
+        foreach (var child in Root.Children)
+            child.RemoveAllEventHandlers();
         Root.RemoveAllEventHandlers();
     }
 }

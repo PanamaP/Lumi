@@ -55,6 +55,16 @@ public interface IPlatformWindow : IDisposable
     void CreateGLContext();
 
     /// <summary>
+    /// Make this window's GL context current for the calling thread.
+    /// </summary>
+    void MakeCurrent();
+
+    /// <summary>
+    /// Destroy the OpenGL context without disposing the window.
+    /// </summary>
+    void DestroyGLContext();
+
+    /// <summary>
     /// Swap the OpenGL front/back buffers (present the frame).
     /// </summary>
     void SwapBuffers();

@@ -27,6 +27,7 @@ public class ThemeManager
     private volatile bool _isDarkMode;
     private Element? _appliedRoot;
     private bool _isApplying;
+    [ThreadStatic] private static bool _isNotifying;
 
     // ── Light palette ──────────────────────────────────────────────
     public static readonly Dictionary<string, string> LightVariables = new()
@@ -153,12 +154,16 @@ public class ThemeManager
     /// </summary>
     public void ApplyTo(Element root)
     {
-        _isApplying = true;
+        Dictionary<string, string> variables;
+        lock (_lock)
+        {
+            _isApplying = true;
+            _appliedRoot = root;
+            variables = _isDarkMode ? DarkVariables : LightVariables;
+        }
+
         try
         {
-            _appliedRoot = root;
-            var variables = _isDarkMode ? DarkVariables : LightVariables;
-
             // Store theme variables at stylesheet specificity instead of inline
             root.ThemeVariables = new Dictionary<string, string>(variables);
 
@@ -168,7 +173,10 @@ public class ThemeManager
         }
         finally
         {
-            _isApplying = false;
+            lock (_lock)
+            {
+                _isApplying = false;
+            }
         }
     }
 
@@ -205,12 +213,21 @@ public class ThemeManager
     /// </summary>
     private void NotifyOutsideLock(Action<bool>? handler, bool isDark, Element? root)
     {
-        handler?.Invoke(isDark);
-
-        if (root != null)
+        if (_isNotifying) return;
+        _isNotifying = true;
+        try
         {
-            ApplyTo(root);
-            root.MarkDirty();
+            handler?.Invoke(isDark);
+
+            if (root != null)
+            {
+                ApplyTo(root);
+                root.MarkDirty();
+            }
+        }
+        finally
+        {
+            _isNotifying = false;
         }
     }
 

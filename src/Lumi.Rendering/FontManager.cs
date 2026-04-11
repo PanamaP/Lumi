@@ -8,7 +8,7 @@ using SkiaSharp;
 /// </summary>
 public static class FontManager
 {
-    private sealed record FontEntry(SKTypeface Typeface, int Weight, bool IsItalic, bool Owned);
+    private sealed record FontEntry(SKTypeface Typeface, int Weight, bool IsItalic, bool Owned, SKData? Data = null);
 
     private static readonly Dictionary<string, List<FontEntry>> s_fonts = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, List<FontEntry>> s_fallbacks = new(StringComparer.OrdinalIgnoreCase);
@@ -61,14 +61,18 @@ public static class FontManager
         ArgumentException.ThrowIfNullOrWhiteSpace(familyName);
         ArgumentNullException.ThrowIfNull(fontData);
 
-        using var data = SKData.CreateCopy(fontData);
-        var typeface = SKTypeface.FromData(data)
-            ?? throw new ArgumentException("Failed to create typeface from provided font data.", nameof(fontData));
+        var data = SKData.CreateCopy(fontData);
+        var typeface = SKTypeface.FromData(data);
+        if (typeface == null)
+        {
+            data.Dispose();
+            throw new ArgumentException("Failed to create typeface from provided font data.", nameof(fontData));
+        }
 
         var weight = typeface.FontWeight;
         var italic = typeface.FontSlant != SKFontStyleSlant.Upright;
 
-        AddEntry(familyName, new FontEntry(typeface, weight, italic, true));
+        AddEntry(familyName, new FontEntry(typeface, weight, italic, true, data));
     }
 
     /// <summary>
@@ -231,6 +235,7 @@ public static class FontManager
                 {
                     if (entry.Owned)
                         entry.Typeface.Dispose();
+                    entry.Data?.Dispose();
                 }
             }
             s_fonts.Clear();
@@ -241,6 +246,7 @@ public static class FontManager
                 {
                     if (entry.Owned)
                         entry.Typeface.Dispose();
+                    entry.Data?.Dispose();
                 }
             }
             s_fallbacks.Clear();
