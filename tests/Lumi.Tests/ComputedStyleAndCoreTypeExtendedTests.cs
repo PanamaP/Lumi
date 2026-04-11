@@ -1,4 +1,5 @@
 using Lumi.Core;
+using Lumi.Core.Animation;
 
 namespace Lumi.Tests;
 
@@ -204,7 +205,7 @@ public class ComputedStyleTests
             AnimationName = "fadeIn",
             AnimationDuration = 1f,
             AnimationIterationCount = 3,
-            AnimationDirection = "reverse"
+            AnimationDirection = AnimationDirection.Reverse
         };
 
         style.Reset();
@@ -212,7 +213,7 @@ public class ComputedStyleTests
         Assert.Null(style.AnimationName);
         Assert.Equal(0f, style.AnimationDuration);
         Assert.Equal(1, style.AnimationIterationCount);
-        Assert.Null(style.AnimationDirection);
+        Assert.Equal(AnimationDirection.Normal, style.AnimationDirection);
     }
 
     [Fact]
