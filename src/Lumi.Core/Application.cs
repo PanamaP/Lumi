@@ -1,5 +1,7 @@
 namespace Lumi.Core;
 
+using Lumi.Core.DragDrop;
+
 /// <summary>
 /// Main application class that owns the element tree and drives the update/paint loop.
 /// </summary>
@@ -11,6 +13,15 @@ public class Application
 
     private Element? _hoveredElement;
     private Element? _focusedElement;
+
+    // Drag-and-drop state
+    private readonly DragDropState _dragState = new();
+    private Element? _potentialDragSource;
+    private float _dragStartX;
+    private float _dragStartY;
+    private const float DragThreshold = 5f;
+
+    public DragDropState DragState => _dragState;
 
     public Application()
     {
@@ -40,6 +51,9 @@ public class Application
                     break;
                 case WindowEvent window:
                     HandleWindow(window);
+                    break;
+                case FileDropEvent fileDrop:
+                    HandleFileDrop(fileDrop);
                     break;
             }
         }
@@ -72,18 +86,52 @@ public class Application
         switch (mouse.Type)
         {
             case MouseEventType.Move:
-                UpdateHover(target, mouse.X, mouse.Y);
-                if (target != null)
+                // Check if we should start a drag
+                if (_potentialDragSource != null && !_dragState.IsDragging)
                 {
-                    EventDispatcher.Dispatch(
-                        new RoutedMouseEvent("MouseMove") { X = mouse.X, Y = mouse.Y },
-                        target);
+                    float dx = mouse.X - _dragStartX;
+                    float dy = mouse.Y - _dragStartY;
+                    if (dx * dx + dy * dy >= DragThreshold * DragThreshold)
+                    {
+                        _dragState.IsDragging = true;
+                        _dragState.Source = _potentialDragSource;
+                        _dragState.Data = new DragData();
+                        _dragState.X = mouse.X;
+                        _dragState.Y = mouse.Y;
+                        _potentialDragSource.RaiseDragStart(_dragState.Data);
+                    }
+                }
+
+                if (_dragState.IsDragging)
+                {
+                    _dragState.X = mouse.X;
+                    _dragState.Y = mouse.Y;
+                    if (target != null)
+                        target.RaiseDragOver(_dragState.Data!);
+                }
+                else
+                {
+                    UpdateHover(target, mouse.X, mouse.Y);
+                    if (target != null)
+                    {
+                        EventDispatcher.Dispatch(
+                            new RoutedMouseEvent("MouseMove") { X = mouse.X, Y = mouse.Y },
+                            target);
+                    }
                 }
                 break;
 
             case MouseEventType.ButtonDown:
                 if (target != null)
                 {
+                    // Record potential drag source
+                    if (target.IsDraggable)
+                    {
+                        _potentialDragSource = target;
+                        _dragStartX = mouse.X;
+                        _dragStartY = mouse.Y;
+                    }
+
                     SetFocus(target);
                     EventDispatcher.Dispatch(
                         new RoutedMouseEvent("MouseDown") { X = mouse.X, Y = mouse.Y, Button = mouse.Button },
@@ -92,14 +140,30 @@ public class Application
                 break;
 
             case MouseEventType.ButtonUp:
-                if (target != null)
+                if (_dragState.IsDragging)
                 {
-                    EventDispatcher.Dispatch(
-                        new RoutedMouseEvent("MouseUp") { X = mouse.X, Y = mouse.Y, Button = mouse.Button },
-                        target);
-                    EventDispatcher.Dispatch(
-                        new RoutedMouseEvent("Click") { X = mouse.X, Y = mouse.Y, Button = mouse.Button },
-                        target);
+                    if (target != null)
+                        target.RaiseDrop(_dragState.Data!);
+                    _dragState.Source?.RaiseDragEnd();
+
+                    // Reset drag state
+                    _dragState.IsDragging = false;
+                    _dragState.Source = null;
+                    _dragState.Data = null;
+                    _potentialDragSource = null;
+                }
+                else
+                {
+                    _potentialDragSource = null;
+                    if (target != null)
+                    {
+                        EventDispatcher.Dispatch(
+                            new RoutedMouseEvent("MouseUp") { X = mouse.X, Y = mouse.Y, Button = mouse.Button },
+                            target);
+                        EventDispatcher.Dispatch(
+                            new RoutedMouseEvent("Click") { X = mouse.X, Y = mouse.Y, Button = mouse.Button },
+                            target);
+                    }
                 }
                 break;
         }
@@ -380,6 +444,16 @@ public class Application
         if (target != null)
         {
             EventDispatcher.Dispatch(new RoutedEvent("Scroll"), target);
+        }
+    }
+
+    private void HandleFileDrop(FileDropEvent fileDrop)
+    {
+        var target = HitTest(Root, fileDrop.X, fileDrop.Y);
+        if (target != null)
+        {
+            var data = new DragData { Files = fileDrop.Files };
+            target.RaiseDrop(data);
         }
     }
 

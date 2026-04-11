@@ -1,4 +1,5 @@
 using Lumi.Core.Accessibility;
+using Lumi.Core.DragDrop;
 
 namespace Lumi.Core;
 
@@ -131,6 +132,13 @@ public abstract class Element
     public int TabIndex { get; set; } = 0;
     public bool IsFocused { get; set; } = false;
 
+    // Drag and drop
+    public bool IsDraggable { get; set; } = false;
+    public event Action<DragData>? OnDragStart;
+    public event Action<DragData>? OnDragOver;
+    public event Action<DragData>? OnDrop;
+    public event Action? OnDragEnd;
+
     public string? InlineStyle { get; set; }
     public Dictionary<string, string> Attributes { get; set; } = [];
     public bool IsVisible => ComputedStyle.Display != DisplayMode.None;
@@ -158,6 +166,11 @@ public abstract class Element
         if (_eventHandlers.TryGetValue(eventName, out var list))
             list.Remove(handler);
     }
+
+    internal void RaiseDragStart(DragData data) => OnDragStart?.Invoke(data);
+    internal void RaiseDragOver(DragData data) => OnDragOver?.Invoke(data);
+    internal void RaiseDrop(DragData data) => OnDrop?.Invoke(data);
+    internal void RaiseDragEnd() => OnDragEnd?.Invoke();
 
     internal void RaiseEvent(RoutedEvent e)
     {

@@ -393,6 +393,23 @@ public unsafe class Sdl3Window : IPlatformWindow
                 };
             }
 
+            case SDL_EventType.SDL_EVENT_DROP_FILE:
+            {
+                var drop = ev->drop;
+                string? file = Marshal.PtrToStringUTF8((IntPtr)drop.data);
+                if (file != null)
+                {
+                    return new FileDropEvent
+                    {
+                        Files = [file],
+                        X = drop.x,
+                        Y = drop.y,
+                        Timestamp = ev->common.timestamp
+                    };
+                }
+                return null;
+            }
+
             default:
                 return null;
         }
