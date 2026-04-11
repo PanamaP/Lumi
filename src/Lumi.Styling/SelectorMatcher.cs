@@ -1,3 +1,4 @@
+using Lumi.Core;
 using Element = Lumi.Core.Element;
 
 namespace Lumi.Styling;
@@ -55,6 +56,31 @@ public static class SelectorMatcher
                 if (current == null || !MatchesCompound(current, part, pseudoState))
                     return false;
             }
+            else if (combinator == "+")
+            {
+                // Adjacent sibling combinator: immediately preceding sibling must match
+                current = GetPreviousSibling(current);
+                if (current == null || !MatchesCompound(current, part, pseudoState))
+                    return false;
+            }
+            else if (combinator == "~")
+            {
+                // General sibling combinator: any preceding sibling must match
+                if (current?.Parent == null) return false;
+                var siblings = current.Parent.Children;
+                int idx = IndexOfChild(siblings, current);
+                var found = false;
+                for (int j = idx - 1; j >= 0; j--)
+                {
+                    if (MatchesCompound(siblings[j], part, pseudoState))
+                    {
+                        current = siblings[j];
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) return false;
+            }
             else if (combinator == " ")
             {
                 // Descendant combinator: any ancestor must match
@@ -87,6 +113,7 @@ public static class SelectorMatcher
         int i = 0;
 
         int parenDepth = 0;
+        int bracketDepth = 0;
 
         while (i < selector.Length)
         {
@@ -97,36 +124,44 @@ public static class SelectorMatcher
             if (c == '(') { parenDepth++; current.Append(c); i++; continue; }
             if (c == ')') { parenDepth--; current.Append(c); i++; continue; }
 
-            if (parenDepth > 0)
+            // Track bracket depth so characters inside attribute selectors
+            // (e.g. "[class~=\"active\"]") are not treated as combinators.
+            if (c == '[') { bracketDepth++; current.Append(c); i++; continue; }
+            if (c == ']') { bracketDepth--; current.Append(c); i++; continue; }
+
+            if (parenDepth > 0 || bracketDepth > 0)
             {
                 current.Append(c);
                 i++;
                 continue;
             }
 
-            if (c == '>')
+            if (c == '>' || c == '+' || c == '~')
             {
                 var compound = current.ToString().Trim();
                 if (compound.Length > 0) result.Add(compound);
                 current.Clear();
-                result.Add(">");
+                result.Add(c.ToString());
                 i++;
+                // Skip whitespace after combinator
+                while (i < selector.Length && selector[i] == ' ') i++;
             }
             else if (c == ' ')
             {
-                // Could be a descendant combinator or whitespace around '>'
+                // Could be a descendant combinator or whitespace around an explicit combinator
                 var compound = current.ToString().Trim();
                 // Skip whitespace
                 while (i < selector.Length && selector[i] == ' ') i++;
 
-                if (i < selector.Length && selector[i] == '>')
+                if (i < selector.Length && (selector[i] == '>' || selector[i] == '+' || selector[i] == '~'))
                 {
-                    // Whitespace before '>', not a descendant combinator
+                    // Whitespace before an explicit combinator
                     if (compound.Length > 0) result.Add(compound);
                     current.Clear();
-                    result.Add(">");
-                    i++; // skip '>'
-                    // Skip whitespace after '>'
+                    char comb = selector[i];
+                    result.Add(comb.ToString());
+                    i++;
+                    // Skip whitespace after combinator
                     while (i < selector.Length && selector[i] == ' ') i++;
                 }
                 else
@@ -226,6 +261,9 @@ public static class SelectorMatcher
         if (simple.StartsWith(':'))
             return MatchesPseudoClass(element, simple, pseudoState);
 
+        if (simple.StartsWith('['))
+            return MatchesAttributeSelector(element, simple);
+
         // Type selector
         return string.Equals(element.TagName, simple, StringComparison.OrdinalIgnoreCase);
     }
@@ -262,6 +300,100 @@ public static class SelectorMatcher
             ":is" => arg != null && MatchesIs(element, arg, pseudoState),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Matches a CSS attribute selector like [attr], [attr="value"], [attr~="value"], etc.
+    /// </summary>
+    private static bool MatchesAttributeSelector(Element element, string selector)
+    {
+        // Remove surrounding brackets: [attr op "value"] → attr op "value"
+        if (selector.Length < 2 || selector[^1] != ']') return false;
+        var inner = selector[1..^1].Trim();
+        if (inner.Length == 0) return false;
+
+        // Find the operator position
+        int opIndex = -1;
+        string? op = null;
+        for (int i = 0; i < inner.Length; i++)
+        {
+            char c = inner[i];
+            if (c == '=')
+            {
+                op = "=";
+                opIndex = i;
+                break;
+            }
+            if ((c == '~' || c == '|' || c == '^' || c == '$' || c == '*') &&
+                i + 1 < inner.Length && inner[i + 1] == '=')
+            {
+                op = inner.Substring(i, 2);
+                opIndex = i;
+                break;
+            }
+        }
+
+        if (op == null)
+        {
+            // Presence check: [attr]
+            return ResolveAttributeValue(element, inner.Trim()) != null;
+        }
+
+        var name = inner[..opIndex].Trim();
+        var valueStr = inner[(opIndex + op.Length)..].Trim();
+
+        // Strip quotes from value
+        if (valueStr.Length >= 2 &&
+            ((valueStr[0] == '"' && valueStr[^1] == '"') ||
+             (valueStr[0] == '\'' && valueStr[^1] == '\'')))
+        {
+            valueStr = valueStr[1..^1];
+        }
+
+        var attrValue = ResolveAttributeValue(element, name);
+        if (attrValue == null) return false;
+
+        return op switch
+        {
+            "=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase),
+            "~=" => attrValue.Split(' ').Any(w => string.Equals(w, valueStr, StringComparison.OrdinalIgnoreCase)),
+            "|=" => string.Equals(attrValue, valueStr, StringComparison.OrdinalIgnoreCase) ||
+                    attrValue.StartsWith(valueStr + "-", StringComparison.OrdinalIgnoreCase),
+            "^=" => attrValue.StartsWith(valueStr, StringComparison.OrdinalIgnoreCase),
+            "$=" => attrValue.EndsWith(valueStr, StringComparison.OrdinalIgnoreCase),
+            "*=" => attrValue.Contains(valueStr, StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Resolves the effective value of a named attribute on an element.
+    /// Maps standard HTML attributes to element properties and falls back to the Attributes dictionary.
+    /// Returns null if the attribute is not present.
+    /// </summary>
+    private static string? ResolveAttributeValue(Element element, string name)
+    {
+        if (string.Equals(name, "id", StringComparison.OrdinalIgnoreCase))
+            return element.Id;
+
+        if (string.Equals(name, "class", StringComparison.OrdinalIgnoreCase))
+            return element.Classes.Count > 0 ? string.Join(" ", element.Classes) : null;
+
+        if (element is InputElement input)
+        {
+            if (string.Equals(name, "type", StringComparison.OrdinalIgnoreCase))
+                return input.InputType;
+            if (string.Equals(name, "value", StringComparison.OrdinalIgnoreCase))
+                return input.Value;
+            if (string.Equals(name, "placeholder", StringComparison.OrdinalIgnoreCase))
+                return input.Placeholder;
+            if (string.Equals(name, "disabled", StringComparison.OrdinalIgnoreCase))
+                return input.IsDisabled ? "" : null;
+            if (string.Equals(name, "checked", StringComparison.OrdinalIgnoreCase))
+                return input.IsChecked ? "" : null;
+        }
+
+        return element.Attributes.TryGetValue(name, out var val) ? val : null;
     }
 
     /// <summary>
@@ -354,20 +486,40 @@ public static class SelectorMatcher
     private static bool IsLastChild(Element element) =>
         element.Parent != null && element.Parent.Children.Count > 0 && element.Parent.Children[^1] == element;
 
+    private static Element? GetPreviousSibling(Element? element)
+    {
+        if (element?.Parent == null) return null;
+        var siblings = element.Parent.Children;
+        int index = IndexOfChild(siblings, element);
+        return index > 0 ? siblings[index - 1] : null;
+    }
+
+    private static int IndexOfChild(IReadOnlyList<Element> siblings, Element element)
+    {
+        for (int i = 0; i < siblings.Count; i++)
+        {
+            if (siblings[i] == element) return i;
+        }
+        return -1;
+    }
+
     /// <summary>
-    /// Splits comma-separated selector groups, respecting parentheses.
+    /// Splits comma-separated selector groups, respecting parentheses and brackets.
     /// </summary>
     private static List<string> SplitSelectorGroups(string selectorText)
     {
         var groups = new List<string>();
         var current = new System.Text.StringBuilder();
-        int depth = 0;
+        int parenDepth = 0;
+        int bracketDepth = 0;
 
         foreach (char c in selectorText)
         {
-            if (c == '(') depth++;
-            else if (c == ')') depth--;
-            else if (c == ',' && depth == 0)
+            if (c == '(') parenDepth++;
+            else if (c == ')') parenDepth--;
+            else if (c == '[') bracketDepth++;
+            else if (c == ']') bracketDepth--;
+            else if (c == ',' && parenDepth == 0 && bracketDepth == 0)
             {
                 groups.Add(current.ToString());
                 current.Clear();
