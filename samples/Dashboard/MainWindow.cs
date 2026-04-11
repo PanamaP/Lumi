@@ -84,73 +84,24 @@ public class MainWindow : Window
     {
         _isDark = !_isDark;
 
+        // Toggle theme via CSS class — the stylesheet handles all color
+        // changes through CSS variables defined in .app / .app.light.
         var app = FindById("app-root");
-        var header = FindByClass("header").FirstOrDefault();
-        var main = FindByClass("main").FirstOrDefault();
-        var footer = FindByClass("footer").FirstOrDefault();
-        var themeBtn = FindById("btn-theme");
+        if (app == null) return;
 
         if (_isDark)
-        {
-            app?.Classes.Remove("light");
-            if (app != null) { app.InlineStyle = "background-color: #0F172A"; app.MarkDirty(); }
-            if (header != null) { header.InlineStyle = "background-color: #1E293B"; header.MarkDirty(); }
-            if (main != null) { main.InlineStyle = "background-color: #0F172A"; main.MarkDirty(); }
-            if (footer != null) { footer.InlineStyle = "background-color: #1E293B"; footer.MarkDirty(); }
-            if (themeBtn != null)
-            {
-                var txt = themeBtn.Children.OfType<TextElement>().FirstOrDefault();
-                if (txt != null) { txt.Text = "🌙 Dark"; txt.MarkDirty(); }
-                else { themeBtn.InlineStyle = "background-color: #1E293B; color: #F8FAFC"; themeBtn.MarkDirty(); }
-            }
-
-            UpdateCardTheme("#1E293B", "#F8FAFC", "#94A3B8", "#334155");
-        }
+            app.Classes.Remove("light");
         else
-        {
-            app?.Classes.Add("light");
-            if (app != null) { app.InlineStyle = "background-color: #F1F5F9"; app.MarkDirty(); }
-            if (header != null) { header.InlineStyle = "background-color: #FFFFFF"; header.MarkDirty(); }
-            if (main != null) { main.InlineStyle = "background-color: #F1F5F9"; main.MarkDirty(); }
-            if (footer != null) { footer.InlineStyle = "background-color: #FFFFFF"; footer.MarkDirty(); }
-            if (themeBtn != null)
-            {
-                var txt = themeBtn.Children.OfType<TextElement>().FirstOrDefault();
-                if (txt != null) { txt.Text = "☀️ Light"; txt.MarkDirty(); }
-                else { themeBtn.InlineStyle = "background-color: #FFFFFF; color: #0F172A"; themeBtn.MarkDirty(); }
-            }
+            app.Classes.Add("light");
 
-            UpdateCardTheme("#FFFFFF", "#0F172A", "#475569", "#CBD5E1");
+        var themeBtn = FindById("btn-theme");
+        if (themeBtn != null)
+        {
+            var txt = themeBtn.Children.OfType<TextElement>().FirstOrDefault();
+            if (txt != null) txt.Text = _isDark ? "🌙 Dark" : "☀️ Light";
         }
-    }
 
-    private void UpdateCardTheme(string cardBg, string textPrimary, string textSecondary, string border)
-    {
-        foreach (var card in FindByClass("stat-card"))
-        {
-            card.InlineStyle = $"background-color: {cardBg}; border-color: {border}";
-            card.MarkDirty();
-        }
-        foreach (var panel in FindByClass("panel"))
-        {
-            panel.InlineStyle = $"background-color: {cardBg}; border-color: {border}";
-            panel.MarkDirty();
-        }
-        foreach (var section in FindByClass("chart-section"))
-        {
-            section.InlineStyle = $"background-color: {cardBg}; border-color: {border}";
-            section.MarkDirty();
-        }
-        foreach (var card in FindByClass("metric-card"))
-        {
-            card.InlineStyle = $"background-color: {cardBg}; border-color: {border}";
-            card.MarkDirty();
-        }
-        foreach (var panel in FindByClass("settings-panel"))
-        {
-            panel.InlineStyle = $"background-color: {cardBg}; border-color: {border}";
-            panel.MarkDirty();
-        }
+        app.MarkDirty();
     }
 
     private void BuildProgressBars()

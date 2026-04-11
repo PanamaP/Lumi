@@ -42,11 +42,25 @@ public static class HitTester
                 dy = ry;
             }
 
-            // Reverse scale
-            if (transform.ScaleX != 0 && transform.ScaleY != 0)
+            // Reverse scale — degenerate scale means the element is invisible
+            if (transform.ScaleX == 0 || transform.ScaleY == 0)
+                return null;
+            dx /= transform.ScaleX;
+            dy /= transform.ScaleY;
+
+            // Reverse skew
+            if (transform.SkewX != 0 || transform.SkewY != 0)
             {
-                dx /= transform.ScaleX;
-                dy /= transform.ScaleY;
+                float tanX = MathF.Tan(transform.SkewX * MathF.PI / 180f);
+                float tanY = MathF.Tan(transform.SkewY * MathF.PI / 180f);
+                float det = 1f - tanX * tanY;
+                if (MathF.Abs(det) > 1e-6f)
+                {
+                    float ux = (dx - tanX * dy) / det;
+                    float uy = (dy - tanY * dx) / det;
+                    dx = ux;
+                    dy = uy;
+                }
             }
 
             localX = dx + originX;

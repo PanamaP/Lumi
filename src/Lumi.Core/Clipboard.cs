@@ -18,7 +18,11 @@ public static class Clipboard
     /// <summary>
     /// Places text on the OS clipboard.
     /// </summary>
-    public static void SetText(string text) => _setText?.Invoke(text);
+    public static void SetText(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        _setText?.Invoke(text);
+    }
 
     /// <summary>
     /// Initializes the clipboard with platform-specific implementations. Can only be called once.

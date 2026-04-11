@@ -97,8 +97,10 @@ public class ThemeManager
     /// <summary>
     /// Returns the active variable set for the current theme.
     /// </summary>
-    public IReadOnlyDictionary<string, string> CurrentVariables =>
-        _isDarkMode ? DarkVariables : LightVariables;
+    public IReadOnlyDictionary<string, string> CurrentVariables
+    {
+        get { lock (_lock) { return _isDarkMode ? DarkVariables : LightVariables; } }
+    }
 
     /// <summary>
     /// Sets the theme mode and recalculates the resolved dark-mode state.

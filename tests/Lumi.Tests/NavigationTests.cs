@@ -138,8 +138,8 @@ public class NavigationTests
     {
         var host = CreateHost();
 
-        host.Router.Navigate("/home");
-        host.Router.Navigate("/nonexistent");
+        Assert.True(host.Router.Navigate("/home"));
+        Assert.False(host.Router.Navigate("/nonexistent"));
 
         // Should stay on current route
         Assert.Equal("home", host.Router.CurrentRoute);
@@ -152,7 +152,7 @@ public class NavigationTests
     {
         var host = CreateHost();
 
-        host.Router.Navigate("/nonexistent");
+        Assert.False(host.Router.Navigate("/nonexistent"));
 
         Assert.Empty(host.Root.Children);
         Assert.Equal(string.Empty, host.Router.CurrentRoute);

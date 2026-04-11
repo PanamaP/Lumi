@@ -68,9 +68,10 @@ public class Router
 
     /// <summary>
     /// Navigate to the given route, swapping the container's content.
-    /// If the route doesn't match any registration, the current page is preserved.
+    /// Returns <c>true</c> if a matching route was found and navigation succeeded,
+    /// or <c>false</c> if no route matched the given path.
     /// </summary>
-    public void Navigate(string route)
+    public bool Navigate(string route)
     {
         ArgumentNullException.ThrowIfNull(route);
         if (_navigating)
@@ -82,7 +83,7 @@ public class Router
             var normalized = NormalizePath(route);
             var (registration, parameters) = MatchRoute(normalized);
             if (registration is null)
-                return;
+                return false;
 
             // Push current route onto history before switching.
             if (!string.IsNullOrEmpty(CurrentRoute))
@@ -93,6 +94,7 @@ public class Router
             }
 
             ApplyRoute(normalized, registration.Value, parameters);
+            return true;
         }
         finally
         {

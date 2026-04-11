@@ -20,6 +20,10 @@ Thumbs.db
 
 # Temporary/test files
 test_var_parsing.cs
+/test_*.csx
+/test_*.cs
+/Test*.csx
+/Test*.cs
 plan.md
 
 # Screenshots

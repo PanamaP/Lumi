@@ -468,7 +468,7 @@ public static class SelectorMatcher
         if (nIndex < 0)
         {
             // Pure integer: "3" → (0, 3)
-            return (0, int.Parse(s));
+            return int.TryParse(s, out int val) ? (0, val) : (0, 0);
         }
 
         // Parse A (coefficient of n)
@@ -478,14 +478,14 @@ public static class SelectorMatcher
             a = 1;
         else if (aPart == "-")
             a = -1;
-        else
-            a = int.Parse(aPart);
+        else if (!int.TryParse(aPart, out a))
+            return (0, 0);
 
         // Parse B (constant term after n)
         int b = 0;
         var rest = s[(nIndex + 1)..];
-        if (rest.Length > 0)
-            b = int.Parse(rest);
+        if (rest.Length > 0 && !int.TryParse(rest, out b))
+            return (0, 0);
 
         return (a, b);
     }
