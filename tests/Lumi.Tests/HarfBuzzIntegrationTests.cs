@@ -2,6 +2,7 @@ namespace Lumi.Tests;
 
 using Lumi.Text;
 using Lumi.Rendering;
+using HarfBuzzSharp;
 using SkiaSharp;
 
 /// <summary>
@@ -10,7 +11,25 @@ using SkiaSharp;
 [Collection("FontManager")]
 public class HarfBuzzIntegrationTests : IDisposable
 {
+    private static readonly bool _harfBuzzAvailable = CheckHarfBuzzAvailable();
     private readonly TextShaper _shaper = new();
+
+    private static bool CheckHarfBuzzAvailable()
+    {
+        try
+        {
+            HarfBuzzSharp.Feature.Parse("+liga");
+            return true;
+        }
+        catch (DllNotFoundException) { return false; }
+        catch (TypeInitializationException) { return false; }
+    }
+
+    private void SkipIfHarfBuzzUnavailable()
+    {
+        if (!_harfBuzzAvailable)
+            throw new Exception("$XunitDynamicSkip$HarfBuzz native library not available on this platform");
+    }
 
     public HarfBuzzIntegrationTests()
     {
@@ -33,6 +52,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_SimpleLatinText_ProducesGlyphIds()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("Hello", "Arial", 16f, 400, false);
 
         Assert.Equal(5, run.GlyphIds.Length);
@@ -42,6 +62,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_SimpleText_ProducesPositions()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("Test", "Arial", 14f, 400, false);
 
         // Positions array has 2 entries per glyph (x, y)
@@ -53,6 +74,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_SimpleText_ProducesAdvances()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("AB", "Arial", 16f, 400, false);
 
         Assert.Equal(2, run.Advances.Length);
@@ -62,6 +84,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_SimpleText_TotalWidthMatchesSumOfAdvances()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("Hello World", "Arial", 16f, 400, false);
 
         float sumAdvances = run.Advances.Sum();
@@ -71,6 +94,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_EmptyString_ReturnsEmptyRun()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("", "Arial", 16f, 400, false);
 
         Assert.Empty(run.GlyphIds);
@@ -82,6 +106,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_PreservesFontParameters()
     {
+        SkipIfHarfBuzzUnavailable();
         var run = _shaper.Shape("X", "Arial", 24f, 400, false);
 
         Assert.Equal("Arial", run.FontFamily);
@@ -93,6 +118,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void Shape_LargerFontSize_ProducesLargerAdvances()
     {
+        SkipIfHarfBuzzUnavailable();
         var runSmall = _shaper.Shape("A", "Arial", 12f, 400, false);
         var runLarge = _shaper.Shape("A", "Arial", 48f, 400, false);
 
@@ -112,6 +138,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Trait("Category", "PlatformDependent")]
     public void ShapedWidth_MatchesSkiaMeasurement_WithinTolerance()
     {
+        SkipIfHarfBuzzUnavailable();
         const string text = "Hello World";
         const string family = "Arial";
         const float fontSize = 16f;
@@ -131,6 +158,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Trait("Category", "PlatformDependent")]
     public void ShapedWidth_MatchesSkia_ForMultipleStrings()
     {
+        SkipIfHarfBuzzUnavailable();
         string[] testStrings = ["abc", "The quick brown fox", "12345", "Mixed 123 text!"];
 
         foreach (var text in testStrings)
@@ -153,6 +181,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void TextShaper_UsesCustomTypefaceResolver_WhenSet()
     {
+        SkipIfHarfBuzzUnavailable();
         bool resolverCalled = false;
         TextShaper.CustomTypefaceResolver = (family, weight, italic) =>
         {
@@ -182,6 +211,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void TextShaper_FallsBackToSystem_WhenResolverReturnsNull()
     {
+        SkipIfHarfBuzzUnavailable();
         TextShaper.CustomTypefaceResolver = (_, _, _) => null;
 
         try
@@ -240,6 +270,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Fact]
     public void UseHarfBuzz_GetShaper_ReturnsSameInstance()
     {
+        SkipIfHarfBuzzUnavailable();
         TextRenderingOptions.UseHarfBuzz = true;
 
         var shaper1 = TextRenderingOptions.GetShaper();
@@ -266,6 +297,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Trait("Category", "PlatformDependent")]
     public void TextMeasurer_MeasureWidth_UsesHarfBuzz_WhenEnabled()
     {
+        SkipIfHarfBuzzUnavailable();
         var measurer = new TextMeasurer();
         const string text = "Hello";
         const string family = "Arial";
@@ -292,6 +324,7 @@ public class HarfBuzzIntegrationTests : IDisposable
     [Trait("Category", "PlatformDependent")]
     public void TextLayout_Measure_UsesHarfBuzz_WhenEnabled()
     {
+        SkipIfHarfBuzzUnavailable();
         var style = new Lumi.Core.ComputedStyle
         {
             FontFamily = "Arial",

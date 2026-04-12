@@ -54,17 +54,26 @@ public sealed class TextShaper : IDisposable
     /// Common tags: "liga" (standard ligatures), "kern" (kerning), "dlig" (discretionary ligatures),
     /// "calt" (contextual alternates), "smcp" (small caps).
     /// </summary>
-    private static volatile Feature[] _defaultFeatures =
-    [
-        Feature.Parse("+liga"),
-        Feature.Parse("+calt"),
-        Feature.Parse("+kern"),
-    ];
+    private static volatile Feature[]? _defaultFeatures;
+
+    private static Feature[] GetDefaultFeatures()
+    {
+        var features = _defaultFeatures;
+        if (features != null) return features;
+        features =
+        [
+            Feature.Parse("+liga"),
+            Feature.Parse("+calt"),
+            Feature.Parse("+kern"),
+        ];
+        _defaultFeatures = features;
+        return features;
+    }
 
     /// <summary>
     /// Gets the default OpenType features applied during shaping.
     /// </summary>
-    public static IReadOnlyList<Feature> DefaultFeatures => _defaultFeatures;
+    public static IReadOnlyList<Feature> DefaultFeatures => GetDefaultFeatures();
 
     /// <summary>
     /// Replaces the default OpenType features applied during shaping.
@@ -231,7 +240,7 @@ public sealed class TextShaper : IDisposable
         buffer.Script = UnicodeScript.GetHarfBuzzScript(script);
         buffer.Language = Language.Default;
 
-        var effectiveFeatures = features ?? _defaultFeatures;
+        var effectiveFeatures = features ?? GetDefaultFeatures();
         cached.Font.Shape(buffer, effectiveFeatures);
 
         var glyphInfos = buffer.GlyphInfos;
