@@ -91,7 +91,7 @@ public unsafe class YogaLayoutEngine : IDisposable
         // Yoga nodes with measure functions must not have children
         bool isLeaf = element.Children.Count == 0 &&
                        MeasureFunc != null &&
-                       element is TextElement or ImageElement;
+                       element is TextElement or ImageElement or InputElement;
 
         if (isLeaf)
         {

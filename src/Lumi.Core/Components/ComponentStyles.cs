@@ -70,7 +70,7 @@ public static class ComponentStyles
         el.InlineStyle = $"display: block; padding: 8px 12px; border-radius: 4px; border-width: 1px; " +
                          $"border-color: var(--border-color, {ToRgba(Border)}); " +
                          $"background-color: var(--bg-secondary, {ToRgba(Background)}); " +
-                         $"color: var(--text-primary, {ToRgba(TextColor)}); font-size: 14px";
+                         $"color: var(--text-primary, {ToRgba(TextColor)}); font-size: 14px; min-height: 36px";
     }
 
     public static void ApplyContainer(Element el, FlexDirection direction = FlexDirection.Column)
@@ -136,8 +136,8 @@ public static class ComponentStyles
 
     public static void ApplyTooltip(Element el)
     {
-        el.InlineStyle = $"position: absolute; padding: 4px 8px; border-radius: 4px; " +
-                         $"background-color: rgba(0,0,0,0.85); z-index: 999";
+        el.InlineStyle = $"padding: 4px 8px; border-radius: 4px; " +
+                         $"background-color: rgba(0,0,0,0.85); z-index: 10000; pointer-events: none";
     }
 
     // Tracks elements that have been hidden via SetVisible(false).
@@ -175,5 +175,35 @@ public static class ComponentStyles
             }
         }
         el.MarkDirty();
+    }
+
+    /// <summary>
+    /// Returns the visual screen-space bounds of an element. LayoutBox already stores
+    /// absolute coordinates; this method adjusts for ancestor scroll offsets so the
+    /// result matches the element's on-screen position.
+    /// </summary>
+    internal static LayoutBox GetAbsoluteBounds(Element element)
+    {
+        float x = element.LayoutBox.X;
+        float y = element.LayoutBox.Y;
+        var current = element.Parent;
+        while (current != null)
+        {
+            x -= current.ScrollLeft;
+            y -= current.ScrollTop;
+            current = current.Parent;
+        }
+        return new LayoutBox(x, y, element.LayoutBox.Width, element.LayoutBox.Height);
+    }
+
+    /// <summary>
+    /// Walks up the element tree to find the root element.
+    /// </summary>
+    internal static Element FindRoot(Element element)
+    {
+        var current = element;
+        while (current.Parent != null)
+            current = current.Parent;
+        return current;
     }
 }
