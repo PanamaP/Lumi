@@ -164,11 +164,15 @@ public sealed class LumiApp : IDisposable
                 }
             }
 
-            // Handle window navigation (e.g. login → main window)
+            // Handle window navigation (e.g. login → main window).
+            // Capture and clear before applying so that any NavigateTo() call made
+            // during OnReady/OnNavigatedTo queues a new navigation rather than
+            // being silently overwritten after ApplyNavigation returns.
             if (_pendingNavigation != null)
             {
-                ApplyNavigation(_pendingNavigation);
+                var pendingNavigation = _pendingNavigation;
                 _pendingNavigation = null;
+                ApplyNavigation(pendingNavigation);
             }
 
             _frameMetrics.BeginStage();
@@ -614,6 +618,11 @@ public sealed class LumiApp : IDisposable
 
         // Clear interaction state — old element references are invalid
         _interaction.Clear();
+
+        // Clear Application-level input state (focused/hovered/drag) so that
+        // stale element references from the old window do not receive events
+        // after the root has been swapped.
+        _app.ClearInputState();
 
         // Force a full repaint
         _window.Root.MarkDirty();

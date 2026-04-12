@@ -230,6 +230,29 @@ public class Application
         }
     }
 
+    /// <summary>
+    /// Resets all input-tracking state (focus, hover, drag) without dispatching
+    /// events on the old elements. Call this during navigation so that stale
+    /// element references from the previous window do not receive events after the
+    /// root has been swapped.
+    /// </summary>
+    public void ClearInputState()
+    {
+        if (_focusedElement != null)
+        {
+            _focusedElement.IsFocused = false;
+            _focusedElement = null;
+        }
+
+        _hoveredElement = null;
+
+        _dragState.IsDragging = false;
+        _dragState.Source = null;
+        _dragState.Data = null;
+        _potentialDragSource = null;
+        _lastDragOverElement = null;
+    }
+
     private void HandleKeyboard(KeyboardEvent keyboard)
     {
         var target = _focusedElement ?? Root;
