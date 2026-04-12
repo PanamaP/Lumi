@@ -18,10 +18,12 @@ A complete guide to building desktop applications with Lumi. From your first win
 10. [Template Directives](#template-directives)
 11. [Animations & Tweens](#animations--tweens)
 12. [Scrolling](#scrolling)
-13. [Hot Reload](#hot-reload)
-14. [Inspector & Screenshots](#inspector--screenshots)
-15. [CSS Reference](#css-reference)
-16. [API Reference](#api-reference)
+13. [Multi-Window Support](#multi-window-support)
+14. [Source Generator](#source-generator)
+15. [Hot Reload](#hot-reload)
+16. [Inspector & Screenshots](#inspector--screenshots)
+17. [CSS Reference](#css-reference)
+18. [API Reference](#api-reference)
 
 ---
 
@@ -907,6 +909,139 @@ float currentScroll = element.ScrollTop;
 float totalHeight = element.ScrollHeight;
 float visibleHeight = element.LayoutBox.Height;
 ```
+
+---
+
+## Multi-Window Support
+
+Lumi supports opening secondary windows from your main application window. Each secondary
+window has its own element tree, style resolver, layout engine, and renderer.
+
+### Creating a Secondary Window
+
+Define a class that inherits from `SecondaryWindow`:
+
+```csharp
+using Lumi;
+
+public class SettingsWindow : SecondaryWindow
+{
+    public SettingsWindow()
+    {
+        Title = "Settings";
+        Width = 480;
+        Height = 360;
+
+        var dir = AppContext.BaseDirectory;
+        LoadTemplate(Path.Combine(dir, "Settings.html"));
+        LoadStyleSheet(Path.Combine(dir, "Settings.css"));
+    }
+
+    protected override void OnReady()
+    {
+        var closeBtn = FindById("close-btn");
+        closeBtn?.On("Click", e => Close());
+    }
+}
+```
+
+### Opening a Window
+
+Use the `Windows` property (a `WindowManager`) available on any `Window`:
+
+```csharp
+protected override void OnReady()
+{
+    var settingsBtn = FindById("settings-btn");
+    settingsBtn?.On("Click", e =>
+    {
+        Windows?.Open(new SettingsWindow());
+    });
+}
+```
+
+### Closing a Window
+
+Call `Close()` from within the secondary window, or the user can close it via the
+platform close button. The `WindowManager` handles disposal of all platform resources
+automatically.
+
+```csharp
+// From inside the secondary window:
+Close();
+```
+
+### Closing All Windows
+
+```csharp
+Windows?.CloseAll();
+```
+
+> **Note:** Secondary windows run within the main application loop. They are updated,
+> styled, laid out, and painted each frame alongside the primary window.
+
+---
+
+## Source Generator
+
+Lumi includes a Roslyn source generator that eliminates `INotifyPropertyChanged`
+boilerplate. Mark a partial class and its properties with `[Observable]` and the
+generator creates the backing fields, setters, and change notifications for you.
+
+### Usage
+
+```csharp
+using Lumi.Generators;
+
+[Observable]
+public partial class SettingsViewModel
+{
+    [Observable]
+    public partial string UserName { get; set; }
+
+    [Observable]
+    public partial bool DarkMode { get; set; }
+
+    [Observable]
+    public partial int FontSize { get; set; }
+}
+```
+
+The generator produces a partial class that implements `INotifyPropertyChanged` with
+backing fields and property setters that call `OnPropertyChanged()`.
+
+### Generated Output (conceptual)
+
+```csharp
+partial class SettingsViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private string _generated_userName;
+    public string UserName
+    {
+        get => _generated_userName;
+        set { if (!Equals(_generated_userName, value)) { _generated_userName = value; OnPropertyChanged("UserName"); } }
+    }
+
+    // ... same for DarkMode, FontSize
+}
+```
+
+### Using with Data Binding
+
+The generated view model works directly with Lumi's binding engine:
+
+```csharp
+var vm = new SettingsViewModel { UserName = "Jane" };
+BindingEngine.Bind(vm, "UserName", nameLabel, "Text");
+```
+
+> The `[Observable]` attribute is emitted by the generator itself — no additional
+> runtime package is required.
 
 ---
 

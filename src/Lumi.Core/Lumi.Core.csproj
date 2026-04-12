@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>Lumi.Core</PackageId>
     <Description>Core types and element model for the Lumi GUI framework.</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

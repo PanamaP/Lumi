@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>Lumi.Styling</PackageId>
     <Description>CSS parsing, selector matching, and style resolution for Lumi.</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

@@ -8,18 +8,21 @@ Complete API reference for the Lumi GUI framework. Every public class, property,
 
 1. [LumiApp](#lumiapp)
 2. [Window](#window)
-3. [Element](#element)
-4. [BoxElement](#boxelement)
-5. [TextElement](#textelement)
-6. [ImageElement](#imageelement)
-7. [InputElement](#inputelement)
-8. [Event System](#event-system)
-9. [Data Binding](#data-binding)
-10. [Navigation](#navigation)
-11. [Animation](#animation)
-12. [Theming](#theming)
-13. [CSS Selectors](#css-selectors)
-14. [Enums](#enums)
+3. [SecondaryWindow](#secondarywindow)
+4. [WindowManager](#windowmanager)
+5. [Element](#element)
+6. [BoxElement](#boxelement)
+7. [TextElement](#textelement)
+8. [ImageElement](#imageelement)
+9. [InputElement](#inputelement)
+10. [Event System](#event-system)
+11. [Data Binding](#data-binding)
+12. [Source Generator](#source-generator)
+13. [Navigation](#navigation)
+14. [Animation](#animation)
+15. [Theming](#theming)
+16. [CSS Selectors](#css-selectors)
+17. [Enums](#enums)
 
 ---
 
@@ -116,6 +119,83 @@ public class MainWindow : Window
         // Runs every frame — update animations, check state, etc.
     }
 }
+```
+
+---
+
+## SecondaryWindow
+
+**Namespace:** `Lumi`
+
+A secondary window that can be opened from the main window via `WindowManager`.
+Each secondary window has its own element tree, style resolver, layout engine, and renderer.
+Inherits from `Window`.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsOpen` | `bool` | Whether this secondary window is currently open and visible. Read-only. |
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `void Close()` | Request this secondary window to close. The `WindowManager` disposes its platform resources on the next update cycle. |
+
+### Example
+
+```csharp
+public class SettingsWindow : SecondaryWindow
+{
+    public SettingsWindow()
+    {
+        Title = "Settings";
+        Width = 480;
+        Height = 360;
+
+        var dir = AppContext.BaseDirectory;
+        LoadTemplate(Path.Combine(dir, "Settings.html"));
+        LoadStyleSheet(Path.Combine(dir, "Settings.css"));
+    }
+
+    protected override void OnReady()
+    {
+        FindById("close-btn")?.On("Click", e => Close());
+    }
+}
+```
+
+---
+
+## WindowManager
+
+**Namespace:** `Lumi`
+
+Manages secondary windows alongside the main application window.
+Available via the `Windows` property on any `Window` instance.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Count` | `int` | The number of currently managed secondary windows. |
+
+### Methods
+
+| Method | Description |
+|--------|-------------|
+| `SecondaryWindow Open(SecondaryWindow window)` | Open a secondary window. Creates the platform window, renderer, and wires up style/layout. |
+| `void CloseAll()` | Close and dispose all managed secondary windows. |
+
+### Example
+
+```csharp
+// Open a secondary window from the main window
+Windows?.Open(new SettingsWindow());
+
+// Close all secondary windows
+Windows?.CloseAll();
 ```
 
 ---
@@ -571,6 +651,62 @@ public class TodoViewModel : INotifyPropertyChanged
     </template>
 </div>
 ```
+
+---
+
+## Source Generator
+
+**Namespace:** `Lumi.Generators`
+
+Lumi includes a Roslyn incremental source generator that eliminates `INotifyPropertyChanged`
+boilerplate for data binding view models.
+
+### ObservableAttribute
+
+```csharp
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+public sealed class ObservableAttribute : Attribute { }
+```
+
+Mark a `partial` class and its properties with `[Observable]`. The generator produces
+a partial class that implements `INotifyPropertyChanged` with backing fields and property
+setters that call `OnPropertyChanged()`.
+
+### Example
+
+```csharp
+using Lumi.Generators;
+
+[Observable]
+public partial class TodoViewModel
+{
+    [Observable]
+    public partial string Title { get; set; }
+
+    [Observable]
+    public partial bool IsComplete { get; set; }
+}
+```
+
+The generated code adds:
+- `INotifyPropertyChanged` interface implementation
+- `PropertyChanged` event
+- `OnPropertyChanged(string)` method
+- Private backing fields (`_generated_title`, `_generated_isComplete`)
+- Property setters with equality check and change notification
+
+### Usage with Binding
+
+```csharp
+var vm = new TodoViewModel { Title = "Buy groceries" };
+BindingEngine.Bind(vm, "Title", titleLabel, "Text");
+
+// Changing Title automatically updates the label
+vm.Title = "Buy milk";
+```
+
+> **Note:** The `[Observable]` attribute is emitted by the source generator itself —
+> no additional runtime package is required. The class must be declared as `partial`.
 
 ---
 

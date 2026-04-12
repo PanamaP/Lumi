@@ -23,6 +23,8 @@
     <ProjectReference Include="..\Lumi.Styling\Lumi.Styling.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Lumi.Input\Lumi.Input.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Text\Lumi.Text.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Lumi.Generators\Lumi.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <!-- 3rd-party dependencies surfaced to consumers -->

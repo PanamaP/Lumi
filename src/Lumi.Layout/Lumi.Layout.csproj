@@ -4,7 +4,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Lumi.Layout</PackageId>
     <Description>Layout engine (Yoga-based flexbox + CSS Grid) for Lumi.</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
