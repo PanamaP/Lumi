@@ -200,7 +200,7 @@ public class ToolingTests : IDisposable
     }
 
     [Fact]
-    public void NuGet_SubProjects_ArePackable()
+    public void NuGet_SubProjects_AreNotIndividuallyPackable()
     {
         var repoRoot = FindRepoRoot();
         var subProjects = new[]
@@ -222,8 +222,8 @@ public class ToolingTests : IDisposable
             var doc = XDocument.Load(path);
             var ns = doc.Root!.Name.Namespace;
             var isPackable = doc.Descendants(ns + "IsPackable").FirstOrDefault();
-            Assert.True(isPackable != null && isPackable.Value.Equals("true", StringComparison.OrdinalIgnoreCase),
-                $"{project} should have <IsPackable>true</IsPackable> — all library projects are published");
+            Assert.True(isPackable != null && isPackable.Value.Equals("false", StringComparison.OrdinalIgnoreCase),
+                $"{project} should have <IsPackable>false</IsPackable> — sub-projects are bundled into the umbrella Lumi package");
         }
     }
 

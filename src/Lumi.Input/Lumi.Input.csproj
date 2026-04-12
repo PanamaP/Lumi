@@ -3,7 +3,7 @@
   <PropertyGroup>
     <PackageId>Lumi.Input</PackageId>
     <Description>Input event types and processing for Lumi.</Description>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

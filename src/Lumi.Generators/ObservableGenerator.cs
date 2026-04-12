@@ -161,7 +161,7 @@ namespace Lumi.Generators
 
                 sb.AppendLine();
                 sb.AppendLine($"        private {propType} {fieldName};");
-                sb.AppendLine($"        public {propType} {propName}");
+                sb.AppendLine($"        public partial {propType} {propName}");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            get => {fieldName};");
                 sb.AppendLine("            set");

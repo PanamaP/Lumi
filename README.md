@@ -108,7 +108,8 @@ Lumi (umbrella)
 ├── Lumi.Rendering   — SkiaSharp 2D painting
 ├── Lumi.Input       — Hit testing and interaction state
 ├── Lumi.Platform    — SDL3 windowing and input translation
-└── Lumi.Text        — HarfBuzz text shaping (implemented, integration in progress)
+├── Lumi.Text        — HarfBuzz text shaping
+└── Lumi.Generators  — Source generator for [Observable] INotifyPropertyChanged boilerplate
 ```
 
 ### Render Pipeline
@@ -141,7 +142,8 @@ src/
   Lumi.Rendering/               SkiaRenderer
   Lumi.Input/                   HitTester, InteractionState
   Lumi.Platform/                Sdl3Window, Sdl3RenderTarget, IPlatformWindow
-  Lumi.Text/                    HarfBuzz text shaping (implemented, integration in progress)
+  Lumi.Text/                    HarfBuzz text shaping
+  Lumi.Generators/              Source generator for [Observable] boilerplate
 samples/
   HelloWorld/                   Feature showcase sample app
   TodoApp/                      Todo list with data binding
@@ -149,7 +151,7 @@ samples/
   FormDemo/                     Form validation and input showcase
   StressTest/                   Performance benchmark suite
 tests/
-  Lumi.Tests/                   315 unit + integration tests
+  Lumi.Tests/                   951 unit + integration tests
 tools/
   ScreenshotTool/               Headless screenshot capture utility
 ```
@@ -170,7 +172,7 @@ tools/
 dotnet test Lumi.slnx
 ```
 
-315 tests covering CSS parsing, layout, hit testing, components, binding, rendering, and text shaping.
+951 tests covering CSS parsing, layout, hit testing, components, binding, rendering, and text shaping.
 
 ## 🔧 Building & Running
 
@@ -215,9 +217,9 @@ This triggers the publish workflow which packs and pushes both `Lumi` and `Lumi.
 | 6. Animations | ✅ Done | Tween engine, easing functions, CSS transitions |
 | 7. Components | ✅ Done | Button, Checkbox, Slider, Dialog, Dropdown, TextBox, List |
 | 8. Developer Tools | ✅ Done | Hot reload, inspector overlay, screenshot capture |
-| 9. Text & Images | 🔶 In Progress | HarfBuzz text shaping (done), image loading (planned) |
-| 10. Accessibility | 🔲 Planned | UIA on Windows, AT-SPI on Linux |
-| 11. Performance | 🔶 In Progress | VSync frame pacing, live resize, event-driven idle |
+| 9. Text & Images | ✅ Done | HarfBuzz text shaping, image loading & caching |
+| 10. Performance | ✅ Done | VSync frame pacing, live resize, event-driven idle |
+| 11. Accessibility | 🔲 Planned | UIA on Windows, AT-SPI on Linux |
 
 ## 📄 License
 
