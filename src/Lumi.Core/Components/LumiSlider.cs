@@ -14,7 +14,10 @@ public class LumiSlider
     private float _max = 1f;
     private bool _isDragging;
     private const float TrackWidth = 200f;
-    private const float ThumbSize = 20f;
+    private const float TrackHeight = 8f;
+    private const float ThumbSize = 24f;
+    private const float ContainerPadding = 16f;
+    private const float ThumbTop = ContainerPadding + TrackHeight / 2f - ThumbSize / 2f;
 
     public Element Root => _container;
 
@@ -56,18 +59,18 @@ public class LumiSlider
     {
         // Container holds track + thumb. Position: relative so thumb can be absolute.
         _container = new BoxElement("div");
-        _container.InlineStyle = $"display: flex; flex-direction: column; padding: 8px 0px; width: {TrackWidth:F0}px; position: relative";
+        _container.InlineStyle = $"display: flex; flex-direction: column; padding: {ContainerPadding:F0}px 0px; width: {TrackWidth:F0}px; position: relative";
 
         // Track background (full width)
         _track = new BoxElement("div");
-        _track.InlineStyle = $"height: 8px; width: {TrackWidth:F0}px; " +
+        _track.InlineStyle = $"height: {TrackHeight:F0}px; width: {TrackWidth:F0}px; " +
                              $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; " +
                              $"overflow: hidden";
         _container.AddChild(_track);
 
         // Fill (proportional width inside track)
         _fill = new BoxElement("div");
-        _fill.InlineStyle = $"height: 8px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; width: 100px";
+        _fill.InlineStyle = $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; width: 100px";
         _track.AddChild(_fill);
 
         // Thumb (absolutely positioned relative to container)
@@ -76,7 +79,7 @@ public class LumiSlider
             $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; " +
             $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
             $"border-radius: {ThumbSize / 2:F0}px; position: absolute; " +
-            $"top: 2px; left: {TrackWidth / 2 - ThumbSize / 2:F1}px");
+            $"top: {ThumbTop:F0}px; left: {TrackWidth / 2 - ThumbSize / 2:F1}px");
         _container.AddChild(_thumb);
 
         // Interaction handlers
@@ -130,14 +133,14 @@ public class LumiSlider
         float thumbLeft = pct * (TrackWidth - ThumbSize);
 
         _fill.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"height: 8px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; " +
+            $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; " +
             $"width: {fillPx:F1}px");
 
         _thumb.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; " +
             $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
             $"border-radius: {ThumbSize / 2:F0}px; position: absolute; " +
-            $"top: 2px; left: {thumbLeft:F1}px");
+            $"top: {ThumbTop:F0}px; left: {thumbLeft:F1}px");
 
         _container.MarkDirty();
     }

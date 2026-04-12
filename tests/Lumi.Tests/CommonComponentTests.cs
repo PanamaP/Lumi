@@ -165,7 +165,8 @@ public class CommonComponentTests
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Help text");
         Assert.Equal("Help text", tooltip.Text);
-        Assert.Contains(tooltip.Root, target.Children);
+        // Tooltip is not added to the tree until shown (on mouseenter)
+        Assert.Null(tooltip.Root.Parent);
     }
 
     [Fact]
@@ -173,7 +174,8 @@ public class CommonComponentTests
     {
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Info");
-        Assert.Contains("display: none", tooltip.Root.InlineStyle ?? "");
+        // Tooltip starts without a parent (not in the element tree)
+        Assert.Null(tooltip.Root.Parent);
     }
 
     [Fact]
@@ -191,8 +193,10 @@ public class CommonComponentTests
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Info");
         EventDispatcher.Dispatch(new RoutedEvent("mouseenter"), target);
+        Assert.NotNull(tooltip.Root.Parent);
         EventDispatcher.Dispatch(new RoutedEvent("mouseleave"), target);
-        Assert.Contains("display: none", tooltip.Root.InlineStyle ?? "");
+        // Tooltip is removed from the element tree on mouse leave
+        Assert.Null(tooltip.Root.Parent);
     }
 
     private static Element? FindChildByText(Element parent, string text)

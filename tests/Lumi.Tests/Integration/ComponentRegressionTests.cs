@@ -92,16 +92,21 @@ public class ComponentRegressionTests
         host.AddChild(cb.Root);
         RelayoutAndPaint(p);
 
-        // Sample pixel inside the checkbox indicator (20x20 box at origin)
-        var before = p.GetPixelAt(10, 10);
+        // Sample pixel inside the checkbox box area
+        // The checkbox box is 22x22 with border 2px; the indicator is 12x12 centered inside
+        var checkBox = cb.Root.Children[0]; // The outer border box
+        int sampleX = (int)(checkBox.LayoutBox.X + checkBox.LayoutBox.Width / 2);
+        int sampleY = (int)(checkBox.LayoutBox.Y + checkBox.LayoutBox.Height / 2);
+
+        var before = p.GetPixelAt(sampleX, sampleY);
 
         cb.IsChecked = true;
         RelayoutAndPaint(p);
 
-        var after = p.GetPixelAt(10, 10);
+        var after = p.GetPixelAt(sampleX, sampleY);
 
         Assert.True(before != after,
-            "Checkbox indicator pixels should change after toggling IsChecked");
+            $"Checkbox indicator pixels should change after toggling IsChecked (sampled at ({sampleX},{sampleY}), before={before}, after={after})");
     }
 
     [Fact]

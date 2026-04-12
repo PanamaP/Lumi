@@ -522,6 +522,18 @@ public sealed class LumiApp : IDisposable
             return (natW, natH);
         }
 
+        if (element is InputElement inputElement)
+        {
+            var text = !string.IsNullOrEmpty(inputElement.Value)
+                ? inputElement.Value
+                : !string.IsNullOrEmpty(inputElement.Placeholder)
+                    ? inputElement.Placeholder
+                    : "Xg";
+            var (w, h) = TextLayout.Measure(text, availableWidth, element.ComputedStyle);
+            float measuredWidth = availableWidth == float.MaxValue ? w : Math.Max(w, availableWidth);
+            return (measuredWidth, h);
+        }
+
         return (0, 0);
     }
 

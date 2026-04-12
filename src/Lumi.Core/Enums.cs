@@ -46,7 +46,8 @@ public enum AlignItems
     FlexEnd,
     Center,
     Stretch,
-    Baseline
+    Baseline,
+    Auto
 }
 
 public enum Overflow

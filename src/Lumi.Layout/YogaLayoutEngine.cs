@@ -91,7 +91,7 @@ public unsafe class YogaLayoutEngine : IDisposable
         // Yoga nodes with measure functions must not have children
         bool isLeaf = element.Children.Count == 0 &&
                        MeasureFunc != null &&
-                       element is TextElement or ImageElement;
+                       element is TextElement or ImageElement or InputElement;
 
         if (isLeaf)
         {
@@ -284,12 +284,13 @@ public unsafe class YogaLayoutEngine : IDisposable
 
     private static YGAlign MapAlignItems(AlignItems align) => align switch
     {
+        AlignItems.Auto => YGAlign.YGAlignAuto,
         AlignItems.FlexStart => YGAlign.YGAlignFlexStart,
         AlignItems.FlexEnd => YGAlign.YGAlignFlexEnd,
         AlignItems.Center => YGAlign.YGAlignCenter,
         AlignItems.Stretch => YGAlign.YGAlignStretch,
         AlignItems.Baseline => YGAlign.YGAlignBaseline,
-        _ => YGAlign.YGAlignStretch
+        _ => YGAlign.YGAlignAuto
     };
 
     private void ReadLayoutResults(Element element, float parentAbsX, float parentAbsY)

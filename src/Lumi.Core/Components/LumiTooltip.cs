@@ -2,6 +2,8 @@ namespace Lumi.Core.Components;
 
 /// <summary>
 /// A tooltip that appears on hover near a target element.
+/// Rendered at the root level to avoid ancestor clipping, with auto-positioning
+/// to stay fully visible within the viewport.
 /// </summary>
 public class LumiTooltip : IDisposable
 {
@@ -10,7 +12,6 @@ public class LumiTooltip : IDisposable
     private Element? _target;
     private RoutedEventHandler? _mouseEnterHandler;
     private RoutedEventHandler? _mouseLeaveHandler;
-    private RoutedEventHandler? _containerLeaveHandler;
     private string _text = "";
 
     public Element Root => _container;
@@ -27,65 +28,88 @@ public class LumiTooltip : IDisposable
         ComponentStyles.ApplyTooltip(_container);
 
         _textElement = new TextElement();
-        _textElement.InlineStyle = $"color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; font-size: 12px";
+        _textElement.InlineStyle = $"color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; font-size: 12px; pointer-events: none";
         _container.AddChild(_textElement);
     }
 
     /// <summary>
     /// Attaches a tooltip to a target element. The tooltip appears on mouse enter
-    /// and hides on mouse leave.
+    /// and hides on mouse leave. It is rendered at the root level with auto-positioning.
     /// </summary>
     public static LumiTooltip Attach(Element target, string text)
     {
         var tooltip = new LumiTooltip { Text = text };
         tooltip._target = target;
-        ComponentStyles.SetVisible(tooltip._container, false);
-        target.AddChild(tooltip._container);
 
         tooltip._mouseEnterHandler = (_, _) =>
         {
-            ComponentStyles.SetVisible(tooltip._container, true);
-            target.MarkDirty();
+            tooltip.Show();
         };
         target.On("mouseenter", tooltip._mouseEnterHandler);
 
-        tooltip._mouseLeaveHandler = (_, e) =>
+        tooltip._mouseLeaveHandler = (_, _) =>
         {
-            if (e is RoutedMouseEvent me)
-            {
-                bool containerHasLayout = tooltip._container.LayoutBox.Width > 0 || tooltip._container.LayoutBox.Height > 0;
-                bool targetHasLayout = target.LayoutBox.Width > 0 || target.LayoutBox.Height > 0;
-                if ((containerHasLayout && tooltip._container.LayoutBox.Contains(me.X, me.Y)) ||
-                    (targetHasLayout && target.LayoutBox.Contains(me.X, me.Y)))
-                {
-                    return;
-                }
-            }
-
-            ComponentStyles.SetVisible(tooltip._container, false);
-            target.MarkDirty();
+            tooltip.Hide();
         };
         target.On("mouseleave", tooltip._mouseLeaveHandler);
 
-        tooltip._containerLeaveHandler = (_, e) =>
-        {
-            if (e is RoutedMouseEvent me)
-            {
-                bool targetHasLayout = target.LayoutBox.Width > 0 || target.LayoutBox.Height > 0;
-                bool containerHasLayout = tooltip._container.LayoutBox.Width > 0 || tooltip._container.LayoutBox.Height > 0;
-                if ((targetHasLayout && target.LayoutBox.Contains(me.X, me.Y)) ||
-                    (containerHasLayout && tooltip._container.LayoutBox.Contains(me.X, me.Y)))
-                {
-                    return;
-                }
-            }
-
-            ComponentStyles.SetVisible(tooltip._container, false);
-            target.MarkDirty();
-        };
-        tooltip._container.On("mouseleave", tooltip._containerLeaveHandler);
-
         return tooltip;
+    }
+
+    private void Show()
+    {
+        if (_target == null) return;
+        var root = ComponentStyles.FindRoot(_target);
+        var targetBounds = ComponentStyles.GetAbsoluteBounds(_target);
+        float viewW = root.LayoutBox.Width;
+        float viewH = root.LayoutBox.Height;
+
+        // Estimate tooltip size (use actual layout if available, else estimate from text)
+        float tooltipW = _container.LayoutBox.Width > 0 ? _container.LayoutBox.Width : _text.Length * 7f + 16f;
+        float tooltipH = _container.LayoutBox.Height > 0 ? _container.LayoutBox.Height : 24f;
+
+        float x, y;
+
+        // Try right of target
+        if (targetBounds.Right + 4 + tooltipW <= viewW)
+        {
+            x = targetBounds.Right + 4;
+            y = targetBounds.Y;
+        }
+        // Try left of target
+        else if (targetBounds.X - 4 - tooltipW >= 0)
+        {
+            x = targetBounds.X - 4 - tooltipW;
+            y = targetBounds.Y;
+        }
+        // Try below target
+        else if (targetBounds.Bottom + 4 + tooltipH <= viewH)
+        {
+            x = targetBounds.X;
+            y = targetBounds.Bottom + 4;
+        }
+        // Fall back to above target
+        else
+        {
+            x = targetBounds.X;
+            y = Math.Max(0, targetBounds.Y - 4 - tooltipH);
+        }
+
+        _container.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"position: absolute; left: {x:F0}px; top: {y:F0}px; padding: 4px 8px; border-radius: 4px; " +
+            $"background-color: rgba(0,0,0,0.85); z-index: 10000; pointer-events: none");
+
+        if (_container.Parent != root)
+        {
+            _container.Parent?.RemoveChild(_container);
+            root.AddChild(_container);
+        }
+        root.MarkDirty();
+    }
+
+    private void Hide()
+    {
+        _container.Parent?.RemoveChild(_container);
     }
 
     public void Dispose()
@@ -96,13 +120,10 @@ public class LumiTooltip : IDisposable
                 _target.Off("mouseenter", _mouseEnterHandler);
             if (_mouseLeaveHandler != null)
                 _target.Off("mouseleave", _mouseLeaveHandler);
-            _target.RemoveChild(_container);
         }
-        if (_containerLeaveHandler != null)
-            Root.Off("mouseleave", _containerLeaveHandler);
+        _container.Parent?.RemoveChild(_container);
         _mouseEnterHandler = null;
         _mouseLeaveHandler = null;
-        _containerLeaveHandler = null;
         _target = null;
     }
 }

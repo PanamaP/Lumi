@@ -191,6 +191,19 @@ public class WindowManager
     {
         if (element is TextElement textElement && !string.IsNullOrEmpty(textElement.Text))
             return TextLayout.Measure(textElement.Text, availableWidth, element.ComputedStyle);
+
+        if (element is InputElement inputElement)
+        {
+            var text = !string.IsNullOrEmpty(inputElement.Value)
+                ? inputElement.Value
+                : !string.IsNullOrEmpty(inputElement.Placeholder)
+                    ? inputElement.Placeholder
+                    : "Xg";
+            var (w, h) = TextLayout.Measure(text, availableWidth, element.ComputedStyle);
+            float measuredWidth = availableWidth == float.MaxValue ? w : Math.Max(w, availableWidth);
+            return (measuredWidth, h);
+        }
+
         return (0, 0);
     }
 

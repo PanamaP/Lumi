@@ -43,11 +43,27 @@ public class LumiDropdown
         private set
         {
             _isOpen = value;
-            var display = _isOpen ? "flex" : "none";
-            _listContainer.InlineStyle = $"display: {display}; flex-direction: column; " +
-                                         $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Surface)}; " +
-                                         $"border-width: 1px; border-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; " +
-                                         $"border-radius: 4px; z-index: 100; overflow: scroll; max-height: 200px";
+            if (_isOpen)
+            {
+                var root = ComponentStyles.FindRoot(_container);
+                var buttonBounds = ComponentStyles.GetAbsoluteBounds(_button);
+                _listContainer.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+                    $"display: flex; flex-direction: column; " +
+                    $"position: absolute; top: {buttonBounds.Bottom:F0}px; left: {buttonBounds.X:F0}px; " +
+                    $"width: {buttonBounds.Width:F0}px; " +
+                    $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Surface)}; " +
+                    $"border-width: 1px; border-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; " +
+                    $"border-radius: 4px; z-index: 10000; overflow: scroll; max-height: 200px");
+                if (_listContainer.Parent != root)
+                {
+                    _listContainer.Parent?.RemoveChild(_listContainer);
+                    root.AddChild(_listContainer);
+                }
+            }
+            else
+            {
+                _listContainer.Parent?.RemoveChild(_listContainer);
+            }
             _container.MarkDirty();
         }
     }
@@ -71,13 +87,8 @@ public class LumiDropdown
         arrow.InlineStyle = $"color: {ComponentStyles.ToRgba(ComponentStyles.Subtle)}; font-size: 10px; padding: 0px 0px 0px 8px";
         _button.AddChild(arrow);
 
-        // Dropdown list (starts hidden)
+        // Dropdown list (added to root element when opened, not to container)
         _listContainer = new BoxElement("div");
-        _listContainer.InlineStyle = $"display: none; flex-direction: column; " +
-                                     $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Surface)}; " +
-                                     $"border-width: 1px; border-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; " +
-                                     $"border-radius: 4px; z-index: 100; overflow: scroll; max-height: 200px";
-        _container.AddChild(_listContainer);
 
         _button.On("click", OnButtonClick);
     }
