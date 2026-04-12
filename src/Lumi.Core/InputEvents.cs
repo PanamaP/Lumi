@@ -46,6 +46,13 @@ public class WindowEvent : InputEvent
     public int Height { get; init; }
 }
 
+public class FileDropEvent : InputEvent
+{
+    public string[] Files { get; init; } = [];
+    public float X { get; init; }
+    public float Y { get; init; }
+}
+
 public enum MouseButton { None, Left, Middle, Right }
 
 public enum MouseEventType

@@ -5,6 +5,59 @@ namespace Lumi.Styling;
 public class ParsedStyleSheet
 {
     public List<ParsedStyleRule> Rules { get; } = [];
+    public List<MediaRule> MediaRules { get; } = [];
+    public Dictionary<string, ParsedKeyframes> Keyframes { get; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// A @media rule containing a condition and nested style rules.
+/// </summary>
+public class MediaRule
+{
+    public MediaCondition Condition { get; init; } = new();
+    public List<ParsedStyleRule> Rules { get; } = [];
+}
+
+/// <summary>
+/// Parsed @media condition supporting min-width, max-width, min-height, max-height, orientation.
+/// </summary>
+public class MediaCondition
+{
+    public float? MinWidth { get; set; }
+    public float? MaxWidth { get; set; }
+    public float? MinHeight { get; set; }
+    public float? MaxHeight { get; set; }
+    public string? Orientation { get; set; }
+
+    public bool Evaluate(float viewportWidth, float viewportHeight)
+    {
+        if (MinWidth.HasValue && viewportWidth < MinWidth.Value) return false;
+        if (MaxWidth.HasValue && viewportWidth > MaxWidth.Value) return false;
+        if (MinHeight.HasValue && viewportHeight < MinHeight.Value) return false;
+        if (MaxHeight.HasValue && viewportHeight > MaxHeight.Value) return false;
+        if (Orientation != null)
+        {
+            bool isPortrait = viewportHeight >= viewportWidth;
+            if (Orientation == "portrait" && !isPortrait) return false;
+            if (Orientation == "landscape" && isPortrait) return false;
+        }
+        return true;
+    }
+}
+
+/// <summary>
+/// Parsed @keyframes definition with named percentage stops.
+/// </summary>
+public class ParsedKeyframes
+{
+    public string Name { get; init; } = "";
+    public List<ParsedKeyframe> Frames { get; } = [];
+}
+
+public class ParsedKeyframe
+{
+    public float Percent { get; init; }
+    public List<ParsedDeclaration> Declarations { get; } = [];
 }
 
 public class ParsedStyleRule
@@ -121,10 +174,10 @@ public static class CssParser
             SkipWhitespace(css, ref i);
             if (i >= len) break;
 
-            // @-rule: skip entirely (we don't use @media/@keyframes yet)
+            // @-rule: parse @media and @keyframes, skip others
             if (css[i] == '@')
             {
-                SkipAtRule(css, ref i);
+                ParseAtRule(css, ref i, result);
                 continue;
             }
 
@@ -337,8 +390,8 @@ public static class CssParser
         {
             char c = s[i];
 
-            if (inSingle) { if (c == '\'' && s[i - 1] != '\\') inSingle = false; continue; }
-            if (inDouble) { if (c == '"' && s[i - 1] != '\\') inDouble = false; continue; }
+            if (inSingle) { if (c == '\'' && !IsEscaped(s, i)) inSingle = false; continue; }
+            if (inDouble) { if (c == '"' && !IsEscaped(s, i)) inDouble = false; continue; }
 
             switch (c)
             {
@@ -354,7 +407,201 @@ public static class CssParser
         return -1;
     }
 
-    private static void SkipAtRule(string s, ref int i)
+    private static void ParseAtRule(string s, ref int i, ParsedStyleSheet result)
+    {
+        i++; // skip '@'
+
+        // Determine which @-rule this is
+        int nameStart = i;
+        while (i < s.Length && char.IsLetterOrDigit(s[i]) && s[i] != '{' && s[i] != ';')
+            i++;
+        string ruleName = s[nameStart..i].Trim().ToLowerInvariant();
+
+        if (ruleName == "media")
+        {
+            ParseMediaRule(s, ref i, result);
+            return;
+        }
+
+        if (ruleName == "keyframes")
+        {
+            ParseKeyframesRule(s, ref i, result);
+            return;
+        }
+
+        // Unknown @-rule: skip it
+        SkipAtRuleBody(s, ref i);
+    }
+
+    private static void ParseMediaRule(string s, ref int i, ParsedStyleSheet result)
+    {
+        // Find the opening brace to extract the condition
+        int bracePos = s.IndexOf('{', i);
+        if (bracePos < 0) { i = s.Length; return; }
+
+        string conditionText = s[i..bracePos].Trim();
+        var condition = ParseMediaCondition(conditionText);
+
+        // Find matching closing brace
+        int closePos = FindMatchingBrace(s, bracePos);
+        if (closePos < 0) { i = s.Length; return; }
+
+        // Parse inner rules
+        string innerCss = s[(bracePos + 1)..closePos];
+        var innerSheet = new ParsedStyleSheet();
+        ExtractRules(innerCss, innerSheet);
+
+        if (innerSheet.Rules.Count > 0)
+        {
+            var mediaRule = new MediaRule { Condition = condition };
+            mediaRule.Rules.AddRange(innerSheet.Rules);
+            result.MediaRules.Add(mediaRule);
+        }
+
+        i = closePos + 1;
+    }
+
+    private static MediaCondition ParseMediaCondition(string text)
+    {
+        var condition = new MediaCondition();
+
+        // Strip leading parens from entire condition, handle "screen and (...)"
+        // Remove media type keywords: "screen", "all", "print"
+        text = text.Replace("screen", "", StringComparison.OrdinalIgnoreCase)
+                   .Replace("all", "", StringComparison.OrdinalIgnoreCase)
+                   .Replace("print", "", StringComparison.OrdinalIgnoreCase)
+                   .Replace("and", " ", StringComparison.OrdinalIgnoreCase)
+                   .Trim();
+
+        // Parse individual conditions: (min-width: 768px) (max-height: 600px)
+        int pos = 0;
+        while (pos < text.Length)
+        {
+            int parenStart = text.IndexOf('(', pos);
+            if (parenStart < 0) break;
+            int parenEnd = text.IndexOf(')', parenStart);
+            if (parenEnd < 0) break;
+
+            string expr = text[(parenStart + 1)..parenEnd].Trim();
+            int colonIdx = expr.IndexOf(':');
+            if (colonIdx > 0)
+            {
+                string feature = expr[..colonIdx].Trim().ToLowerInvariant();
+                string val = expr[(colonIdx + 1)..].Trim();
+
+                float px = ParseMediaLength(val);
+
+                switch (feature)
+                {
+                    case "min-width": condition.MinWidth = px; break;
+                    case "max-width": condition.MaxWidth = px; break;
+                    case "min-height": condition.MinHeight = px; break;
+                    case "max-height": condition.MaxHeight = px; break;
+                    case "orientation": condition.Orientation = val.ToLowerInvariant(); break;
+                }
+            }
+            else if (expr.Equals("portrait", StringComparison.OrdinalIgnoreCase) ||
+                     expr.Equals("landscape", StringComparison.OrdinalIgnoreCase))
+            {
+                condition.Orientation = expr.ToLowerInvariant();
+            }
+
+            pos = parenEnd + 1;
+        }
+
+        return condition;
+    }
+
+    private static float ParseMediaLength(string value)
+    {
+        value = value.Trim();
+        if (value.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+            value = value[..^2].Trim();
+        else if (value.EndsWith("em", StringComparison.OrdinalIgnoreCase))
+        {
+            if (float.TryParse(value[..^2].Trim(), System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out var emVal))
+                return emVal * 16f; // assume root font size
+        }
+
+        return float.TryParse(value, System.Globalization.NumberStyles.Float,
+            System.Globalization.CultureInfo.InvariantCulture, out var px) ? px : 0;
+    }
+
+    private static void ParseKeyframesRule(string s, ref int i, ParsedStyleSheet result)
+    {
+        SkipWhitespace(s, ref i);
+
+        // Extract animation name
+        int nameStart = i;
+        while (i < s.Length && s[i] != '{' && s[i] != ' ')
+            i++;
+        string name = s[nameStart..i].Trim().Trim('"', '\'');
+
+        // Find opening brace
+        int bracePos = s.IndexOf('{', i);
+        if (bracePos < 0) { i = s.Length; return; }
+
+        int closePos = FindMatchingBrace(s, bracePos);
+        if (closePos < 0) { i = s.Length; return; }
+
+        string innerCss = s[(bracePos + 1)..closePos];
+
+        var keyframes = new ParsedKeyframes { Name = name };
+        ParseKeyframeStops(innerCss, keyframes);
+
+        if (keyframes.Frames.Count > 0)
+            result.Keyframes[name] = keyframes;
+
+        i = closePos + 1;
+    }
+
+    private static void ParseKeyframeStops(string css, ParsedKeyframes keyframes)
+    {
+        int i = 0;
+        int len = css.Length;
+
+        while (i < len)
+        {
+            SkipWhitespace(css, ref i);
+            if (i >= len) break;
+
+            int bracePos = IndexOfUnquoted(css, '{', i);
+            if (bracePos < 0) break;
+
+            string stopText = css[i..bracePos].Trim();
+            int closePos = FindMatchingBrace(css, bracePos);
+            if (closePos < 0) break;
+
+            string blockText = css[(bracePos + 1)..closePos];
+            var declarations = ParseDeclarationBlock(blockText);
+
+            // Parse stop percentages (handles "0%", "100%", "from", "to", comma-separated)
+            foreach (var stop in stopText.Split(',', StringSplitOptions.TrimEntries))
+            {
+                float percent = stop.ToLowerInvariant() switch
+                {
+                    "from" => 0f,
+                    "to" => 1f,
+                    _ when stop.EndsWith('%') &&
+                        float.TryParse(stop[..^1], System.Globalization.NumberStyles.Float,
+                            System.Globalization.CultureInfo.InvariantCulture, out var p) => p / 100f,
+                    _ => -1
+                };
+
+                if (percent >= 0)
+                {
+                    var frame = new ParsedKeyframe { Percent = percent };
+                    frame.Declarations.AddRange(declarations);
+                    keyframes.Frames.Add(frame);
+                }
+            }
+
+            i = closePos + 1;
+        }
+    }
+
+    private static void SkipAtRuleBody(string s, ref int i)
     {
         i++; // skip '@'
         while (i < s.Length)
@@ -442,5 +689,21 @@ public static class CssParser
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Returns true if the character at position <paramref name="i"/> is preceded by an
+    /// odd number of backslashes (i.e. it is escaped).
+    /// </summary>
+    private static bool IsEscaped(string s, int i)
+    {
+        int backslashes = 0;
+        int j = i - 1;
+        while (j >= 0 && s[j] == '\\')
+        {
+            backslashes++;
+            j--;
+        }
+        return (backslashes & 1) != 0;
     }
 }

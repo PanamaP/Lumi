@@ -1,12 +1,13 @@
 namespace Lumi.Core.Components;
 
 /// <summary>
-/// Default dark-theme styles applied consistently across all Lumi components.
-/// Uses InlineStyle strings so styles survive the StyleResolver cascade.
+/// Default styles applied consistently across all Lumi components.
+/// Uses CSS custom properties (theme variables) where possible so components
+/// automatically adapt to light/dark theme changes.
 /// </summary>
 public static class ComponentStyles
 {
-    // Dark theme palette
+    // Fallback palette (dark theme) — used when theme variables are not resolved
     public static readonly Color Background = Color.FromHex("1E293B");
     public static readonly Color Accent = Color.FromHex("38BDF8");
     public static readonly Color TextColor = Color.FromHex("F8FAFC");
@@ -36,32 +37,40 @@ public static class ComponentStyles
     {
         var (bg, fg, border) = variant switch
         {
-            ButtonVariant.Primary => (Accent, new Color(15, 23, 42, 255), Accent),
-            ButtonVariant.Danger => (Danger, TextColor, Danger),
-            _ => (Surface, TextColor, Border)
+            ButtonVariant.Primary => ($"var(--accent, {ToRgba(Accent)})",
+                                      $"var(--bg-primary, {ToRgba(new Color(15, 23, 42, 255))})",
+                                      $"var(--accent, {ToRgba(Accent)})"),
+            ButtonVariant.Danger  => ($"var(--error, {ToRgba(Danger)})",
+                                      $"var(--text-primary, {ToRgba(TextColor)})",
+                                      $"var(--error, {ToRgba(Danger)})"),
+            _                     => ($"var(--bg-tertiary, {ToRgba(Surface)})",
+                                      $"var(--text-primary, {ToRgba(TextColor)})",
+                                      $"var(--border-color, {ToRgba(Border)})")
         };
 
         el.InlineStyle = $"display: flex; flex-direction: row; align-items: center; justify-content: center; " +
                          $"padding: 8px 16px; border-radius: 6px; border-width: 1px; cursor: pointer; " +
-                         $"background-color: {ToRgba(bg)}; color: {ToRgba(fg)}; border-color: {ToRgba(border)}";
+                         $"background-color: {bg}; color: {fg}; border-color: {border}";
     }
 
     public static void ApplyDisabledButton(Element el)
     {
-        el.InlineStyle = $"background-color: {ToRgba(Disabled)}; color: {ToRgba(Subtle)}; " +
-                         $"border-color: {ToRgba(Disabled)}; cursor: default; opacity: 0.6";
+        el.InlineStyle = $"background-color: var(--text-muted, {ToRgba(Disabled)}); " +
+                         $"color: var(--text-secondary, {ToRgba(Subtle)}); " +
+                         $"border-color: var(--text-muted, {ToRgba(Disabled)}); cursor: default; opacity: 0.6";
     }
 
     public static void ApplyLabel(Element el)
     {
-        el.InlineStyle = $"color: {ToRgba(Subtle)}; font-size: 13px";
+        el.InlineStyle = $"color: var(--text-secondary, {ToRgba(Subtle)}); font-size: 13px";
     }
 
     public static void ApplyTextInput(Element el)
     {
         el.InlineStyle = $"display: block; padding: 8px 12px; border-radius: 4px; border-width: 1px; " +
-                         $"border-color: {ToRgba(Border)}; background-color: {ToRgba(Background)}; " +
-                         $"color: {ToRgba(TextColor)}; font-size: 14px";
+                         $"border-color: var(--border-color, {ToRgba(Border)}); " +
+                         $"background-color: var(--bg-secondary, {ToRgba(Background)}); " +
+                         $"color: var(--text-primary, {ToRgba(TextColor)}); font-size: 14px";
     }
 
     public static void ApplyContainer(Element el, FlexDirection direction = FlexDirection.Column)
@@ -79,22 +88,92 @@ public static class ComponentStyles
 
     public static void ApplyDialogPanel(Element el)
     {
-        el.InlineStyle = $"background-color: {ToRgba(Surface)}; border-radius: 8px; padding: 0px; " +
+        el.InlineStyle = $"background-color: var(--bg-tertiary, {ToRgba(Surface)}); border-radius: 8px; padding: 0px; " +
                          $"min-width: 300px; min-height: 150px; display: flex; flex-direction: column";
     }
 
     public static void ApplyListContainer(Element el)
     {
         el.InlineStyle = $"display: flex; flex-direction: column; " +
-                         $"background-color: {ToRgba(Background)}; border-width: 1px; " +
-                         $"border-color: {ToRgba(Border)}; border-radius: 4px";
+                         $"background-color: var(--bg-secondary, {ToRgba(Background)}); border-width: 1px; " +
+                         $"border-color: var(--border-color, {ToRgba(Border)}); border-radius: 4px";
     }
 
     public static void ApplyListRow(Element el)
     {
         el.InlineStyle = $"display: flex; flex-direction: row; align-items: center; " +
                          $"padding: 8px 12px; border-width: 0px 0px 1px 0px; " +
-                         $"border-color: {ToRgba(Border)}; cursor: pointer; " +
-                         $"color: {ToRgba(TextColor)}";
+                         $"border-color: var(--border-color, {ToRgba(Border)}); cursor: pointer; " +
+                         $"color: var(--text-primary, {ToRgba(TextColor)})";
+    }
+
+    public static void ApplyRadioGroup(Element el)
+    {
+        el.InlineStyle = "display: flex; flex-direction: column; gap: 4px";
+    }
+
+    public static void ApplyToggleTrack(Element el, bool isOn)
+    {
+        var bg = isOn
+            ? $"var(--accent, {ToRgba(Accent)})"
+            : $"var(--border-color, {ToRgba(Border)})";
+        el.InlineStyle = $"width: 44px; height: 24px; border-radius: 12px; position: relative; " +
+                         $"background-color: {bg}";
+    }
+
+    public static void ApplyProgressTrack(Element el)
+    {
+        el.InlineStyle = $"width: 100%; height: 8px; border-radius: 4px; overflow: hidden; " +
+                         $"background-color: var(--border-color, {ToRgba(Border)})";
+    }
+
+    public static void ApplyTabHeader(Element el)
+    {
+        el.InlineStyle = $"display: flex; flex-direction: row; " +
+                         $"border-width: 0px 0px 1px 0px; border-color: var(--border-color, {ToRgba(Border)}); " +
+                         $"background-color: var(--bg-tertiary, {ToRgba(Surface)})";
+    }
+
+    public static void ApplyTooltip(Element el)
+    {
+        el.InlineStyle = $"position: absolute; padding: 4px 8px; border-radius: 4px; " +
+                         $"background-color: rgba(0,0,0,0.85); z-index: 999";
+    }
+
+    // Tracks elements that have been hidden via SetVisible(false).
+    // Uses ConditionalWeakTable so the entries are automatically cleaned up when elements are GC'd.
+    // The stored value is unused — the table is used only as a weak-keyed set.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Element, string> s_hiddenElements = new();
+
+    // Matches 'display: none' (with optional spacing/semicolons) anywhere in an inline style string.
+    private static readonly System.Text.RegularExpressions.Regex s_displayNoneRegex =
+        new(@"\s*;?\s*display\s*:\s*none\s*;?", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// Sets an element's display to none (hidden) or restores the previous display value.
+    /// Only the display declaration is added or removed; other inline style changes are preserved.
+    /// </summary>
+    public static void SetVisible(Element el, bool visible)
+    {
+        if (visible)
+        {
+            // Strip display:none from the current inline style, preserving any other changes
+            if (s_hiddenElements.TryGetValue(el, out _))
+            {
+                el.InlineStyle = s_displayNoneRegex.Replace(el.InlineStyle ?? "", "").Trim().TrimEnd(';');
+                s_hiddenElements.Remove(el);
+            }
+        }
+        else
+        {
+            var existing = el.InlineStyle ?? "";
+            if (!s_hiddenElements.TryGetValue(el, out _))
+            {
+                // Mark as hidden and append display:none to the current style
+                s_hiddenElements.Add(el, "");
+                el.InlineStyle = string.IsNullOrEmpty(existing) ? "display: none" : existing.TrimEnd(';') + "; display: none";
+            }
+        }
+        el.MarkDirty();
     }
 }

@@ -1,0 +1,174 @@
+/* ── Base ─────────────────────────────────────────── */
+
+.app {
+  --accent: #8B5CF6;
+  --accent-hover: #A78BFA;
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-subtle: #64748B;
+  --success: #22C55E;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --border: #334155;
+
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  background-color: var(--bg-primary);
+}
+
+/* ── Header ──────────────────────────────────────── */
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 60px;
+  padding: 0px 28px;
+  background-color: var(--bg-secondary);
+  gap: 16px;
+}
+
+.logo {
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.header-sub {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ── Main ────────────────────────────────────────── */
+
+.main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px;
+  overflow: scroll;
+}
+
+/* ── Form Container ──────────────────────────────── */
+
+.form-container {
+  width: 560px;
+  padding: 32px;
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  border-width: 1px;
+  border-color: var(--border);
+  border-style: solid;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-title {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.form-subtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0px 0px 16px 0px;
+}
+
+/* ── Sections ────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0px 16px 0px;
+}
+
+.section-title {
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0px 0px 4px 0px;
+}
+
+/* ── Fields ──────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.field-row .field {
+  flex-grow: 1;
+}
+
+/* ── Toggles ─────────────────────────────────────── */
+
+.toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Validation ──────────────────────────────────── */
+
+.validation-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0px 8px 0px;
+  min-height: 20px;
+}
+
+.validation-msg {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.validation-error {
+  color: var(--danger);
+  background-color: rgba(239,68,68,0.1);
+}
+
+.validation-success {
+  color: var(--success);
+  background-color: rgba(34,197,94,0.1);
+}
+
+/* ── Actions ─────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin: 8px 0px 0px 0px;
+}
+
+/* ── Footer ──────────────────────────────────────── */
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  background-color: var(--bg-secondary);
+}
+
+.footer-text {
+  color: var(--text-subtle);
+  font-size: 11px;
+}

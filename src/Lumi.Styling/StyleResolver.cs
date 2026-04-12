@@ -1,4 +1,5 @@
 using Lumi.Core;
+using Lumi.Core.Animation;
 using Element = Lumi.Core.Element;
 
 namespace Lumi.Styling;
@@ -16,14 +17,41 @@ public class StyleResolver
     private readonly HashSet<string> _explicitBuffer = new(32);
     private readonly ComputedStyle _tempStyle = new();
 
-    // Selector match cache: key = element identity + class hash, value = matched rules
+    // Selector match cache: key = element identity + class hash + parent context, value = matched rules
     private readonly Dictionary<long, List<(ParsedStyleRule Rule, int SheetIndex, int RuleIndex)>> _selectorCache = new();
     private int _stylesheetVersion;
     private int _lastResolvedVersion;
 
+    // Viewport dimensions for @media query evaluation
+    private float _viewportWidth;
+    private float _viewportHeight;
+
+    // Tracks which elements already have their CSS animation playing
+    private readonly HashSet<Element> _animatingElements = new();
+
+    /// <summary>
+    /// The keyframe player used to auto-play CSS @keyframes animations.
+    /// </summary>
+    public KeyframePlayer KeyframePlayer { get; } = new();
+
+    /// <summary>
+    /// Sets the viewport dimensions used for @media query evaluation.
+    /// Call once per frame before ResolveStyles().
+    /// </summary>
+    public void SetViewport(float width, float height)
+    {
+        if (_viewportWidth != width || _viewportHeight != height)
+        {
+            _viewportWidth = width;
+            _viewportHeight = height;
+            _selectorCache.Clear(); // media conditions may change matching rules
+        }
+    }
+
     public void AddStyleSheet(ParsedStyleSheet sheet)
     {
         _styleSheets.Add(sheet);
+        RegisterKeyframes(sheet);
         _stylesheetVersion++;
     }
 
@@ -36,6 +64,7 @@ public class StyleResolver
     public void ClearStyleSheets()
     {
         _styleSheets.Clear();
+        _animatingElements.Clear();
         _stylesheetVersion++;
     }
 
@@ -59,6 +88,13 @@ public class StyleResolver
         // 1. Reset temp style to defaults
         _tempStyle.Reset();
 
+        // Pre-seed inherited custom properties so var() in rules can resolve them
+        if (parentStyle?.HasCustomProperties == true)
+        {
+            foreach (var kvp in parentStyle.CustomProperties)
+                _tempStyle.CustomProperties[kvp.Key] = kvp.Value;
+        }
+
         // 2. Get matching rules (cached or computed)
         var matchingRules = GetMatchingRules(element, pseudoState);
 
@@ -67,6 +103,16 @@ public class StyleResolver
 
         // Set font-size context for em/rem unit resolution (parent's font-size)
         PropertyApplier.SetFontSizeContext(parentStyle?.FontSize ?? 16f);
+
+        // 2b. Apply theme variables (stylesheet-level specificity, overridable by rules and inline)
+        if (element.ThemeVariables != null)
+        {
+            foreach (var kvp in element.ThemeVariables)
+            {
+                PropertyApplier.Apply(_tempStyle, kvp.Key, kvp.Value);
+                _explicitBuffer.Add(kvp.Key);
+            }
+        }
 
         // 3. Apply declarations in cascade order (lower specificity first → higher overrides)
         foreach (var (rule, _, _) in matchingRules)
@@ -98,7 +144,17 @@ public class StyleResolver
         // 6. Apply resolved values onto the element's existing ComputedStyle
         ApplyToComputedStyle(element.ComputedStyle, _tempStyle);
 
-        // 7. Recurse into children
+        // 7. Auto-play @keyframes animation if animation-name is set
+        if (!string.IsNullOrEmpty(element.ComputedStyle.AnimationName) && _animatingElements.Add(element))
+        {
+            var cs = element.ComputedStyle;
+            KeyframePlayer.Play(element, cs.AnimationName,
+                cs.AnimationDuration > 0 ? cs.AnimationDuration : 0.3f,
+                cs.AnimationIterationCount,
+                cs.AnimationDirection);
+        }
+
+        // 8. Recurse into children
         foreach (var child in element.Children)
         {
             ResolveElement(child, element.ComputedStyle, pseudoState);
@@ -112,7 +168,7 @@ public class StyleResolver
     private List<(ParsedStyleRule Rule, int SheetIndex, int RuleIndex)> GetMatchingRules(
         Element element, PseudoClassState? pseudoState)
     {
-        // Build a cache key from tag + classes (not identity — elements with same classes share cache)
+        // Build a cache key from tag + classes + parent context
         long key = ComputeCacheKey(element);
 
         if (_selectorCache.TryGetValue(key, out var cached))
@@ -123,12 +179,31 @@ public class StyleResolver
         for (int s = 0; s < _styleSheets.Count; s++)
         {
             var sheet = _styleSheets[s];
+
+            // Regular (unconditional) rules
             for (int r = 0; r < sheet.Rules.Count; r++)
             {
                 var rule = sheet.Rules[r];
                 if (SelectorMatcher.Matches(element, rule.SelectorText, pseudoState))
                 {
                     _matchBuffer.Add((rule, s, r));
+                }
+            }
+
+            // @media conditional rules — include only if condition matches viewport
+            foreach (var mediaRule in sheet.MediaRules)
+            {
+                if (mediaRule.Condition.Evaluate(_viewportWidth, _viewportHeight))
+                {
+                    for (int r = 0; r < mediaRule.Rules.Count; r++)
+                    {
+                        var rule = mediaRule.Rules[r];
+                        if (SelectorMatcher.Matches(element, rule.SelectorText, pseudoState))
+                        {
+                            // Use high sheet index offset so media rules come after regular rules
+                            _matchBuffer.Add((rule, s + 1000, r));
+                        }
+                    }
                 }
             }
         }
@@ -150,8 +225,8 @@ public class StyleResolver
     }
 
     /// <summary>
-    /// Compute a cache key from element tag name + class list.
-    /// Elements with the same tag and classes will share matched rules.
+    /// Compute a cache key from element tag name, id, class list, parent identity, and child index.
+    /// Includes parent context so context-dependent selectors (descendant, child, sibling) resolve correctly.
     /// </summary>
     private static long ComputeCacheKey(Element element)
     {
@@ -164,7 +239,27 @@ public class StyleResolver
         foreach (var cls in element.Classes)
             hash = hash * 31 + cls.GetHashCode(StringComparison.Ordinal);
 
+        // Add parent context to cache key for context-dependent selectors
+        if (element.Parent != null)
+        {
+            hash = hash * 31 + (element.Parent.TagName?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0);
+            hash = hash * 31 + (element.Parent.Id?.GetHashCode(StringComparison.Ordinal) ?? 0);
+        }
+        // Include child index for sibling selectors
+        hash = hash * 31 + ChildIndex(element);
+
         return hash;
+    }
+
+    private static int ChildIndex(Element element)
+    {
+        if (element.Parent == null) return 0;
+        var siblings = element.Parent.Children;
+        for (int i = 0; i < siblings.Count; i++)
+        {
+            if (siblings[i] == element) return i;
+        }
+        return 0;
     }
 
     /// <summary>
@@ -206,6 +301,11 @@ public class StyleResolver
         target.RowGap = source.RowGap;
         target.ColumnGap = source.ColumnGap;
 
+        // Grid layout
+        target.GridTemplateColumns = source.GridTemplateColumns;
+        target.GridTemplateRows = source.GridTemplateRows;
+        target.GridGap = source.GridGap;
+
         // Visual
         target.BackgroundColor = source.BackgroundColor;
         target.BorderColor = source.BorderColor;
@@ -217,8 +317,9 @@ public class StyleResolver
         target.Cursor = source.Cursor;
         target.BoxShadow = source.BoxShadow;
         target.BackgroundImage = source.BackgroundImage;
+        target.BackgroundGradient = source.BackgroundGradient;
 
-        // CSS Custom Properties (only copy if source has any, to avoid lazy-init on target)
+        // CSS Custom Properties(only copy if source has any, to avoid lazy-init on target)
         if (source.HasCustomProperties)
         {
             foreach (var kvp in source.CustomProperties)
@@ -243,8 +344,43 @@ public class StyleResolver
         // Transitions
         target.TransitionProperty = source.TransitionProperty;
         target.TransitionDuration = source.TransitionDuration;
+        target.TransitionTimingFunction = source.TransitionTimingFunction;
+
+        // Animation
+        target.AnimationName = source.AnimationName;
+        target.AnimationDuration = source.AnimationDuration;
+        target.AnimationDelay = source.AnimationDelay;
+        target.AnimationIterationCount = source.AnimationIterationCount;
+        target.AnimationDirection = source.AnimationDirection;
+        target.AnimationFillMode = source.AnimationFillMode;
+        target.AnimationTimingFunction = source.AnimationTimingFunction;
 
         // Pointer events
         target.PointerEvents = source.PointerEvents;
+
+        // Transform
+        target.Transform = source.Transform;
+        target.TransformOriginX = source.TransformOriginX;
+        target.TransformOriginY = source.TransformOriginY;
+    }
+
+    /// <summary>
+    /// Converts parsed @keyframes blocks from a stylesheet and registers them
+    /// with the KeyframePlayer for auto-play.
+    /// </summary>
+    private void RegisterKeyframes(ParsedStyleSheet sheet)
+    {
+        foreach (var (name, parsed) in sheet.Keyframes)
+        {
+            var animation = new KeyframeAnimation { Name = name };
+            foreach (var frame in parsed.Frames)
+            {
+                var props = new Dictionary<string, string>();
+                foreach (var decl in frame.Declarations)
+                    props[decl.Property] = decl.Value;
+                animation.Keyframes.Add(new Keyframe(frame.Percent, props));
+            }
+            KeyframePlayer.Register(animation);
+        }
     }
 }

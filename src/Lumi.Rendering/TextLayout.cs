@@ -2,6 +2,7 @@ namespace Lumi.Rendering;
 
 using SkiaSharp;
 using Lumi.Core;
+using Lumi.Text;
 
 /// <summary>
 /// A single line of laid-out text with its position and dimensions.
@@ -142,11 +143,19 @@ public static class TextLayout
 
     /// <summary>
     /// Measure text dimensions without producing full layout (for Yoga measure callback).
+    /// When <see cref="TextRenderingOptions.UseHarfBuzz"/> is enabled, delegates to
+    /// <see cref="ShapedTextLayout.Measure"/> for more accurate glyph-based measurement.
     /// </summary>
     public static (float Width, float Height) Measure(string text, float maxWidth, ComputedStyle style)
     {
         if (string.IsNullOrEmpty(text))
             return (0, 0);
+
+        if (TextRenderingOptions.UseHarfBuzz)
+        {
+            var shaper = TextRenderingOptions.GetShaper();
+            return ShapedTextLayout.Measure(text, maxWidth, style, shaper);
+        }
 
         // Use a large available height since we just want to measure, not truncate
         var layout = Layout(text, maxWidth > 0 ? maxWidth : float.MaxValue, float.MaxValue, style);

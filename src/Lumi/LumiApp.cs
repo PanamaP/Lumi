@@ -24,6 +24,7 @@ public sealed class LumiApp : IDisposable
     private readonly DirtyRegionTracker _dirtyTracker = new();
     private readonly TransitionManager _transitionManager = new();
     private readonly Inspector _inspector = new();
+    private readonly WindowManager _windowManager = new();
     private HotReload? _hotReload;
     private bool _disposed;
     private bool _useGpuRendering;
@@ -37,18 +38,30 @@ public sealed class LumiApp : IDisposable
         _window = window;
         _app = new Application();
 
+        // Register platform-specific fallback fonts (emoji, symbols) before any rendering
+        SystemFontResolver.Initialize();
+
+        // Wire up TemplateEngine's HTML parser so template directives can parse HTML
+        Core.Binding.TemplateEngine.HtmlParser ??= HtmlTemplateParser.Parse;
+
         _platformWindow = new Sdl3Window();
         _platformWindow.Create(window.Title, window.Width, window.Height);
+
+        // Wire up clipboard delegates so Lumi.Core can access the OS clipboard
+        Clipboard.Initialize(
+            () => _platformWindow.GetClipboardText(),
+            text => _platformWindow.SetClipboardText(text));
 
         // Initialize frame clock with detected display refresh rate
         _frameClock = new FrameClock(_platformWindow.DisplayRefreshRate);
 
-        // Expose frame metrics to the window for app-level access
+        // Expose frame metrics and window manager to the window for app-level access
         _window.FrameMetrics = _frameMetrics;
-        _window.Renderer = _renderer;
+        _window.Windows = _windowManager;
 
         // Try GPU-accelerated rendering
         _renderer = new SkiaRenderer();
+        _window.Renderer = _renderer;
         try
         {
             _platformWindow.CreateGLContext();
@@ -84,6 +97,12 @@ public sealed class LumiApp : IDisposable
 
     private void Start()
     {
+        // Detect OS dark-mode preference and apply initial theme
+        var prefs = new SystemPreferences();
+        prefs.Detect();
+        _window.Theme.SetSystemPreference(prefs.IsDarkMode);
+        _window.Theme.ApplyTo(_window.Root);
+
         _app.Root = _window.Root;
         _window.OnReady();
         _app.Root = _window.Root;
@@ -116,7 +135,8 @@ public sealed class LumiApp : IDisposable
             // Stay active (poll) if: something is dirty, we rendered last frame
             // (OnUpdate may re-dirty for animations), or tweens/transitions are running.
             bool stayActive = _app.IsDirty || _inspector.IsEnabled || _wasActiveLastFrame
-                || AnimationExtensions.GlobalTweenEngine.ActiveCount > 0;
+                || AnimationExtensions.GlobalTweenEngine.ActiveCount > 0
+                || _window.StyleResolver.KeyframePlayer.ActiveCount > 0;
             var events = stayActive
                 ? _platformWindow.PollEvents()
                 : _platformWindow.WaitForEvents();
@@ -142,16 +162,28 @@ public sealed class LumiApp : IDisposable
 
             _frameMetrics.BeginStage();
             _window.OnUpdate();
+            _windowManager.Update();
             _app.Update();
             _transitionManager.Update(_frameClock.DeltaTime);
             AnimationExtensions.GlobalTweenEngine.Update((float)_frameClock.DeltaTime);
+            _window.StyleResolver.KeyframePlayer.Update((float)_frameClock.DeltaTime);
             _frameMetrics.RecordUpdate();
+
+            // Keep input elements dirty for caret blink animation
+            if (_interaction.FocusedElement is InputElement)
+                _interaction.FocusedElement.MarkDirty();
 
             bool needsRepaint = _app.IsDirty || _inspector.IsEnabled;
 
             if (_app.IsDirty)
             {
                 var (w, h) = _platformWindow.GetPixelSize();
+
+                // Set viewport context for vh/vw/calc() resolution
+                PropertyApplier.SetViewportContext(w, h);
+
+                // Set viewport for @media query evaluation
+                _window.StyleResolver.SetViewport(w, h);
 
                 _frameMetrics.BeginStage();
                 if (!_resizeOnly)
@@ -272,9 +304,10 @@ public sealed class LumiApp : IDisposable
                         HitTester.HitTest(_window.Root, mouse.X, mouse.Y));
                     break;
                 case MouseEvent { Type: MouseEventType.ButtonDown } down:
-                    var target = HitTester.HitTest(_window.Root, down.X, down.Y);
-                    _interaction.SetActive(target);
-                    SetFocusedElement(target);
+                    _interaction.SetActive(
+                        HitTester.HitTest(_window.Root, down.X, down.Y));
+                    // Focus is handled by Application.SetFocus (single source of truth);
+                    // synced to _interaction below after the event loop.
                     break;
                 case MouseEvent { Type: MouseEventType.ButtonUp }:
                     _interaction.SetActive(null);
@@ -317,6 +350,11 @@ public sealed class LumiApp : IDisposable
             if (!wasDirtyBefore)
                 _resizeOnly = true;
         }
+
+        // Sync focus from Application (the single source of truth for click-based focus).
+        // Application.SetFocus walks to the nearest focusable ancestor and fires
+        // Focus/Blur routed events; we just mirror the result for pseudo-class matching.
+        SyncFocusFromApp();
     }
 
     private const float ScrollSpeed = 40f;
@@ -373,24 +411,27 @@ public sealed class LumiApp : IDisposable
         }
     }
 
+    /// <summary>
+    /// Update focus via Application (the single source of truth) and sync to interaction state.
+    /// Used by keyboard navigation (Tab) which originates in LumiApp, not Application.
+    /// </summary>
     private void SetFocusedElement(Element? element)
     {
-        // Clear previous focus
-        if (_interaction.FocusedElement != null)
-            _interaction.FocusedElement.IsFocused = false;
+        _app.SetFocus(element);
+        SyncFocusFromApp();
+    }
 
-        // Walk up to find a focusable element if the target isn't focusable
-        var focusTarget = element;
-        while (focusTarget != null && !focusTarget.IsFocusable)
-            focusTarget = focusTarget.Parent;
+    /// <summary>
+    /// Mirror Application's focused element into <see cref="InteractionState"/> for
+    /// pseudo-class matching and caret blink.
+    /// </summary>
+    private void SyncFocusFromApp()
+    {
+        var appFocus = _app.FocusedElement;
+        if (_interaction.FocusedElement == appFocus) return;
 
-        _interaction.SetFocused(focusTarget);
-
-        if (focusTarget != null)
-        {
-            focusTarget.IsFocused = true;
-            focusTarget.MarkDirty();
-        }
+        _interaction.SetFocused(appFocus);
+        appFocus?.MarkDirty();
     }
 
     private static List<Element> CollectFocusableElements(Element root)
@@ -488,10 +529,13 @@ public sealed class LumiApp : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _windowManager.CloseAll();
         _hotReload?.Dispose();
         _window.LayoutEngine.Dispose();
         _renderTarget?.Dispose();
         _renderer.Dispose();
         _platformWindow.Dispose();
+        FontManager.Clear();
+        Lumi.Text.TypefaceCache.Clear();
     }
 }

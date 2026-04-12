@@ -1,0 +1,145 @@
+<div class="app" id="app-root">
+  <header class="header">
+    <h1 class="logo">📊 Dashboard</h1>
+    <nav class="nav">
+      <span class="nav-link active" id="nav-overview">Overview</span>
+      <span class="nav-link" id="nav-analytics">Analytics</span>
+      <span class="nav-link" id="nav-settings">Settings</span>
+    </nav>
+    <button class="btn btn-theme" id="btn-theme">🌙 Dark</button>
+  </header>
+
+  <main class="main">
+    <!-- Tab: Overview -->
+    <div class="tab-content" id="tab-overview">
+      <div class="stats-row">
+        <div class="stat-card" id="stat-users">
+          <span class="stat-icon">👥</span>
+          <span class="stat-value" id="stat-users-value">12,847</span>
+          <span class="stat-label">Total Users</span>
+          <span class="stat-change positive">+12.5%</span>
+        </div>
+        <div class="stat-card" id="stat-revenue">
+          <span class="stat-icon">💰</span>
+          <span class="stat-value" id="stat-revenue-value">$48,352</span>
+          <span class="stat-label">Revenue</span>
+          <span class="stat-change positive">+8.2%</span>
+        </div>
+        <div class="stat-card" id="stat-orders">
+          <span class="stat-icon">📦</span>
+          <span class="stat-value" id="stat-orders-value">1,423</span>
+          <span class="stat-label">Orders</span>
+          <span class="stat-change negative">-3.1%</span>
+        </div>
+        <div class="stat-card" id="stat-rate">
+          <span class="stat-icon">📈</span>
+          <span class="stat-value" id="stat-rate-value">94.2%</span>
+          <span class="stat-label">Satisfaction</span>
+          <span class="stat-change positive">+1.8%</span>
+        </div>
+      </div>
+
+      <div class="content-row">
+        <div class="panel progress-panel">
+          <h2 class="panel-title">Project Progress</h2>
+          <div class="progress-list" id="progress-list"></div>
+        </div>
+
+        <div class="panel activity-panel">
+          <h2 class="panel-title">Recent Activity</h2>
+          <div class="activity-list" id="activity-list">
+            <div class="activity-item">
+              <span class="activity-dot green"></span>
+              <span class="activity-text">New user registration — Emma W.</span>
+              <span class="activity-time">2 min ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-dot blue"></span>
+              <span class="activity-text">Payment received — $1,250.00</span>
+              <span class="activity-time">15 min ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-dot yellow"></span>
+              <span class="activity-text">Server load spike detected</span>
+              <span class="activity-time">1 hr ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-dot green"></span>
+              <span class="activity-text">Deployment v2.4.1 completed</span>
+              <span class="activity-time">3 hr ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-dot red"></span>
+              <span class="activity-text">Failed login attempt — admin@corp.io</span>
+              <span class="activity-time">5 hr ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Analytics -->
+    <div class="tab-content hidden" id="tab-analytics">
+      <div class="chart-section">
+        <h2 class="panel-title">Performance Metrics</h2>
+        <div class="bar-chart" id="bar-chart">
+          <div class="bar-group">
+            <div class="bar" id="bar-mon"></div>
+            <span class="bar-label">Mon</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-tue"></div>
+            <span class="bar-label">Tue</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-wed"></div>
+            <span class="bar-label">Wed</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-thu"></div>
+            <span class="bar-label">Thu</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-fri"></div>
+            <span class="bar-label">Fri</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-sat"></div>
+            <span class="bar-label">Sat</span>
+          </div>
+          <div class="bar-group">
+            <div class="bar" id="bar-sun"></div>
+            <span class="bar-label">Sun</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics-row">
+        <div class="metric-card">
+          <span class="metric-label">Avg. Response Time</span>
+          <span class="metric-value">142ms</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Uptime</span>
+          <span class="metric-value">99.97%</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Error Rate</span>
+          <span class="metric-value">0.03%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Settings -->
+    <div class="tab-content hidden" id="tab-settings">
+      <div class="settings-panel">
+        <h2 class="panel-title">Preferences</h2>
+        <div class="settings-list" id="settings-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span class="footer-text" id="fps-text">Built with Lumi</span>
+  </footer>
+</div>

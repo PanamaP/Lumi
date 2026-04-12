@@ -9,6 +9,7 @@ Lumi lets you write desktop UI with the languages you already know — HTML for 
 ## ✨ Features
 
 - **HTML Templates** — Define your UI structure using standard HTML markup
+- **Template Directives** — `<template for="">` loops and `<template if="">` conditionals directly in HTML
 - **CSS Styling** — Full cascade, specificity, inheritance, 86 CSS properties, CSS variables (`var()`)
 - **Native Rendering** — SkiaSharp paints every pixel; no browser, no WebView
 - **Flexbox Layout** — Facebook Yoga powers the layout engine (flex-direction, wrapping, gap, alignment)
@@ -143,6 +144,9 @@ src/
   Lumi.Text/                    HarfBuzz text shaping (implemented, integration in progress)
 samples/
   HelloWorld/                   Feature showcase sample app
+  TodoApp/                      Todo list with data binding
+  Dashboard/                    Dashboard with charts and widgets
+  FormDemo/                     Form validation and input showcase
   StressTest/                   Performance benchmark suite
 tests/
   Lumi.Tests/                   315 unit + integration tests

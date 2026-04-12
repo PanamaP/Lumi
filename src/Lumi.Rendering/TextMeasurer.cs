@@ -1,6 +1,7 @@
 namespace Lumi.Rendering;
 
 using SkiaSharp;
+using Lumi.Text;
 using System.Collections.Concurrent;
 
 /// <summary>
@@ -17,9 +18,18 @@ public sealed class TextMeasurer
 
     /// <summary>
     /// Measure the pixel width of a string with the given font settings.
+    /// When <see cref="TextRenderingOptions.UseHarfBuzz"/> is enabled, uses
+    /// HarfBuzz shaping for more accurate measurement.
     /// </summary>
     public float MeasureWidth(string text, string fontFamily, float fontSize, int fontWeight, bool italic)
     {
+        if (TextRenderingOptions.UseHarfBuzz)
+        {
+            var shaper = TextRenderingOptions.GetShaper();
+            var run = shaper.Shape(text, fontFamily, fontSize, fontWeight, italic);
+            return run.TotalWidth;
+        }
+
         using var font = CreateFont(fontFamily, fontSize, fontWeight, italic);
         using var paint = new SKPaint();
         return font.MeasureText(text, paint);
@@ -52,15 +62,22 @@ public sealed class TextMeasurer
     }
 
     /// <summary>
-    /// Create an SKFont with the given parameters.
+    /// Create an SKFont with the given parameters. Checks <see cref="FontManager"/>
+    /// for registered custom fonts before falling back to system fonts.
     /// </summary>
     public static SKFont CreateFont(string fontFamily, float fontSize, int fontWeight, bool italic)
     {
-        var skStyle = fontWeight >= 700
-            ? (italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-            : (italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+        SKTypeface typeface;
 
-        var typeface = SKTypeface.FromFamilyName(fontFamily, skStyle) ?? SKTypeface.Default;
+        if (FontManager.IsRegistered(fontFamily))
+        {
+            typeface = FontManager.GetTypeface(fontFamily, fontWeight, italic)
+                       ?? SKTypeface.Default;
+        }
+        else
+        {
+            typeface = TypefaceCache.GetOrCreate(fontFamily, fontWeight >= 700, italic);
+        }
 
         return new SKFont(typeface, fontSize)
         {

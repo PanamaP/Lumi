@@ -2,6 +2,9 @@
   <Folder Name="/samples/">
     <Project Path="samples/HelloWorld/HelloWorld.csproj" />
     <Project Path="samples/StressTest/StressTest.csproj" />
+    <Project Path="samples/TodoApp/TodoApp.csproj" />
+    <Project Path="samples/Dashboard/Dashboard.csproj" />
+    <Project Path="samples/FormDemo/FormDemo.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Lumi.Core/Lumi.Core.csproj" />

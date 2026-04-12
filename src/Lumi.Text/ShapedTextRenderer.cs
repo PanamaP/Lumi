@@ -36,15 +36,18 @@ public static class ShapedTextRenderer
     }
 
     /// <summary>
-    /// Create an SKFont matching the given parameters (mirrors TextMeasurer.CreateFont).
+    /// Create an SKFont matching the given parameters. Checks
+    /// <see cref="TextShaper.CustomTypefaceResolver"/> for registered custom fonts
+    /// before falling back to system fonts.
     /// </summary>
     internal static SKFont CreateFont(string fontFamily, float fontSize, int fontWeight, bool italic)
     {
-        var skStyle = fontWeight >= 700
-            ? (italic ? SKFontStyle.BoldItalic : SKFontStyle.Bold)
-            : (italic ? SKFontStyle.Italic : SKFontStyle.Normal);
+        SKTypeface? typeface = TextShaper.CustomTypefaceResolver?.Invoke(fontFamily, fontWeight, italic);
 
-        var typeface = SKTypeface.FromFamilyName(fontFamily, skStyle) ?? SKTypeface.Default;
+        if (typeface == null)
+        {
+            typeface = TypefaceCache.GetOrCreate(fontFamily, fontWeight >= 700, italic);
+        }
 
         return new SKFont(typeface, fontSize)
         {

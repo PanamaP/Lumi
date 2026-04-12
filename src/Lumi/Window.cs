@@ -34,6 +34,12 @@ public class Window
     private readonly ElementIndex _index = new();
     private bool _indexAttached;
 
+    /// <summary>
+    /// Theme manager for light/dark mode switching.
+    /// Theme CSS variables are applied to the root element and cascade to all descendants.
+    /// </summary>
+    public ThemeManager Theme { get; } = new();
+
     public Element Root
     {
         get => _root;
@@ -57,6 +63,12 @@ public class Window
     /// Reference to the renderer, set by LumiApp during initialization.
     /// </summary>
     internal SkiaRenderer? Renderer { get; set; }
+
+    /// <summary>
+    /// Window manager for opening and managing secondary windows.
+    /// Set by LumiApp during initialization.
+    /// </summary>
+    public WindowManager? Windows { get; internal set; }
 
     /// <summary>
     /// Save a PNG screenshot of the current rendered frame.
@@ -98,6 +110,15 @@ public class Window
     public void LoadStyleSheetString(string css)
     {
         StyleResolver.AddStyleSheet(CssParser.Parse(css));
+    }
+
+    /// <summary>
+    /// Register a custom font file under the given family name.
+    /// The family name can then be used in CSS font-family declarations.
+    /// </summary>
+    public void RegisterFont(string familyName, string filePath)
+    {
+        FontManager.RegisterFont(familyName, filePath);
     }
 
     /// <summary>

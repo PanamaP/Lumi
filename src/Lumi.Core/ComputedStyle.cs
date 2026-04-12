@@ -1,3 +1,5 @@
+using Lumi.Core.Animation;
+
 namespace Lumi.Core;
 
 /// <summary>
@@ -39,6 +41,11 @@ public class ComputedStyle
     public float RowGap { get; set; } = float.NaN;
     public float ColumnGap { get; set; } = float.NaN;
 
+    // Grid layout
+    public string? GridTemplateColumns { get; set; }
+    public string? GridTemplateRows { get; set; }
+    public float GridGap { get; set; } = 0;
+
     // Visual
     public Color BackgroundColor { get; set; } = Color.Transparent;
     public Color BorderColor { get; set; } = Color.Transparent;
@@ -50,6 +57,7 @@ public class ComputedStyle
     public string Cursor { get; set; } = "default";
     public BoxShadow BoxShadow { get; set; } = BoxShadow.None;
     public string? BackgroundImage { get; set; }
+    public CssGradient? BackgroundGradient { get; set; }
 
     // CSS Custom Properties (lazy-initialized to save ~1KB per element when unused)
     private Dictionary<string, string>? _customProperties;
@@ -83,11 +91,19 @@ public class ComputedStyle
     // Animation
     public string? AnimationName { get; set; }
     public float AnimationDuration { get; set; } = 0;
+    public float AnimationDelay { get; set; } = 0;
     public int AnimationIterationCount { get; set; } = 1;
-    public string? AnimationDirection { get; set; }
+    public AnimationDirection AnimationDirection { get; set; } = AnimationDirection.Normal;
+    public AnimationFillMode AnimationFillMode { get; set; } = AnimationFillMode.None;
+    public string? AnimationTimingFunction { get; set; }
 
     // Pointer events
     public bool PointerEvents { get; set; } = true;
+
+    // Transform
+    public CssTransform Transform { get; set; } = CssTransform.Identity;
+    public float TransformOriginX { get; set; } = 50; // percentage
+    public float TransformOriginY { get; set; } = 50; // percentage
 
     /// <summary>
     /// Reset all properties to their default values. Used by pooled style resolution
@@ -126,6 +142,10 @@ public class ComputedStyle
         RowGap = float.NaN;
         ColumnGap = float.NaN;
 
+        GridTemplateColumns = null;
+        GridTemplateRows = null;
+        GridGap = 0;
+
         BackgroundColor = Color.Transparent;
         BorderColor = Color.Transparent;
         BorderRadius = 0;
@@ -136,6 +156,7 @@ public class ComputedStyle
         Cursor = "default";
         BoxShadow = BoxShadow.None;
         BackgroundImage = null;
+        BackgroundGradient = null;
 
         _customProperties?.Clear();
 
@@ -159,10 +180,17 @@ public class ComputedStyle
 
         AnimationName = null;
         AnimationDuration = 0;
+        AnimationDelay = 0;
         AnimationIterationCount = 1;
-        AnimationDirection = null;
+        AnimationDirection = AnimationDirection.Normal;
+        AnimationFillMode = AnimationFillMode.None;
+        AnimationTimingFunction = null;
 
         PointerEvents = true;
+
+        Transform = CssTransform.Identity;
+        TransformOriginX = 50;
+        TransformOriginY = 50;
     }
 }
 
@@ -205,6 +233,11 @@ public record struct Color(byte R, byte G, byte B, byte A)
                 (byte)(Convert.ToByte(hex[1..2], 16) * 17),
                 (byte)(Convert.ToByte(hex[2..3], 16) * 17),
                 255),
+            4 => new Color(
+                (byte)(Convert.ToByte(hex[..1], 16) * 17),
+                (byte)(Convert.ToByte(hex[1..2], 16) * 17),
+                (byte)(Convert.ToByte(hex[2..3], 16) * 17),
+                (byte)(Convert.ToByte(hex[3..4], 16) * 17)),
             6 => new Color(
                 Convert.ToByte(hex[..2], 16),
                 Convert.ToByte(hex[2..4], 16),
@@ -237,4 +270,19 @@ public enum BorderStyle
     Dashed,
     Dotted,
     Double
+}
+
+/// <summary>
+/// 2D CSS transform: translate, scale, rotate, skew.
+/// </summary>
+public record struct CssTransform(
+    float TranslateX, float TranslateY,
+    float ScaleX, float ScaleY,
+    float Rotate,
+    float SkewX, float SkewY)
+{
+    public static readonly CssTransform Identity = new(0, 0, 1, 1, 0, 0, 0);
+    public bool IsIdentity => TranslateX == 0 && TranslateY == 0 &&
+                              ScaleX == 1 && ScaleY == 1 &&
+                              Rotate == 0 && SkewX == 0 && SkewY == 0;
 }

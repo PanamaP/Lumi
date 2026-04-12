@@ -31,6 +31,11 @@ public sealed class KeyframePlayer
     private readonly List<ActiveAnimation> _active = [];
 
     /// <summary>
+    /// Number of currently playing animations.
+    /// </summary>
+    public int ActiveCount => _active.Count;
+
+    /// <summary>
     /// Register a parsed @keyframes definition.
     /// </summary>
     public void Register(KeyframeAnimation animation)

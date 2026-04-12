@@ -1,4 +1,5 @@
 using Lumi.Core.Accessibility;
+using Lumi.Core.DragDrop;
 
 namespace Lumi.Core;
 
@@ -131,7 +132,23 @@ public abstract class Element
     public int TabIndex { get; set; } = 0;
     public bool IsFocused { get; set; } = false;
 
+    // Drag and drop
+    public bool IsDraggable { get; set; } = false;
+    public event Action<DragData>? OnDragStart;
+    public event Action<DragData>? OnDragOver;
+    public event Action<DragData>? OnDragEnter;
+    public event Action<DragData>? OnDragLeave;
+    public event Action<DragData>? OnDrop;
+    public event Action? OnDragEnd;
+
     public string? InlineStyle { get; set; }
+
+    /// <summary>
+    /// Theme CSS custom-property declarations applied at stylesheet level
+    /// (lower specificity than inline styles). Set by <c>ThemeManager</c>.
+    /// </summary>
+    public Dictionary<string, string>? ThemeVariables { get; set; }
+
     public Dictionary<string, string> Attributes { get; set; } = [];
     public bool IsVisible => ComputedStyle.Display != DisplayMode.None;
 
@@ -158,6 +175,28 @@ public abstract class Element
         if (_eventHandlers.TryGetValue(eventName, out var list))
             list.Remove(handler);
     }
+
+    /// <summary>
+    /// Remove all event handlers from this element.
+    /// Call before discarding an element to break closure references and prevent leaks.
+    /// </summary>
+    public void RemoveAllEventHandlers()
+    {
+        _eventHandlers.Clear();
+        OnDragStart = null;
+        OnDragOver = null;
+        OnDragEnter = null;
+        OnDragLeave = null;
+        OnDrop = null;
+        OnDragEnd = null;
+    }
+
+    internal void RaiseDragStart(DragData data) => OnDragStart?.Invoke(data);
+    internal void RaiseDragOver(DragData data) => OnDragOver?.Invoke(data);
+    internal void RaiseDragEnter(DragData data) => OnDragEnter?.Invoke(data);
+    internal void RaiseDragLeave(DragData data) => OnDragLeave?.Invoke(data);
+    internal void RaiseDrop(DragData data) => OnDrop?.Invoke(data);
+    internal void RaiseDragEnd() => OnDragEnd?.Invoke();
 
     internal void RaiseEvent(RoutedEvent e)
     {
@@ -244,6 +283,43 @@ public abstract class Element
     /// Tag name of this element (e.g. "div", "span", "button").
     /// </summary>
     public abstract string TagName { get; }
+
+    /// <summary>
+    /// Create a deep clone of this element and its subtree.
+    /// Copies visual properties (Id, Classes, InlineStyle, Attributes) and children.
+    /// Resets layout state. Does NOT copy Parent, DataContext, or ElementIndex ref.
+    /// </summary>
+    public virtual Element DeepClone()
+    {
+        var clone = CreateCloneInstance();
+        CopyBasePropertiesTo(clone);
+        foreach (var child in _children)
+            clone.AddChild(child.DeepClone());
+        return clone;
+    }
+
+    /// <summary>
+    /// Create an empty instance of the same element type.
+    /// Override in subclasses that require constructor arguments.
+    /// </summary>
+    protected abstract Element CreateCloneInstance();
+
+    /// <summary>
+    /// Copy base Element properties to a clone.
+    /// </summary>
+    protected void CopyBasePropertiesTo(Element clone)
+    {
+        clone._id = _id;
+        foreach (var cls in _classes)
+            clone._classes.Add(cls);
+        clone.InlineStyle = InlineStyle;
+        if (ThemeVariables != null)
+            clone.ThemeVariables = new Dictionary<string, string>(ThemeVariables);
+        foreach (var kvp in Attributes)
+            clone.Attributes[kvp.Key] = kvp.Value;
+        clone.IsFocusable = IsFocusable;
+        clone.TabIndex = TabIndex;
+    }
 
     public override string ToString() =>
         $"<{TagName}" +

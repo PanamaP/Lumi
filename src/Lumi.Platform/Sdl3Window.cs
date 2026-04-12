@@ -8,6 +8,8 @@ namespace Lumi.Platform;
 
 public unsafe class Sdl3Window : IPlatformWindow
 {
+    private static int s_initCount;
+
     private SDL_Window* _window;
     private SDL_Renderer* _renderer;
     private SDL_GLContextState* _glContext;
@@ -70,14 +72,24 @@ public unsafe class Sdl3Window : IPlatformWindow
         if (_window != null)
             throw new InvalidOperationException("Window has already been created.");
 
-        if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO))
-            throw new InvalidOperationException($"SDL_Init failed: {SDL_GetError()}");
+        if (Interlocked.Increment(ref s_initCount) == 1)
+        {
+            if (!SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO))
+            {
+                Interlocked.Decrement(ref s_initCount);
+                throw new InvalidOperationException($"SDL_Init failed: {SDL_GetError()}");
+            }
+        }
 
         _window = SDL_CreateWindow(title, width, height,
             SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL_WindowFlags.SDL_WINDOW_OPENGL);
 
         if (_window == null)
+        {
+            if (Interlocked.Decrement(ref s_initCount) == 0)
+                SDL_Quit();
             throw new InvalidOperationException($"SDL_CreateWindow failed: {SDL_GetError()}");
+        }
 
         // Query display refresh rate
         var displayId = SDL_GetDisplayForWindow(_window);
@@ -85,6 +97,9 @@ public unsafe class Sdl3Window : IPlatformWindow
         _displayRefreshRate = displayMode != null && displayMode->refresh_rate > 0
             ? (int)displayMode->refresh_rate
             : 60;
+
+        // SDL3 requires explicit opt-in for text input events (unlike SDL2 which enabled them by default).
+        SDL_StartTextInput(_window);
 
         _isOpen = true;
     }
@@ -114,6 +129,39 @@ public unsafe class Sdl3Window : IPlatformWindow
         // waits for VSync otherwise. Falls back to regular VSync if unsupported.
         if (!SDL_GL_SetSwapInterval(-1))
             SDL_GL_SetSwapInterval(1);
+    }
+
+    public void MakeCurrent()
+    {
+        EnsureWindow();
+        if (_glContext == null)
+            throw new InvalidOperationException("No GL context. Call CreateGLContext() first.");
+        if (!SDL_GL_MakeCurrent(_window, _glContext))
+            throw new InvalidOperationException($"SDL_GL_MakeCurrent failed: {SDL_GetError()}");
+    }
+
+    public void DestroyGLContext()
+    {
+        if (_glContext != null)
+        {
+            SDL_GL_DestroyContext(_glContext);
+            _glContext = null;
+        }
+    }
+
+    /// <summary>
+    /// Creates an SDL renderer for CPU-based rendering via <see cref="Sdl3RenderTarget"/>.
+    /// Must be called after <see cref="Create"/> and only when no GL context is active.
+    /// </summary>
+    public void CreateSdlRenderer()
+    {
+        EnsureWindow();
+        if (_renderer != null)
+            throw new InvalidOperationException("SDL renderer has already been created.");
+
+        _renderer = SDL_CreateRenderer(_window, (byte*)null);
+        if (_renderer == null)
+            throw new InvalidOperationException($"SDL_CreateRenderer failed: {SDL_GetError()}");
     }
 
     public void SwapBuffers()
@@ -393,6 +441,23 @@ public unsafe class Sdl3Window : IPlatformWindow
                 };
             }
 
+            case SDL_EventType.SDL_EVENT_DROP_FILE:
+            {
+                var drop = ev->drop;
+                string? file = Marshal.PtrToStringUTF8((IntPtr)drop.data);
+                if (file != null)
+                {
+                    return new FileDropEvent
+                    {
+                        Files = [file],
+                        X = drop.x,
+                        Y = drop.y,
+                        Timestamp = ev->common.timestamp
+                    };
+                }
+                return null;
+            }
+
             default:
                 return null;
         }
@@ -494,6 +559,23 @@ public unsafe class Sdl3Window : IPlatformWindow
         _ => KeyCode.Unknown,
     };
 
+    public void SetClipboardText(string text)
+    {
+        SDL_SetClipboardText(text);
+    }
+
+    public string? GetClipboardText()
+    {
+        if (!SDL_HasClipboardText())
+            return null;
+        return SDL_GetClipboardText();
+    }
+
+    public bool HasClipboardText()
+    {
+        return SDL_HasClipboardText();
+    }
+
     private void EnsureWindow()
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -532,11 +614,14 @@ public unsafe class Sdl3Window : IPlatformWindow
 
         if (_window != null)
         {
+            SDL_StopTextInput(_window);
             SDL_DestroyWindow(_window);
             _window = null;
         }
 
-        SDL_Quit();
+        if (Interlocked.Decrement(ref s_initCount) == 0)
+            SDL_Quit();
+
         GC.SuppressFinalize(this);
     }
 }

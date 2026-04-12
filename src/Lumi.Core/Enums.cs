@@ -4,6 +4,7 @@ public enum DisplayMode
 {
     Block,
     Flex,
+    Grid,
     None
 }
 
