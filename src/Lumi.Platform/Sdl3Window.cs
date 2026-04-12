@@ -85,7 +85,11 @@ public unsafe class Sdl3Window : IPlatformWindow
             SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL_WindowFlags.SDL_WINDOW_OPENGL);
 
         if (_window == null)
+        {
+            if (Interlocked.Decrement(ref s_initCount) == 0)
+                SDL_Quit();
             throw new InvalidOperationException($"SDL_CreateWindow failed: {SDL_GetError()}");
+        }
 
         // Query display refresh rate
         var displayId = SDL_GetDisplayForWindow(_window);
@@ -610,6 +614,7 @@ public unsafe class Sdl3Window : IPlatformWindow
 
         if (_window != null)
         {
+            SDL_StopTextInput(_window);
             SDL_DestroyWindow(_window);
             _window = null;
         }

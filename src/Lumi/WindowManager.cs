@@ -38,6 +38,14 @@ public class WindowManager
             platformWindow.CreateGLContext();
             renderer.InitializeGpu();
             useGpu = renderer.IsGpuAccelerated;
+
+            if (!useGpu)
+            {
+                // GL context created but GPU acceleration unavailable: clean up and fall back to CPU
+                renderer.Dispose();
+                platformWindow.DestroyGLContext();
+                renderer = new SkiaRenderer();
+            }
         }
         catch
         {
@@ -45,8 +53,11 @@ public class WindowManager
             platformWindow.DestroyGLContext();
             renderer = new SkiaRenderer();
             useGpu = false;
+        }
 
-            // Create SDL renderer and render target for CPU fallback
+        if (!useGpu)
+        {
+            // CPU fallback: create SDL renderer and render target
             platformWindow.CreateSdlRenderer();
             platformWindow.SetVSync(VSyncMode.On);
         }
@@ -187,7 +198,6 @@ public class WindowManager
     {
         managed.Window.IsOpen = false;
         managed.Window.App?.RequestStop();
-        managed.Window.LayoutEngine.Dispose();
         managed.RenderTarget?.Dispose();
         managed.Renderer.Dispose();
         managed.PlatformWindow.Dispose();

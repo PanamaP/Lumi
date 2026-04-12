@@ -140,34 +140,37 @@ public static class ComponentStyles
                          $"background-color: rgba(0,0,0,0.85); z-index: 999";
     }
 
-    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Element, string> s_savedDisplay = new();
+    // Tracks elements that have been hidden via SetVisible(false).
+    // Uses ConditionalWeakTable so the entries are automatically cleaned up when elements are GC'd.
+    // The stored value is unused — the table is used only as a weak-keyed set.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Element, string> s_hiddenElements = new();
+
+    // Matches 'display: none' (with optional spacing/semicolons) anywhere in an inline style string.
+    private static readonly System.Text.RegularExpressions.Regex s_displayNoneRegex =
+        new(@"\s*;?\s*display\s*:\s*none\s*;?", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 
     /// <summary>
     /// Sets an element's display to none (hidden) or restores the previous display value.
+    /// Only the display declaration is added or removed; other inline style changes are preserved.
     /// </summary>
     public static void SetVisible(Element el, bool visible)
     {
         if (visible)
         {
-            // Restore original display value if we saved one
-            if (s_savedDisplay.TryGetValue(el, out var saved))
+            // Strip display:none from the current inline style, preserving any other changes
+            if (s_hiddenElements.TryGetValue(el, out _))
             {
-                el.InlineStyle = saved;
-                s_savedDisplay.Remove(el);
-            }
-            else
-            {
-                // Fallback: strip display:none from inline style
-                el.InlineStyle = (el.InlineStyle ?? "").Replace("display: none", "").Replace("display:none", "").Trim().TrimEnd(';');
+                el.InlineStyle = s_displayNoneRegex.Replace(el.InlineStyle ?? "", "").Trim().TrimEnd(';');
+                s_hiddenElements.Remove(el);
             }
         }
         else
         {
             var existing = el.InlineStyle ?? "";
-            if (!existing.Contains("display: none") && !existing.Contains("display:none"))
+            if (!s_hiddenElements.TryGetValue(el, out _))
             {
-                // Save current inline style before hiding
-                s_savedDisplay.AddOrUpdate(el, existing);
+                // Mark as hidden and append display:none to the current style
+                s_hiddenElements.Add(el, "");
                 el.InlineStyle = string.IsNullOrEmpty(existing) ? "display: none" : existing.TrimEnd(';') + "; display: none";
             }
         }

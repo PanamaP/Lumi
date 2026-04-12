@@ -212,7 +212,7 @@ public class Router
 
     private static string NormalizePath(string path)
     {
-        var result = path.Trim().TrimStart('/');
+        var result = path.Trim().TrimStart('/').TrimEnd('/');
         if (result.Length == 0)
             throw new ArgumentException("Route path cannot be empty.", nameof(path));
         return result;

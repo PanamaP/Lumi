@@ -41,12 +41,12 @@ public class MainWindow : Window
         _remainingText = FindById("remaining-text") as TextElement;
 
         // Add todo on button click
-        FindById("btn-add")?.On("Click", (_, _) => AddTodo());
+        FindById("btn-add")?.On("click", (_, _) => AddTodo());
 
         // Add todo on Enter key
         if (_input != null)
         {
-            _input.On("KeyDown", (_, e) =>
+            _input.On("keydown", (_, e) =>
             {
                 if (e is RoutedKeyEvent ke && ke.Key == KeyCode.Enter)
                     AddTodo();
@@ -54,12 +54,12 @@ public class MainWindow : Window
         }
 
         // Filter buttons
-        FindById("filter-all")?.On("Click", (_, _) => SetFilter("all"));
-        FindById("filter-active")?.On("Click", (_, _) => SetFilter("active"));
-        FindById("filter-done")?.On("Click", (_, _) => SetFilter("done"));
+        FindById("filter-all")?.On("click", (_, _) => SetFilter("all"));
+        FindById("filter-active")?.On("click", (_, _) => SetFilter("active"));
+        FindById("filter-done")?.On("click", (_, _) => SetFilter("done"));
 
         // Clear completed
-        FindById("btn-clear")?.On("Click", (_, _) => ClearCompleted());
+        FindById("btn-clear")?.On("click", (_, _) => ClearCompleted());
 
         RenderList();
     }
@@ -190,7 +190,7 @@ public class MainWindow : Window
         }
 
         int capturedIndex = index;
-        checkbox.On("Click", (_, _) => ToggleTodo(capturedIndex));
+        checkbox.On("click", (_, _) => ToggleTodo(capturedIndex));
         row.AddChild(checkbox);
 
         // Text
@@ -206,7 +206,7 @@ public class MainWindow : Window
         deleteBtn.Classes.Add("btn-delete");
         var deleteText = new TextElement("Delete");
         deleteBtn.AddChild(deleteText);
-        deleteBtn.On("Click", (_, _) => DeleteTodo(capturedIndex));
+        deleteBtn.On("click", (_, _) => DeleteTodo(capturedIndex));
         row.AddChild(deleteBtn);
 
         return row;

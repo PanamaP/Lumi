@@ -32,12 +32,12 @@ public class MainWindow : Window
     public override void OnReady()
     {
         // Theme toggle
-        FindById("btn-theme")?.On("Click", (_, _) => ToggleTheme());
+        FindById("btn-theme")?.On("click", (_, _) => ToggleTheme());
 
         // Tab navigation
-        FindById("nav-overview")?.On("Click", (_, _) => SwitchTab("overview"));
-        FindById("nav-analytics")?.On("Click", (_, _) => SwitchTab("analytics"));
-        FindById("nav-settings")?.On("Click", (_, _) => SwitchTab("settings"));
+        FindById("nav-overview")?.On("click", (_, _) => SwitchTab("overview"));
+        FindById("nav-analytics")?.On("click", (_, _) => SwitchTab("analytics"));
+        FindById("nav-settings")?.On("click", (_, _) => SwitchTab("settings"));
 
         // Build dynamic content
         BuildProgressBars();
