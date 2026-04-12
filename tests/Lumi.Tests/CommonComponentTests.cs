@@ -193,6 +193,7 @@ public class CommonComponentTests
         var target = new BoxElement("div");
         var tooltip = LumiTooltip.Attach(target, "Info");
         EventDispatcher.Dispatch(new RoutedEvent("mouseenter"), target);
+        Assert.NotNull(tooltip.Root.Parent);
         EventDispatcher.Dispatch(new RoutedEvent("mouseleave"), target);
         // Tooltip is removed from the element tree on mouse leave
         Assert.Null(tooltip.Root.Parent);

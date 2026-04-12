@@ -42,12 +42,12 @@ public enum JustifyContent
 
 public enum AlignItems
 {
-    Auto,
     FlexStart,
     FlexEnd,
     Center,
     Stretch,
-    Baseline
+    Baseline,
+    Auto
 }
 
 public enum Overflow

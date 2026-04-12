@@ -200,7 +200,10 @@ public class WindowManager
                     ? inputElement.Placeholder
                     : "Xg";
             var (w, h) = TextLayout.Measure(text, availableWidth, element.ComputedStyle);
-            return (Math.Max(w, availableWidth), h);
+            var measuredWidth = availableWidth > 0 && availableWidth < float.MaxValue
+                ? Math.Max(w, availableWidth)
+                : w;
+            return (measuredWidth, h);
         }
 
         return (0, 0);

@@ -530,7 +530,8 @@ public sealed class LumiApp : IDisposable
                     ? inputElement.Placeholder
                     : "Xg";
             var (w, h) = TextLayout.Measure(text, availableWidth, element.ComputedStyle);
-            return (Math.Max(w, availableWidth), h);
+            float measuredWidth = availableWidth == float.MaxValue ? w : Math.Max(w, availableWidth);
+            return (measuredWidth, h);
         }
 
         return (0, 0);

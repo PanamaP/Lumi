@@ -95,7 +95,6 @@ public class ComponentRegressionTests
         // Sample pixel inside the checkbox box area
         // The checkbox box is 22x22 with border 2px; the indicator is 12x12 centered inside
         var checkBox = cb.Root.Children[0]; // The outer border box
-        var indicator = checkBox.Children[0]; // The inner indicator
         int sampleX = (int)(checkBox.LayoutBox.X + checkBox.LayoutBox.Width / 2);
         int sampleY = (int)(checkBox.LayoutBox.Y + checkBox.LayoutBox.Height / 2);
 
