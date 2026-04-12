@@ -159,9 +159,9 @@ public class SettingsWindow : SecondaryWindow
         LoadStyleSheet(Path.Combine(dir, "Settings.css"));
     }
 
-    protected override void OnReady()
+    public override void OnReady()
     {
-        FindById("close-btn")?.On("Click", e => Close());
+        FindById("close-btn")?.On("Click", (_, _) => Close());
     }
 }
 ```

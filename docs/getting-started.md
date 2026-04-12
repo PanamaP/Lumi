@@ -937,10 +937,10 @@ public class SettingsWindow : SecondaryWindow
         LoadStyleSheet(Path.Combine(dir, "Settings.css"));
     }
 
-    protected override void OnReady()
+    public override void OnReady()
     {
         var closeBtn = FindById("close-btn");
-        closeBtn?.On("Click", e => Close());
+        closeBtn?.On("Click", (_, _) => Close());
     }
 }
 ```
@@ -950,10 +950,10 @@ public class SettingsWindow : SecondaryWindow
 Use the `Windows` property (a `WindowManager`) available on any `Window`:
 
 ```csharp
-protected override void OnReady()
+public override void OnReady()
 {
     var settingsBtn = FindById("settings-btn");
-    settingsBtn?.On("Click", e =>
+    settingsBtn?.On("Click", (_, _) =>
     {
         Windows?.Open(new SettingsWindow());
     });

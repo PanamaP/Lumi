@@ -52,7 +52,7 @@ Replace `HelloWorld` with any sample project name under `samples/`.
 
 - **Implicit usings** are enabled — avoid unnecessary `using` directives.
 - **Nullable reference types** are enabled — annotate nullability correctly.
-- **XML doc comments** are required on all public APIs.
+- **XML doc comments** are recommended on public APIs.
 - Follow existing patterns and conventions in the codebase.
 
 ## Pull Request Process
