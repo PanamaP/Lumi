@@ -215,6 +215,7 @@ public static class PropertyApplier
             case "align-self":
                 style.AlignSelf = value switch
                 {
+                    "auto" => AlignItems.Auto,
                     "flex-start" => AlignItems.FlexStart,
                     "flex-end" => AlignItems.FlexEnd,
                     "center" => AlignItems.Center,

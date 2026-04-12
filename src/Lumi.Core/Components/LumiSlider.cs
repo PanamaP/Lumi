@@ -13,7 +13,7 @@ public class LumiSlider
     private float _min;
     private float _max = 1f;
     private bool _isDragging;
-    private const float TrackWidth = 300f;
+    private const float TrackWidth = 200f;
     private const float TrackHeight = 8f;
     private const float ThumbSize = 24f;
     private const float ContainerPadding = 16f;

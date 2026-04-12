@@ -128,7 +128,7 @@ public class ComputedStyle
         FlexWrap = FlexWrap.NoWrap;
         JustifyContent = JustifyContent.FlexStart;
         AlignItems = AlignItems.Stretch;
-        AlignSelf = AlignItems.Stretch;
+        AlignSelf = AlignItems.Auto;
         FlexGrow = 0;
         FlexShrink = 1;
         FlexBasis = float.NaN;

@@ -284,12 +284,13 @@ public unsafe class YogaLayoutEngine : IDisposable
 
     private static YGAlign MapAlignItems(AlignItems align) => align switch
     {
+        AlignItems.Auto => YGAlign.YGAlignAuto,
         AlignItems.FlexStart => YGAlign.YGAlignFlexStart,
         AlignItems.FlexEnd => YGAlign.YGAlignFlexEnd,
         AlignItems.Center => YGAlign.YGAlignCenter,
         AlignItems.Stretch => YGAlign.YGAlignStretch,
         AlignItems.Baseline => YGAlign.YGAlignBaseline,
-        _ => YGAlign.YGAlignStretch
+        _ => YGAlign.YGAlignAuto
     };
 
     private void ReadLayoutResults(Element element, float parentAbsX, float parentAbsY)

@@ -104,35 +104,83 @@ public class StyleResolver
         // Set font-size context for em/rem unit resolution (parent's font-size)
         PropertyApplier.SetFontSizeContext(parentStyle?.FontSize ?? 16f);
 
-        // 2b. Apply theme variables (stylesheet-level specificity, overridable by rules and inline)
+        // Parse inline style once for use in both phases
+        List<ParsedDeclaration>? inlineDeclarations = null;
+        if (!string.IsNullOrWhiteSpace(element.InlineStyle))
+            inlineDeclarations = CssParser.ParseInlineStyle(element.InlineStyle);
+
+        // Phase 1: Collect ALL custom properties (--*) from theme, rules, and inline
+        // so that var() references in phase 2 resolve against final values.
         if (element.ThemeVariables != null)
         {
             foreach (var kvp in element.ThemeVariables)
             {
-                PropertyApplier.Apply(_tempStyle, kvp.Key, kvp.Value);
-                _explicitBuffer.Add(kvp.Key);
+                if (kvp.Key.StartsWith("--"))
+                    PropertyApplier.Apply(_tempStyle, kvp.Key, kvp.Value);
             }
         }
 
-        // 3. Apply declarations in cascade order (lower specificity first → higher overrides)
         foreach (var (rule, _, _) in matchingRules)
         {
             foreach (var decl in rule.Declarations)
             {
-                PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
-                _explicitBuffer.Add(decl.Property);
+                if (decl.Property.StartsWith("--"))
+                    PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
             }
         }
 
-        // 4. Apply inline style (highest priority, trumps all stylesheet rules)
-        if (!string.IsNullOrWhiteSpace(element.InlineStyle))
+        if (inlineDeclarations != null)
         {
-            var inlineDeclarations = CssParser.ParseInlineStyle(element.InlineStyle);
             foreach (var decl in inlineDeclarations)
             {
-                PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
-                _explicitBuffer.Add(decl.Property);
+                if (decl.Property.StartsWith("--"))
+                    PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
             }
+        }
+
+        // Phase 2: Apply all non-custom properties (var() now resolves correctly
+        // because all custom properties are already set from phase 1)
+        if (element.ThemeVariables != null)
+        {
+            foreach (var kvp in element.ThemeVariables)
+            {
+                if (!kvp.Key.StartsWith("--"))
+                {
+                    PropertyApplier.Apply(_tempStyle, kvp.Key, kvp.Value);
+                    _explicitBuffer.Add(kvp.Key);
+                }
+            }
+        }
+
+        foreach (var (rule, _, _) in matchingRules)
+        {
+            foreach (var decl in rule.Declarations)
+            {
+                if (!decl.Property.StartsWith("--"))
+                {
+                    PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
+                    _explicitBuffer.Add(decl.Property);
+                }
+            }
+        }
+
+        if (inlineDeclarations != null)
+        {
+            foreach (var decl in inlineDeclarations)
+            {
+                if (!decl.Property.StartsWith("--"))
+                {
+                    PropertyApplier.Apply(_tempStyle, decl.Property, decl.Value);
+                    _explicitBuffer.Add(decl.Property);
+                }
+            }
+        }
+
+        // Also add custom properties to explicit buffer (they were set, not inherited)
+        if (_tempStyle.HasCustomProperties)
+        {
+            foreach (var kvp in _tempStyle.CustomProperties)
+                _explicitBuffer.Add(kvp.Key);
         }
 
         // 5. Inherit inheritable properties from parent
