@@ -260,4 +260,30 @@ public class InteractionStateTests
         Assert.False(state.IsHovered(focusedEl));
         Assert.False(state.IsActive(focusedEl));
     }
+
+    // --- Clear ---
+
+    [Fact]
+    public void Clear_ResetsAllState()
+    {
+        var state = new InteractionState();
+        var parent = new BoxElement("div");
+        var child = new BoxElement("button");
+        parent.AddChild(child);
+
+        state.SetHovered(child);
+        state.SetActive(child);
+        state.SetFocused(child);
+
+        state.Clear();
+
+        Assert.Null(state.HoveredElement);
+        Assert.Null(state.ActiveElement);
+        Assert.Null(state.FocusedElement);
+        Assert.False(state.IsHovered(child));
+        Assert.False(state.IsHovered(parent));
+        Assert.False(state.IsActive(child));
+        Assert.False(state.IsFocused(child));
+        Assert.False(state.IsFocused(parent));
+    }
 }

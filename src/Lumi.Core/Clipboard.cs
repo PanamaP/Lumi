@@ -2,14 +2,22 @@ namespace Lumi.Core;
 
 /// <summary>
 /// Provides clipboard access from Core without a direct platform dependency.
-/// Initialized once by the host (e.g. LumiApp) at startup.
+/// Initialized by the host (e.g. LumiApp) at startup; safe to re-initialize
+/// across multiple <see cref="LumiApp.Run"/> calls in the same process.
 /// </summary>
 public static class Clipboard
 {
     private static readonly object _lock = new();
     private static Func<string?>? _getText;
     private static Action<string>? _setText;
-    private static bool _initialized;
+
+    /// <summary>
+    /// Whether the clipboard has been initialized with platform delegates.
+    /// </summary>
+    public static bool IsInitialized
+    {
+        get { lock (_lock) { return _getText != null && _setText != null; } }
+    }
 
     /// <summary>
     /// Retrieves text from the OS clipboard. Returns null when unavailable.
@@ -33,28 +41,33 @@ public static class Clipboard
     }
 
     /// <summary>
-    /// Initializes the clipboard with platform-specific implementations. Can only be called once.
+    /// Initializes the clipboard with platform-specific implementations.
+    /// Safe to call multiple times — subsequent calls update the delegates
+    /// so that <c>LumiApp.Run</c> can be invoked more than once
+    /// in the same process (e.g. login window → main window).
     /// </summary>
     internal static void Initialize(Func<string?> getText, Action<string> setText)
     {
         lock (_lock)
         {
-            if (_initialized)
-                throw new InvalidOperationException("Clipboard has already been initialized.");
             _getText = getText ?? throw new ArgumentNullException(nameof(getText));
             _setText = setText ?? throw new ArgumentNullException(nameof(setText));
-            _initialized = true;
         }
     }
 
-    /// <summary>Reset for test isolation.</summary>
-    internal static void ResetForTesting()
+    /// <summary>
+    /// Resets clipboard state so the next <see cref="Initialize"/> starts fresh.
+    /// Called by <c>LumiApp</c> during disposal.
+    /// </summary>
+    internal static void Reset()
     {
         lock (_lock)
         {
             _getText = null;
             _setText = null;
-            _initialized = false;
         }
     }
+
+    /// <summary>Reset for test isolation.</summary>
+    internal static void ResetForTesting() => Reset();
 }

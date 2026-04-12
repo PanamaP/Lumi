@@ -71,6 +71,31 @@ public class Window
     public WindowManager? Windows { get; internal set; }
 
     /// <summary>
+    /// Internal callback wired by LumiApp to handle window navigation requests.
+    /// </summary>
+    internal Action<Window>? NavigateCallback { get; set; }
+
+    /// <summary>
+    /// Navigate to a new primary window, replacing this one.
+    /// The platform window, renderer, and application loop are preserved —
+    /// only the content, styles, and event handlers change.
+    /// <example>
+    /// <code>
+    /// // In LoginWindow, after successful authentication:
+    /// NavigateTo(new MainWindow(client));
+    /// </code>
+    /// </example>
+    /// </summary>
+    public void NavigateTo(Window newWindow)
+    {
+        ArgumentNullException.ThrowIfNull(newWindow);
+        if (NavigateCallback == null)
+            throw new InvalidOperationException(
+                "NavigateTo can only be called on a window that is currently hosted by LumiApp.");
+        NavigateCallback(newWindow);
+    }
+
+    /// <summary>
     /// Save a PNG screenshot of the current rendered frame.
     /// </summary>
     public bool SaveScreenshot(string filePath)
@@ -132,6 +157,19 @@ public class Window
     /// Default implementation calls OnReady().
     /// </summary>
     public virtual void OnHtmlReloaded() => OnReady();
+
+    /// <summary>
+    /// Called on the old window before it is replaced by <see cref="NavigateTo"/>.
+    /// Override to clean up resources, close connections, or save state.
+    /// </summary>
+    public virtual void OnNavigatingFrom() { }
+
+    /// <summary>
+    /// Called on the new window after it has been fully wired into the application.
+    /// Override to perform navigation-specific initialization that should not run
+    /// on first load (use <see cref="OnReady"/> for that).
+    /// </summary>
+    public virtual void OnNavigatedTo() { }
 
     /// <summary>
     /// Called each frame before painting.

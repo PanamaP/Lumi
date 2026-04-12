@@ -132,6 +132,34 @@ public class ComponentTests
         Assert.Equal(50, slider.Value);
     }
 
+    [Fact]
+    public void Slider_TrackWidth_DefaultIs200()
+    {
+        var slider = new LumiSlider();
+
+        Assert.Equal(200f, slider.TrackWidth);
+    }
+
+    [Fact]
+    public void Slider_TrackWidth_ClampsToMinimum()
+    {
+        var slider = new LumiSlider();
+
+        slider.TrackWidth = 5f;
+
+        Assert.Equal(20f, slider.TrackWidth);
+    }
+
+    [Fact]
+    public void Slider_TrackWidth_AcceptsValidValue()
+    {
+        var slider = new LumiSlider();
+
+        slider.TrackWidth = 400f;
+
+        Assert.Equal(400f, slider.TrackWidth);
+    }
+
     // ── LumiDropdown ────────────────────────────────────────────────
 
     [Fact]
