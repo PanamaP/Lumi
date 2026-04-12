@@ -45,4 +45,17 @@ public class InteractionState
             current = current.Parent;
         }
     }
+
+    /// <summary>
+    /// Resets all interaction state. Used during window navigation to clear
+    /// references to elements from the old window.
+    /// </summary>
+    public void Clear()
+    {
+        HoveredElement = null;
+        ActiveElement = null;
+        FocusedElement = null;
+        _hoveredPath.Clear();
+        _focusedPath.Clear();
+    }
 }

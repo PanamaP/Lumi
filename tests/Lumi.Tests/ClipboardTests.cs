@@ -59,11 +59,34 @@ public class ClipboardTests : IDisposable
     }
 
     [Fact]
-    public void ClipboardInitialize_ThrowsOnSecondCall()
+    public void ClipboardInitialize_CanBeCalledMultipleTimes()
     {
-        Clipboard.Initialize(() => null, _ => { });
-        Assert.Throws<InvalidOperationException>(() =>
-            Clipboard.Initialize(() => null, _ => { }));
+        Clipboard.Initialize(() => "first", _ => { });
+        Assert.Equal("first", Clipboard.GetText());
+
+        // Second call updates the delegates instead of throwing
+        Clipboard.Initialize(() => "second", _ => { });
+        Assert.Equal("second", Clipboard.GetText());
+    }
+
+    [Fact]
+    public void ClipboardReset_AllowsFreshInitialize()
+    {
+        string? stored = null;
+        Clipboard.Initialize(() => stored, t => stored = t);
+        Clipboard.SetText("before");
+        Assert.Equal("before", stored);
+
+        Clipboard.Reset();
+
+        // After reset, delegates are cleared
+        Assert.Null(Clipboard.GetText());
+
+        // Can re-initialize with new delegates
+        string? stored2 = null;
+        Clipboard.Initialize(() => stored2, t => stored2 = t);
+        Clipboard.SetText("after");
+        Assert.Equal("after", stored2);
     }
 
     // ── Ctrl+C ───────────────────────────────────────────────────────

@@ -13,7 +13,7 @@ public class LumiSlider
     private float _min;
     private float _max = 1f;
     private bool _isDragging;
-    private const float TrackWidth = 200f;
+    private float _trackWidth = 200f;
     private const float TrackHeight = 8f;
     private const float ThumbSize = 24f;
     private const float ContainerPadding = 16f;
@@ -22,6 +22,20 @@ public class LumiSlider
     public Element Root => _container;
 
     public Action<float>? OnValueChanged { get; set; }
+
+    /// <summary>
+    /// Width of the slider track in pixels. Default is 200.
+    /// </summary>
+    public float TrackWidth
+    {
+        get => _trackWidth;
+        set
+        {
+            _trackWidth = Math.Max(20f, value);
+            UpdateContainerStyle();
+            UpdateVisual();
+        }
+    }
 
     public float Value
     {
@@ -57,37 +71,32 @@ public class LumiSlider
 
     public LumiSlider()
     {
-        // Container holds track + thumb. Position: relative so thumb can be absolute.
         _container = new BoxElement("div");
-        _container.InlineStyle = $"display: flex; flex-direction: column; padding: {ContainerPadding:F0}px 0px; width: {TrackWidth:F0}px; position: relative";
-
-        // Track background (full width)
         _track = new BoxElement("div");
-        _track.InlineStyle = $"height: {TrackHeight:F0}px; width: {TrackWidth:F0}px; " +
-                             $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; " +
-                             $"overflow: hidden";
-        _container.AddChild(_track);
-
-        // Fill (proportional width inside track)
         _fill = new BoxElement("div");
-        _fill.InlineStyle = $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; width: 100px";
-        _track.AddChild(_fill);
-
-        // Thumb (absolutely positioned relative to container)
         _thumb = new BoxElement("div");
-        _thumb.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; " +
-            $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
-            $"border-radius: {ThumbSize / 2:F0}px; position: absolute; " +
-            $"top: {ThumbTop:F0}px; left: {TrackWidth / 2 - ThumbSize / 2:F1}px");
+
+        _container.AddChild(_track);
+        _track.AddChild(_fill);
         _container.AddChild(_thumb);
+
+        UpdateContainerStyle();
+        UpdateVisual();
 
         // Interaction handlers
         _container.On("mousedown", OnMouseDown);
         _container.On("mousemove", OnMouseMove);
         _container.On("mouseup", OnMouseUp);
+    }
 
-        UpdateVisual();
+    private void UpdateContainerStyle()
+    {
+        _container.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"display: flex; flex-direction: column; padding: {ContainerPadding:F0}px 0px; width: {_trackWidth:F0}px; position: relative");
+
+        _track.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
+            $"height: {TrackHeight:F0}px; width: {_trackWidth:F0}px; " +
+            $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; overflow: hidden");
     }
 
     private void OnMouseDown(Element sender, RoutedEvent e)
@@ -113,7 +122,7 @@ public class LumiSlider
     {
         float trackLeft = _track.LayoutBox.X;
         float trackWidth = _track.LayoutBox.Width;
-        if (trackWidth <= 0) trackWidth = TrackWidth;
+        if (trackWidth <= 0) trackWidth = _trackWidth;
 
         float ratio = Math.Clamp((mouseX - trackLeft) / trackWidth, 0f, 1f);
         float newValue = _min + ratio * (_max - _min);
@@ -129,8 +138,8 @@ public class LumiSlider
     private void UpdateVisual()
     {
         float pct = NormalizedValue;
-        float fillPx = pct * TrackWidth;
-        float thumbLeft = pct * (TrackWidth - ThumbSize);
+        float fillPx = pct * _trackWidth;
+        float thumbLeft = pct * (_trackWidth - ThumbSize);
 
         _fill.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
             $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; " +

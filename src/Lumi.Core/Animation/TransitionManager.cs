@@ -19,6 +19,18 @@ public sealed class TransitionManager
     }
 
     /// <summary>
+    /// Clears all tracked state and running transitions.
+    /// Used during window navigation to release old element references.
+    /// </summary>
+    public void Clear()
+    {
+        _tweenEngine.Clear();
+        _previousValues.Clear();
+        _previousColors.Clear();
+        _activeTransitions.Clear();
+    }
+
+    /// <summary>
     /// Snapshot current style values for an element so we can detect changes next frame.
     /// Call after styles have been resolved.
     /// </summary>

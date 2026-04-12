@@ -166,4 +166,24 @@ public class MultiWindowTests
         // Element tree is still intact after close (not disposed, just closed)
         Assert.Equal(2, main.Children.Count);
     }
+
+    // ── NavigateTo ──────────────────────────────────────────────────
+
+    [Fact]
+    public void NavigateTo_ThrowsWhenNotHosted()
+    {
+        var window = new Window();
+        var target = new Window();
+
+        var ex = Assert.Throws<InvalidOperationException>(() => window.NavigateTo(target));
+        Assert.Contains("hosted by LumiApp", ex.Message);
+    }
+
+    [Fact]
+    public void NavigateTo_ThrowsOnNull()
+    {
+        var window = new Window();
+
+        Assert.Throws<ArgumentNullException>(() => window.NavigateTo(null!));
+    }
 }

@@ -13,7 +13,7 @@ namespace Lumi;
 /// </summary>
 public sealed class LumiApp : IDisposable
 {
-    private readonly Window _window;
+    private Window _window;
     private readonly Sdl3Window _platformWindow;
     private readonly SkiaRenderer _renderer;
     private readonly Sdl3RenderTarget _renderTarget;
@@ -32,6 +32,9 @@ public sealed class LumiApp : IDisposable
     private bool _liveResizeRendered;
     private bool _wasActiveLastFrame = true;
     private bool _liveResizeRegistered;
+
+    // Navigation: pending window swap requested via Window.NavigateTo()
+    private Window? _pendingNavigation;
 
     private LumiApp(Window window)
     {
@@ -58,6 +61,7 @@ public sealed class LumiApp : IDisposable
         // Expose frame metrics and window manager to the window for app-level access
         _window.FrameMetrics = _frameMetrics;
         _window.Windows = _windowManager;
+        _window.NavigateCallback = w => _pendingNavigation = w;
 
         // Try GPU-accelerated rendering
         _renderer = new SkiaRenderer();
@@ -160,6 +164,13 @@ public sealed class LumiApp : IDisposable
                 }
             }
 
+            // Handle window navigation (e.g. login → main window)
+            if (_pendingNavigation != null)
+            {
+                ApplyNavigation(_pendingNavigation);
+                _pendingNavigation = null;
+            }
+
             _frameMetrics.BeginStage();
             _window.OnUpdate();
             _windowManager.Update();
@@ -208,6 +219,10 @@ public sealed class LumiApp : IDisposable
             if (needsRepaint)
             {
                 var (w, h) = _platformWindow.GetPixelSize();
+
+                // Restore GL context to main window after secondary window rendering
+                if (_useGpuRendering && _windowManager.Count > 0)
+                    _platformWindow.MakeCurrent();
 
                 _frameMetrics.BeginStage();
                 _renderer.EnsureSize(w, h);
@@ -537,6 +552,76 @@ public sealed class LumiApp : IDisposable
         return (0, 0);
     }
 
+    /// <summary>
+    /// Replaces the current primary window with a new one, preserving the
+    /// platform window (SDL), renderer, and application loop. This enables
+    /// multi-screen flows (e.g. login → main) without restarting LumiApp.
+    /// </summary>
+    private void ApplyNavigation(Window newWindow)
+    {
+        // Notify old window before teardown
+        _window.OnNavigatingFrom();
+
+        // Tear down old window's hot reload and layout
+        _hotReload?.Dispose();
+        _hotReload = null;
+        _window.LayoutEngine.Dispose();
+
+        // Clear old window's back-references
+        _window.NavigateCallback = null;
+        _window.Windows = null;
+
+        // Close any secondary windows from the old window
+        _windowManager.CloseAll();
+
+        // Clear animations referencing old window elements
+        _transitionManager.Clear();
+        AnimationExtensions.GlobalTweenEngine.Clear();
+
+        // Swap to the new window
+        _window = newWindow;
+
+        // Wire up framework services to the new window
+        _window.FrameMetrics = _frameMetrics;
+        _window.Windows = _windowManager;
+        _window.Renderer = _renderer;
+        _window.NavigateCallback = w => _pendingNavigation = w;
+
+        // Update platform window title and size
+        _platformWindow.SetTitle(_window.Title);
+        _platformWindow.Resize(_window.Width, _window.Height);
+
+        // Apply theme and set up element tree
+        var prefs = new SystemPreferences();
+        prefs.Detect();
+        _window.Theme.SetSystemPreference(prefs.IsDarkMode);
+        _window.Theme.ApplyTo(_window.Root);
+
+        // Set root before and after OnReady — OnReady may call LoadTemplate which replaces Root
+        _app.Root = _window.Root;
+        _window.OnReady();
+        _app.Root = _window.Root;
+
+        _window.LayoutEngine.MeasureFunc = MeasureElement;
+
+        // Start hot reload for the new window if enabled
+        if (_window.EnableHotReload && (_window.HtmlPath != null || _window.CssPath != null))
+        {
+            _hotReload = new HotReload(_window, _window.HtmlPath, _window.CssPath,
+                wakeUp: () => _platformWindow.WakeUp());
+            _hotReload.Start();
+        }
+
+        // Clear interaction state — old element references are invalid
+        _interaction.Clear();
+
+        // Force a full repaint
+        _window.Root.MarkDirty();
+
+        // Notify new window that navigation is complete
+        _window.OnNavigatedTo();
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
@@ -549,5 +634,6 @@ public sealed class LumiApp : IDisposable
         _platformWindow.Dispose();
         FontManager.Clear();
         Lumi.Text.TypefaceCache.Clear();
+        Clipboard.Reset();
     }
 }
