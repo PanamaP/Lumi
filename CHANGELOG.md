@@ -31,5 +31,15 @@ Initial preview release of Lumi, a .NET 10 native C# GUI framework using HTML/CS
 - **Documentation:** Getting Started guide, CSS Reference, API Reference, and Components Guide
 - **Templates:** `dotnet new lumi` project template for quick project scaffolding
 
+### Fixed
+
+- **InputElement height:** Added intrinsic measure function and `min-height: 36px` so text inputs render at a usable size
+- **Dropdown overlay:** Dropdown list now renders at the root element with `position: absolute` and `z-index: 10000`, preventing it from pushing sibling elements down
+- **Tooltip positioning:** Tooltips render at the root element with auto-positioning (tries right → left → bottom → top) to stay fully visible; `pointer-events: none` prevents hover interference
+- **Slider interaction:** Increased thumb size to 24px, track width to 300px, and fixed thumb centering so dragging no longer requires pixel-perfect mouse placement
+- **AlignSelf default:** Changed default `align-self` from `stretch` to `auto` (CSS spec), so children correctly inherit their parent's `align-items` value — fixes nav link centering, checkbox indicator centering, and bar chart alignment
+- **CSS variable resolution:** Split style resolution into two passes (custom properties first, then regular properties) so `var()` references resolve against final custom property values — fixes theme switching when higher-specificity rules override CSS variables
+- **GetAbsoluteBounds:** Fixed double-counting of parent positions since LayoutBox already stores absolute coordinates
+
 [Unreleased]: https://github.com/PanamaP/Lumi/compare/v0.3.0-preview.1...HEAD
 [0.3.0-preview.1]: https://github.com/PanamaP/Lumi/releases/tag/v0.3.0-preview.1
