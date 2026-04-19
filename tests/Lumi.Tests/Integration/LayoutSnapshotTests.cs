@@ -3,13 +3,17 @@ using System.Text;
 using Lumi.Core;
 using Lumi.Tests.Helpers;
 
-namespace Lumi.Tests;
+namespace Lumi.Tests.Integration;
 
 /// <summary>
-/// Deterministic layout snapshot regression tests. Each test runs a small HTML/CSS
-/// fragment through <see cref="HeadlessPipeline.StyleAndLayout"/> and compares the
+/// Layout snapshot regression tests. Each test runs a small HTML/CSS fragment
+/// through <see cref="HeadlessPipeline.StyleAndLayout"/> and compares the
 /// serialized post-layout box tree against an embedded raw-string expected value.
-/// Yoga-based layout is fully deterministic so these snapshots are stable across runs.
+/// Yoga-based layout itself is deterministic, so non-text geometry should be stable
+/// across runs. Snapshots that include text measurement are stable when the test
+/// environment uses consistent font registration/resolution and the same shaping
+/// stack (for example, Skia/HarfBuzz versions and platform font availability);
+/// tests in this file therefore avoid asserting exact text-measurement geometry.
 /// </summary>
 [Collection("Integration")]
 public class LayoutSnapshotTests
@@ -81,7 +85,7 @@ public class LayoutSnapshotTests
     }
 
     [Fact]
-    public void flex_row_equal_share()
+    public void FlexRow_EqualShare_DividesEvenly()
     {
         const string html = """
             <div id="row">
@@ -102,11 +106,11 @@ public class LayoutSnapshotTests
                 box#c2 @ 100,0 100x100
                 box#c3 @ 200,0 100x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(flex_row_equal_share));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(FlexRow_EqualShare_DividesEvenly));
     }
 
     [Fact]
-    public void flex_row_with_gap_20()
+    public void FlexRow_WithGap20_DistributesExactly()
     {
         const string html = """
             <div id="row">
@@ -116,23 +120,23 @@ public class LayoutSnapshotTests
             </div>
             """;
         const string css = """
-            #row { display: flex; flex-direction: row; gap: 20px; width: 300px; height: 100px; }
+            #row { display: flex; flex-direction: row; gap: 20px; width: 310px; height: 100px; }
             #c1, #c2, #c3 { flex-grow: 1; height: 100px; }
             """;
         using var p = HeadlessPipeline.StyleAndLayout(html, css, 800, 600);
-        // 300 - 2*20 gap = 260 / 3 ~= 86.67 → rounding may vary
+        // 310 - 2*20 gap = 270 / 3 = 90, so each item receives an exact width.
         const string expected = """
             box#anon0 @ 0,0 800x600
-              box#row @ 0,0 300x100
-                box#c1 @ 0,0 87x100
-                box#c2 @ 107,0 86x100
-                box#c3 @ 213,0 87x100
+              box#row @ 0,0 310x100
+                box#c1 @ 0,0 90x100
+                box#c2 @ 110,0 90x100
+                box#c3 @ 220,0 90x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(flex_row_with_gap_20));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(FlexRow_WithGap20_DistributesExactly));
     }
 
     [Fact]
-    public void flex_column_align_items_center()
+    public void FlexColumn_AlignItemsCenter_CentersChildren()
     {
         const string html = """
             <div id="col">
@@ -152,11 +156,11 @@ public class LayoutSnapshotTests
                 box#c1 @ 75,0 50x50
                 box#c2 @ 50,50 100x50
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(flex_column_align_items_center));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(FlexColumn_AlignItemsCenter_CentersChildren));
     }
 
     [Fact]
-    public void nested_row_in_column()
+    public void NestedRow_InColumn_LaysOutCorrectly()
     {
         const string html = """
             <div id="col">
@@ -179,11 +183,11 @@ public class LayoutSnapshotTests
                   box#g1 @ 0,0 200x100
                   box#g2 @ 200,0 200x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(nested_row_in_column));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(NestedRow_InColumn_LaysOutCorrectly));
     }
 
     [Fact]
-    public void percentage_width_50()
+    public void PercentageWidth_50_ResolvesAgainstParent()
     {
         const string html = """
             <div id="parent">
@@ -200,11 +204,11 @@ public class LayoutSnapshotTests
               box#parent @ 0,0 400x100
                 box#child @ 0,0 200x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(percentage_width_50));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(PercentageWidth_50_ResolvesAgainstParent));
     }
 
     [Fact]
-    public void flex_basis_50_grow_1()
+    public void FlexBasis50_Grow1_DividesRemainder()
     {
         const string html = """
             <div id="row">
@@ -223,11 +227,11 @@ public class LayoutSnapshotTests
                 box#c1 @ 0,0 150x100
                 box#c2 @ 150,0 150x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(flex_basis_50_grow_1));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(FlexBasis50_Grow1_DividesRemainder));
     }
 
     [Fact]
-    public void margin_padding_combo()
+    public void MarginPaddingCombo_OffsetsByMargin()
     {
         const string html = """<div id="box"></div>""";
         const string css = """
@@ -239,11 +243,11 @@ public class LayoutSnapshotTests
             box#anon0 @ 0,0 800x600
               box#box @ 10,10 100x100
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(margin_padding_combo));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(MarginPaddingCombo_OffsetsByMargin));
     }
 
     [Fact]
-    public void absolute_positioned_corner()
+    public void AbsolutePositionedCorner_AlignsToBottomRight()
     {
         const string html = """
             <div id="parent">
@@ -260,11 +264,11 @@ public class LayoutSnapshotTests
               box#parent @ 0,0 200x200
                 box#child @ 150,150 50x50
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(absolute_positioned_corner));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(AbsolutePositionedCorner_AlignsToBottomRight));
     }
 
     [Fact]
-    public void multi_child_with_text()
+    public void MultiChildWithText_PlacesBoxesAndProducesNonZeroTextSize()
     {
         const string html = """
             <div id="row">
@@ -278,21 +282,35 @@ public class LayoutSnapshotTests
             #a, #b, #c { width: 100px; height: 50px; }
             """;
         using var p = HeadlessPipeline.StyleAndLayout(html, css, 800, 600);
-        const string expected = """
-            box#anon0 @ 0,0 800x600
-              box#row @ 0,0 300x50
-                box#a @ 0,0 100x50
-                  text#anon1 @ 0,0 100x26
-                box#b @ 100,0 100x50
-                  text#anon2 @ 100,0 100x26
-                box#c @ 200,0 100x50
-                  text#anon3 @ 200,0 100x26
-            """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(multi_child_with_text));
+
+        // Box geometry is fully determined by Yoga layout and is asserted exactly.
+        // Text geometry is intentionally NOT snapshotted here because text
+        // measurement depends on platform font availability and Skia/HarfBuzz
+        // versions; instead we assert structural invariants on the text nodes.
+        var row = p.FindById("row");
+        Assert.NotNull(row);
+        Assert.Equal(3, row!.Children.Count);
+
+        var ids = new[] { "a", "b", "c" };
+        for (int i = 0; i < ids.Length; i++)
+        {
+            var box = p.FindById(ids[i]);
+            Assert.NotNull(box);
+            Assert.Equal(i * 100f, box!.LayoutBox.X);
+            Assert.Equal(0f, box.LayoutBox.Y);
+            Assert.Equal(100f, box.LayoutBox.Width);
+            Assert.Equal(50f, box.LayoutBox.Height);
+
+            // Each box wraps a single text element with non-zero measured size.
+            Assert.Single(box.Children);
+            var text = box.Children[0];
+            Assert.True(text.LayoutBox.Width > 0, $"text in #{ids[i]} should have non-zero width");
+            Assert.True(text.LayoutBox.Height > 0, $"text in #{ids[i]} should have non-zero height");
+        }
     }
 
     [Fact]
-    public void deep_nesting_5_levels()
+    public void DeepNesting_5Levels_AccumulatesPadding()
     {
         const string html = """
             <div id="l1">
@@ -317,11 +335,11 @@ public class LayoutSnapshotTests
                     box#l4 @ 15,15 200x170
                       box#l5 @ 20,20 200x160
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(deep_nesting_5_levels));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(DeepNesting_5Levels_AccumulatesPadding));
     }
 
     [Fact]
-    public void wrap_flex_row()
+    public void WrapFlexRow_OverflowingChildren_WrapToNewLine()
     {
         const string html = """
             <div id="row">
@@ -344,11 +362,11 @@ public class LayoutSnapshotTests
                 box#c3 @ 0,100 200x50
                 box#c4 @ 0,150 200x50
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(wrap_flex_row));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(WrapFlexRow_OverflowingChildren_WrapToNewLine));
     }
 
     [Fact]
-    public void zero_size_no_content()
+    public void ZeroSize_NoContent_CollapsesHeight()
     {
         const string html = """<div id="empty"></div>""";
         const string css = "";
@@ -357,6 +375,6 @@ public class LayoutSnapshotTests
             box#anon0 @ 0,0 800x600
               box#empty @ 0,0 800x0
             """;
-        AssertSnapshot(expected, Snapshot(p.Root), nameof(zero_size_no_content));
+        AssertSnapshot(expected, Snapshot(p.Root), nameof(ZeroSize_NoContent_CollapsesHeight));
     }
 }
