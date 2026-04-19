@@ -5,11 +5,11 @@
     "reporters": ["progress", "html", "json"],
     "thresholds": { "high": 80, "low": 60, "break": 0 },
     "mutate": [
-      "src/Lumi.Core/**/*.cs",
-      "!src/Lumi.Core/**/obj/**/*.cs",
-      "!src/Lumi.Core/**/bin/**/*.cs",
-      "!src/Lumi.Core/**/*.g.cs",
-      "!src/Lumi.Core/**/*.Designer.cs"
+      "**/*.cs",
+      "!**/obj/**/*.cs",
+      "!**/bin/**/*.cs",
+      "!**/*.g.cs",
+      "!**/*.Designer.cs"
     ],
     "ignore-mutations": ["string", "regex"],
     "concurrency": 4
