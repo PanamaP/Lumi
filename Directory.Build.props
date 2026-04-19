@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      Repo-wide quality gate: any compiler or analyzer warning fails the build.
+      Individual projects can opt out for known exceptions via <WarningsNotAsErrors>.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>
