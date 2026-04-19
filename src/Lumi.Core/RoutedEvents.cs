@@ -53,3 +53,16 @@ public class RoutedKeyEvent : RoutedEvent
 
     public RoutedKeyEvent(string name) : base(name) { }
 }
+
+/// <summary>
+/// Routed text-input event carrying the OS-translated character(s) — that is,
+/// the result after keyboard layout and IME composition. Use this (rather than
+/// <see cref="RoutedKeyEvent"/>) whenever you care about "what the user typed"
+/// instead of "which physical key went down".
+/// </summary>
+public class RoutedTextInputEvent : RoutedEvent
+{
+    public string Text { get; init; } = "";
+
+    public RoutedTextInputEvent(string name) : base(name) { }
+}

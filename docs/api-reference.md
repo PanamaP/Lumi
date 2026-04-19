@@ -271,6 +271,7 @@ These strings can be passed to `On()` and `Off()`:
 | `"MouseLeave"` | Mouse left element bounds. |
 | `"KeyDown"` | Key pressed while focused. |
 | `"KeyUp"` | Key released while focused. |
+| `"TextInput"` | OS-translated text input (layout / IME aware). |
 | `"Focus"` | Element received focus. |
 | `"Blur"` | Element lost focus. |
 | `"Scroll"` | Element was scrolled. |
@@ -474,10 +475,18 @@ Extends `RoutedEvent` with keyboard-specific data.
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `Key` | `string` | Key name. |
+| `Key` | `KeyCode` | The key that triggered the event. |
 | `Shift` | `bool` | Shift modifier held. |
 | `Ctrl` | `bool` | Ctrl modifier held. |
 | `Alt` | `bool` | Alt modifier held. |
+
+### RoutedTextInputEvent
+
+Extends `RoutedEvent` with the OS-translated character(s) from a keyboard or IME. Use this when you care about *what the user typed* (post layout / IME), rather than which physical key was pressed.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Text` | `string` | The composed text (typically a single character, but may be longer for IME composition). |
 
 ### RoutedEventHandler
 
@@ -507,11 +516,19 @@ button.On("Click", (sender, e) =>
 panel.On("KeyDown", (sender, e) =>
 {
     var ke = (RoutedKeyEvent)e;
-    if (ke.Ctrl && ke.Key == "S")
+    if (ke.Ctrl && ke.Key == KeyCode.S)
     {
         Console.WriteLine("Ctrl+S pressed!");
         e.Handled = true;
     }
+});
+
+// Read the typed character (layout/IME aware)
+var input = new InputElement();
+input.On("TextInput", (sender, e) =>
+{
+    var te = (RoutedTextInputEvent)e;
+    Console.WriteLine($"Typed: {te.Text}");
 });
 ```
 

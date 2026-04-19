@@ -556,6 +556,39 @@ public unsafe class Sdl3Window : IPlatformWindow
         SDL_Scancode.SDL_SCANCODE_RGUI => KeyCode.RightSuper,
         SDL_Scancode.SDL_SCANCODE_MENU => KeyCode.Menu,
 
+        // Symbol / punctuation row
+        SDL_Scancode.SDL_SCANCODE_MINUS => KeyCode.Minus,
+        SDL_Scancode.SDL_SCANCODE_EQUALS => KeyCode.Equals,
+        SDL_Scancode.SDL_SCANCODE_LEFTBRACKET => KeyCode.LeftBracket,
+        SDL_Scancode.SDL_SCANCODE_RIGHTBRACKET => KeyCode.RightBracket,
+        SDL_Scancode.SDL_SCANCODE_BACKSLASH => KeyCode.Backslash,
+        SDL_Scancode.SDL_SCANCODE_SEMICOLON => KeyCode.Semicolon,
+        SDL_Scancode.SDL_SCANCODE_APOSTROPHE => KeyCode.Apostrophe,
+        SDL_Scancode.SDL_SCANCODE_GRAVE => KeyCode.Grave,
+        SDL_Scancode.SDL_SCANCODE_COMMA => KeyCode.Comma,
+        SDL_Scancode.SDL_SCANCODE_PERIOD => KeyCode.Period,
+        SDL_Scancode.SDL_SCANCODE_SLASH => KeyCode.Slash,
+
+        // Numeric keypad
+        SDL_Scancode.SDL_SCANCODE_NUMLOCKCLEAR => KeyCode.NumLock,
+        SDL_Scancode.SDL_SCANCODE_KP_DIVIDE => KeyCode.NumpadDivide,
+        SDL_Scancode.SDL_SCANCODE_KP_MULTIPLY => KeyCode.NumpadMultiply,
+        SDL_Scancode.SDL_SCANCODE_KP_MINUS => KeyCode.NumpadSubtract,
+        SDL_Scancode.SDL_SCANCODE_KP_PLUS => KeyCode.NumpadAdd,
+        SDL_Scancode.SDL_SCANCODE_KP_ENTER => KeyCode.NumpadEnter,
+        SDL_Scancode.SDL_SCANCODE_KP_1 => KeyCode.Numpad1,
+        SDL_Scancode.SDL_SCANCODE_KP_2 => KeyCode.Numpad2,
+        SDL_Scancode.SDL_SCANCODE_KP_3 => KeyCode.Numpad3,
+        SDL_Scancode.SDL_SCANCODE_KP_4 => KeyCode.Numpad4,
+        SDL_Scancode.SDL_SCANCODE_KP_5 => KeyCode.Numpad5,
+        SDL_Scancode.SDL_SCANCODE_KP_6 => KeyCode.Numpad6,
+        SDL_Scancode.SDL_SCANCODE_KP_7 => KeyCode.Numpad7,
+        SDL_Scancode.SDL_SCANCODE_KP_8 => KeyCode.Numpad8,
+        SDL_Scancode.SDL_SCANCODE_KP_9 => KeyCode.Numpad9,
+        SDL_Scancode.SDL_SCANCODE_KP_0 => KeyCode.Numpad0,
+        SDL_Scancode.SDL_SCANCODE_KP_PERIOD => KeyCode.NumpadDecimal,
+        SDL_Scancode.SDL_SCANCODE_KP_EQUALS => KeyCode.NumpadEquals,
+
         _ => KeyCode.Unknown,
     };
 
