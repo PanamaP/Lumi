@@ -68,6 +68,7 @@ textBox.OnValueChanged = value => Console.WriteLine($"Typed: {value}");
 Components are **not** elements themselves. They *contain* an element exposed via `Root`.
 Add that root to any parent in your element tree:
 
+<!-- doc-compile:skip -->
 ```csharp
 myPanel.AddChild(textBox.Root);
 ```
@@ -76,6 +77,7 @@ myPanel.AddChild(textBox.Root);
 
 Input components keep their state in regular properties — read them whenever you need:
 
+<!-- doc-compile:skip -->
 ```csharp
 string email = textBox.Value;
 ```
@@ -111,6 +113,7 @@ public enum ButtonVariant
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var save = new LumiButton { Text = "Save", Variant = ButtonVariant.Primary };
 save.OnClick = () => SaveData();
@@ -143,6 +146,7 @@ A toggle checkbox with a text label.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var agree = new LumiCheckbox { Label = "I agree to the terms" };
 
@@ -174,6 +178,7 @@ dialog panel.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var dialog = new LumiDialog { Title = "Confirm Action" };
 
@@ -255,6 +260,7 @@ A scrollable list of styled rows.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var fileList = new LumiList
 {
@@ -382,6 +388,7 @@ A toggle switch with an optional label.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var darkMode = new LumiToggle { Label = "Dark Mode", IsOn = true };
 
@@ -440,6 +447,7 @@ A tab strip with switchable content panels.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var tabs = new LumiTabControl();
 
@@ -538,9 +546,9 @@ Use `FindById()` to locate placeholder elements defined in markup, or build the 
 entirely in code:
 
 ```csharp
-protected override void OnReady()
+public override void OnReady()
 {
-    var root = Document.Body;
+    var root = Root;
 
     var heading = new TextElement("My App");
 
@@ -557,9 +565,9 @@ protected override void OnReady()
 Combine multiple input components, read their values on submit:
 
 ```csharp
-protected override void OnReady()
+public override void OnReady()
 {
-    var form = Document.Body;
+    var form = Root;
 
     var name = new LumiTextBox { Label = "Name", Placeholder = "Enter your name" };
     var role = new LumiDropdown { Items = new List<string> { "Developer", "Designer", "Manager" } };

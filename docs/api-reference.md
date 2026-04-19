@@ -40,6 +40,7 @@ The entry point for every Lumi application. There's exactly one static method �
 
 `Run` creates the SDL3 window, initializes the Skia renderer, sets up input handling, and starts the animation loop. Everything is managed automatically — you just pass a `Window` and go.
 
+<!-- doc-compile:skip -->
 ```csharp
 // Program.cs — the entire entry point
 LumiApp.Run(new MainWindow());
@@ -190,6 +191,7 @@ Available via the `Windows` property on any `Window` instance.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 // Open a secondary window from the main window
 Windows?.Open(new SettingsWindow());
@@ -281,7 +283,7 @@ These strings can be passed to `On()` and `Off()`:
 
 ```csharp
 var panel = new BoxElement("div") { Id = "panel" };
-panel.Classes = new ClassList("card", "shadow");
+panel.Classes = new ClassList(["card", "shadow"]);
 
 var label = new TextElement { Text = "Hello, world!" };
 panel.AddChild(label);
@@ -302,6 +304,7 @@ Generic container element. Maps to `<div>`, `<section>`, `<nav>`, `<header>`, `<
 
 ### Constructor
 
+<!-- doc-compile:skip -->
 ```csharp
 public BoxElement(string tagName = "div")
 ```
@@ -320,7 +323,7 @@ When `tagName` is `"button"` or `"a"`, the element is automatically set to `IsFo
 ```csharp
 // Creating elements in code
 var toolbar = new BoxElement("div");
-toolbar.Classes = new ClassList("toolbar");
+toolbar.Classes = new ClassList(["toolbar"]);
 
 var saveBtn = new BoxElement("button") { Id = "save-btn" };
 var cancelBtn = new BoxElement("button") { Id = "cancel-btn" };
@@ -351,7 +354,7 @@ Displays text content. TagName is always `"span"`.
 
 ```csharp
 var greeting = new TextElement { Text = "Welcome back!" };
-greeting.Classes = new ClassList("greeting");
+greeting.Classes = new ClassList(["greeting"]);
 ```
 
 ---
@@ -378,7 +381,7 @@ Displays an image. TagName is always `"img"`.
 
 ```csharp
 var logo = new ImageElement { Source = "assets/logo.png" };
-logo.Classes = new ClassList("logo");
+logo.Classes = new ClassList(["logo"]);
 ```
 
 ---
@@ -550,6 +553,7 @@ Manages all active bindings between source objects and UI elements.
 | `void UpdateAll()` | Force-update all active bindings. |
 | `void ClearAll()` | Remove all bindings. |
 
+<!-- doc-compile:skip -->
 ```csharp
 engine.Bind(element, "Text", viewModel, new BindingExpression
 {
@@ -594,6 +598,7 @@ Describes a single binding. Can be created in code or parsed from a binding stri
 
 Resolves template directives in HTML.
 
+<!-- doc-compile:skip -->
 ```csharp
 TemplateEngine.Apply(root, dataContext);
 ```
@@ -632,6 +637,7 @@ Walks up the parent chain to find the nearest non-null `DataContext`.
 
 Renders a collection into child elements, with support for `INotifyCollectionChanged`.
 
+<!-- doc-compile:skip -->
 ```csharp
 renderer.BindItemsSource(container, collection, templateFactory);
 ```
@@ -640,6 +646,7 @@ When items are added, removed, or moved in the collection, the UI updates automa
 
 ### Full Example
 
+<!-- doc-compile:skip -->
 ```csharp
 public class TodoViewModel : INotifyPropertyChanged
 {
@@ -691,6 +698,7 @@ setters that call `OnPropertyChanged()`.
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 using Lumi.Generators;
 
@@ -714,6 +722,7 @@ The generated code adds:
 
 ### Usage with Binding
 
+<!-- doc-compile:skip -->
 ```csharp
 var vm = new TodoViewModel { Title = "Buy groceries" };
 BindingEngine.Bind(vm, "Title", titleLabel, "Text");
@@ -763,6 +772,7 @@ A case-insensitive `Dictionary<string, string>` containing extracted route param
 
 ### Example
 
+<!-- doc-compile:skip -->
 ```csharp
 var container = FindById("page-container")!;
 var router = new Router(container);
