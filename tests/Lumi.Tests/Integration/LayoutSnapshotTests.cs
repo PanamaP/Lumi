@@ -238,7 +238,8 @@ public class LayoutSnapshotTests
             #box { margin: 10px; padding: 20px; width: 100px; height: 100px; }
             """;
         using var p = HeadlessPipeline.StyleAndLayout(html, css, 800, 600);
-        // box content area is 100x100; padding adds 20 inside; margin pushes by 10
+        // In Lumi/Yoga border-box sizing, the 100x100 layout box includes the 20px padding;
+        // the content box is therefore 60x60, and the 10px margin offsets the border box to 10,10.
         const string expected = """
             box#anon0 @ 0,0 800x600
               box#box @ 10,10 100x100
