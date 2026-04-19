@@ -48,12 +48,7 @@ public class LumiDropdown
                 var root = ComponentStyles.FindRoot(_container);
                 var buttonBounds = ComponentStyles.GetAbsoluteBounds(_button);
                 _listContainer.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-                    $"display: flex; flex-direction: column; " +
-                    $"position: absolute; top: {buttonBounds.Bottom:F0}px; left: {buttonBounds.X:F0}px; " +
-                    $"width: {buttonBounds.Width:F0}px; " +
-                    $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Surface)}; " +
-                    $"border-width: 1px; border-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; " +
-                    $"border-radius: 4px; z-index: 10000; overflow: scroll; max-height: 200px");
+                    $"display: flex; flex-direction: column; position: absolute; top: {buttonBounds.Bottom:F0}px; left: {buttonBounds.X:F0}px; width: {buttonBounds.Width:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Surface)}; border-width: 1px; border-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; z-index: 10000; overflow: scroll; max-height: 200px");
                 if (_listContainer.Parent != root)
                 {
                     _listContainer.Parent?.RemoveChild(_listContainer);
