@@ -29,7 +29,7 @@ public class ClipboardTests : IDisposable
     [Fact]
     public void Initialize_GetText_ReturnsValueFromDelegate()
     {
-        InvokeInitialize(() => "stored", _ => { });
+        Clipboard.Initialize(() => "stored", _ => { });
         Assert.True(Clipboard.IsInitialized);
         Assert.Equal("stored", Clipboard.GetText());
     }
@@ -38,7 +38,7 @@ public class ClipboardTests : IDisposable
     public void Initialize_SetText_RoutesToSetterDelegate()
     {
         string? captured = null;
-        InvokeInitialize(() => null, s => captured = s);
+        Clipboard.Initialize(() => null, s => captured = s);
         Clipboard.SetText("payload");
         Assert.Equal("payload", captured);
     }
@@ -46,7 +46,7 @@ public class ClipboardTests : IDisposable
     [Fact]
     public void Reset_ClearsDelegates_AndInvalidatesIsInitialized()
     {
-        InvokeInitialize(() => "x", _ => { });
+        Clipboard.Initialize(() => "x", _ => { });
         Assert.True(Clipboard.IsInitialized);
         Clipboard.ResetForTesting();
         Assert.False(Clipboard.IsInitialized);
@@ -56,16 +56,8 @@ public class ClipboardTests : IDisposable
     [Fact]
     public void Initialize_OverwritesDelegates_OnReinitialize()
     {
-        InvokeInitialize(() => "first", _ => { });
-        InvokeInitialize(() => "second", _ => { });
+        Clipboard.Initialize(() => "first", _ => { });
+        Clipboard.Initialize(() => "second", _ => { });
         Assert.Equal("second", Clipboard.GetText());
-    }
-
-    private static void InvokeInitialize(Func<string?> getter, Action<string> setter)
-    {
-        var method = typeof(Clipboard).GetMethod(
-            "Initialize",
-            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-        method!.Invoke(null, [getter, setter]);
     }
 }

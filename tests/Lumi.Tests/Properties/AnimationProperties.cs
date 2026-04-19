@@ -13,7 +13,7 @@ public class AnimationProperties
     /// <summary>
     /// Easing functions must satisfy f(0) = 0 and f(1) = 1 for every input value.
     /// </summary>
-    [Property(MaxTest = 100)]
+    [Fact]
     public void Easing_AllNamed_HitBoundaries()
     {
         var fns = new (string name, Func<float, float> fn)[]

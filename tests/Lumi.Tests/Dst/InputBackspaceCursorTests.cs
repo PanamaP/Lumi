@@ -8,6 +8,7 @@ namespace Lumi.Tests.Dst;
 /// drive <see cref="InputElement.CursorPosition"/> negative because the
 /// <c>Value</c> setter clamped first, then a stale post-decrement subtracted again.
 /// </summary>
+[Collection("Dst")]
 public class InputBackspaceCursorTests
 {
     private const string BaseCss =

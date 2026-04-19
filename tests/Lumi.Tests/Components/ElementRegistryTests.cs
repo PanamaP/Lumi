@@ -99,36 +99,29 @@ public class ElementRegistryTests
     [Fact]
     public void Register_FactoryOverridesExistingTag()
     {
-        // Register a custom factory under a unique tag and verify Create uses it.
-        var sentinelTag = "registry-test-tag-1";
-        try
+        // Use a per-test GUID so we never permanently mutate the global registry
+        // in a way that can leak across tests / parallel runs.
+        var sentinelTag = "registry-test-tag-" + Guid.NewGuid().ToString("N");
+        int callCount = 0;
+        ElementRegistry.Register(sentinelTag, () =>
         {
-            int callCount = 0;
-            ElementRegistry.Register(sentinelTag, () =>
-            {
-                callCount++;
-                return new TextElement("hello");
-            });
+            callCount++;
+            return new TextElement("hello");
+        });
 
-            Assert.True(ElementRegistry.IsRegistered(sentinelTag));
-            var first = ElementRegistry.Create(sentinelTag);
-            Assert.IsType<TextElement>(first);
-            Assert.Equal("hello", ((TextElement)first).Text);
-            Assert.Equal(1, callCount);
+        Assert.True(ElementRegistry.IsRegistered(sentinelTag));
+        var first = ElementRegistry.Create(sentinelTag);
+        Assert.IsType<TextElement>(first);
+        Assert.Equal("hello", ((TextElement)first).Text);
+        Assert.Equal(1, callCount);
 
-            // Re-registering replaces the factory.
-            ElementRegistry.Register(sentinelTag, () => new BoxElement("override"));
-            var second = ElementRegistry.Create(sentinelTag);
-            Assert.IsType<BoxElement>(second);
-            Assert.Equal("override", second.TagName);
-            // Old factory should not have been called again.
-            Assert.Equal(1, callCount);
-        }
-        finally
-        {
-            // Restore to a "no-op" by re-registering as a normal BoxElement, since there's
-            // no Unregister API. Using a unique tag avoids polluting other tests.
-        }
+        // Re-registering replaces the factory.
+        ElementRegistry.Register(sentinelTag, () => new BoxElement("override"));
+        var second = ElementRegistry.Create(sentinelTag);
+        Assert.IsType<BoxElement>(second);
+        Assert.Equal("override", second.TagName);
+        // Old factory should not have been called again.
+        Assert.Equal(1, callCount);
     }
 
     private sealed class CustomElement : Element

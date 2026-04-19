@@ -50,20 +50,33 @@ public class TransitionManagerExtraTests
     [Fact]
     public void DetectChanges_NumericPropertyTransition_DoesNotInvokeColorPath()
     {
-        // Opacity transition, but element has never had its colors captured.
-        // The "is all or background-color" check must AND with prevColors != null;
-        // mutating it to OR would NRE here.
+        // When TransitionProperty is "opacity", the color branch must not run even
+        // if BackgroundColor changes between CaptureState and DetectChanges. If the
+        // color path leaked, BackgroundColor would be reset to the captured value
+        // ready for tweening; we assert it stays at the newly assigned color.
         var mgr = new TransitionManager();
         var el = MakeElement("opacity", 1.0f);
-        // Capture state but only numeric — colors will still be in the dict from CaptureState.
-        // To ensure the AND check matters, the prop here is "opacity", not "all" / "background-color",
-        // so the color branch should never run regardless.
+
         el.ComputedStyle.Opacity = 0f;
+        el.ComputedStyle.BackgroundColor = new Color(10, 20, 30, 40);
         mgr.CaptureState(el);
 
         el.ComputedStyle.Opacity = 1f;
-        var ex = Record.Exception(() => mgr.DetectChanges(el));
-        Assert.Null(ex);
+        el.ComputedStyle.BackgroundColor = new Color(200, 210, 220, 230);
+        mgr.DetectChanges(el);
+
+        // Opacity is the transitioned property, so DetectChanges resets it to the
+        // captured value ready for tweening.
+        Assert.Equal(0f, el.ComputedStyle.Opacity);
+
+        // Background color changed too, but because TransitionProperty is "opacity",
+        // the color path must not run. If it did, the value would be reset to the
+        // captured color instead of remaining at the newly assigned color.
+        var color = el.ComputedStyle.BackgroundColor;
+        Assert.Equal(200, color.R);
+        Assert.Equal(210, color.G);
+        Assert.Equal(220, color.B);
+        Assert.Equal(230, color.A);
     }
 
     [Fact]
