@@ -156,7 +156,7 @@ public class Router
 
     private void ApplyRoute(string route, RouteRegistration registration, RouteParameters parameters)
     {
-        Element page;
+        Element page = null!;
         try
         {
             page = registration.Factory(parameters);

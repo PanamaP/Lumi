@@ -31,3 +31,5 @@ LumiScreenshots/
 
 BenchmarkDotNet.Artifacts/
 
+stryker-test.log
+StrykerOutput/
