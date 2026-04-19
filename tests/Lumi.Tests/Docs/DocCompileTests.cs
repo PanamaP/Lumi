@@ -54,11 +54,10 @@ public class DocCompileTests
         "Lumi.Styling",
         "Lumi.Input",
         "Lumi.Rendering",
-        "Lumi.Generators",
     };
 
     [Fact]
-    public void All_csharp_blocks_in_docs_compile()
+    public void CsharpBlocks_InDocs_Compile()
     {
         var docsDir = ResolveDocsDir();
         var failures = new List<string>();
@@ -98,6 +97,10 @@ public class DocCompileTests
             "Expected to discover csharp doc blocks but found none under " + docsDir);
 
         Assert.True(
+            totals.Total > totals.Skipped,
+            $"Expected at least one csharp doc block to be compiled, but all discovered blocks were skipped under {docsDir} (total={totals.Total}, skipped={totals.Skipped}).");
+
+        Assert.True(
             failures.Count == 0,
             $"Doc compile errors (total={totals.Total}, compiled={totals.Compiled}, skipped={totals.Skipped}, failed={totals.Failed}):\n"
             + string.Join("\n", failures));
@@ -132,7 +135,9 @@ public class DocCompileTests
                     break;
                 }
             }
-            if (end < 0) yield break;
+            if (end < 0)
+                throw new InvalidOperationException(
+                    $"Malformed documentation snippet: missing closing ``` fence for ```csharp block starting at line {start}.");
 
             bool skipped = false;
             for (int k = i - 1; k >= 0; k--)
@@ -266,7 +271,12 @@ public class DocCompileTests
         return (hoisted, string.Join("\n", kept));
     }
 
-    private static IEnumerable<MetadataReference> BuildReferences()
+    private static readonly Lazy<IReadOnlyList<MetadataReference>> CachedReferences =
+        new(BuildReferencesCore, isThreadSafe: true);
+
+    private static IReadOnlyList<MetadataReference> BuildReferences() => CachedReferences.Value;
+
+    private static IReadOnlyList<MetadataReference> BuildReferencesCore()
     {
         var refs = new List<MetadataReference>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
