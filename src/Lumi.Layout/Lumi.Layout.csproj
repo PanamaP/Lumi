@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -6,6 +6,7 @@
     <Description>Layout engine (Yoga-based flexbox + CSS Grid) for Lumi.</Description>
     <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,5 +21,4 @@
   <ItemGroup>
     <PackageReference Include="Yoga-CS" Version="1.0.0" />
   </ItemGroup>
-
 </Project>

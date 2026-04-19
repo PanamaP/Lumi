@@ -1,0 +1,101 @@
+#nullable enable
+Lumi.Styling.CssParser
+Lumi.Styling.CssVariablePreProcessor
+Lumi.Styling.ElementQueryExtensions
+Lumi.Styling.HtmlTemplateParser
+Lumi.Styling.InheritableProperties
+Lumi.Styling.MediaCondition
+Lumi.Styling.MediaCondition.Evaluate(float viewportWidth, float viewportHeight) -> bool
+Lumi.Styling.MediaCondition.MaxHeight.get -> float?
+Lumi.Styling.MediaCondition.MaxHeight.set -> void
+Lumi.Styling.MediaCondition.MaxWidth.get -> float?
+Lumi.Styling.MediaCondition.MaxWidth.set -> void
+Lumi.Styling.MediaCondition.MediaCondition() -> void
+Lumi.Styling.MediaCondition.MinHeight.get -> float?
+Lumi.Styling.MediaCondition.MinHeight.set -> void
+Lumi.Styling.MediaCondition.MinWidth.get -> float?
+Lumi.Styling.MediaCondition.MinWidth.set -> void
+Lumi.Styling.MediaCondition.Orientation.get -> string?
+Lumi.Styling.MediaCondition.Orientation.set -> void
+Lumi.Styling.MediaRule
+Lumi.Styling.MediaRule.Condition.get -> Lumi.Styling.MediaCondition!
+Lumi.Styling.MediaRule.Condition.init -> void
+Lumi.Styling.MediaRule.MediaRule() -> void
+Lumi.Styling.MediaRule.Rules.get -> System.Collections.Generic.List<Lumi.Styling.ParsedStyleRule!>!
+Lumi.Styling.ParsedDeclaration
+Lumi.Styling.ParsedDeclaration.ParsedDeclaration() -> void
+Lumi.Styling.ParsedDeclaration.ParsedDeclaration(string! Property, string! Value) -> void
+Lumi.Styling.ParsedDeclaration.Property.get -> string!
+Lumi.Styling.ParsedDeclaration.Property.set -> void
+Lumi.Styling.ParsedDeclaration.Value.get -> string!
+Lumi.Styling.ParsedDeclaration.Value.set -> void
+Lumi.Styling.ParsedKeyframe
+Lumi.Styling.ParsedKeyframe.Declarations.get -> System.Collections.Generic.List<Lumi.Styling.ParsedDeclaration>!
+Lumi.Styling.ParsedKeyframe.ParsedKeyframe() -> void
+Lumi.Styling.ParsedKeyframe.Percent.get -> float
+Lumi.Styling.ParsedKeyframe.Percent.init -> void
+Lumi.Styling.ParsedKeyframes
+Lumi.Styling.ParsedKeyframes.Frames.get -> System.Collections.Generic.List<Lumi.Styling.ParsedKeyframe!>!
+Lumi.Styling.ParsedKeyframes.Name.get -> string!
+Lumi.Styling.ParsedKeyframes.Name.init -> void
+Lumi.Styling.ParsedKeyframes.ParsedKeyframes() -> void
+Lumi.Styling.ParsedStyleRule
+Lumi.Styling.ParsedStyleRule.Declarations.get -> System.Collections.Generic.List<Lumi.Styling.ParsedDeclaration>!
+Lumi.Styling.ParsedStyleRule.ParsedStyleRule() -> void
+Lumi.Styling.ParsedStyleRule.SelectorText.get -> string!
+Lumi.Styling.ParsedStyleRule.SelectorText.init -> void
+Lumi.Styling.ParsedStyleRule.Specificity.get -> Lumi.Styling.SelectorSpecificity
+Lumi.Styling.ParsedStyleRule.Specificity.init -> void
+Lumi.Styling.ParsedStyleSheet
+Lumi.Styling.ParsedStyleSheet.Keyframes.get -> System.Collections.Generic.Dictionary<string!, Lumi.Styling.ParsedKeyframes!>!
+Lumi.Styling.ParsedStyleSheet.MediaRules.get -> System.Collections.Generic.List<Lumi.Styling.MediaRule!>!
+Lumi.Styling.ParsedStyleSheet.ParsedStyleSheet() -> void
+Lumi.Styling.ParsedStyleSheet.Rules.get -> System.Collections.Generic.List<Lumi.Styling.ParsedStyleRule!>!
+Lumi.Styling.PropertyApplier
+Lumi.Styling.PseudoClassState
+Lumi.Styling.PseudoClassState.IsActive.get -> bool
+Lumi.Styling.PseudoClassState.IsActive.init -> void
+Lumi.Styling.PseudoClassState.IsDisabled.get -> bool
+Lumi.Styling.PseudoClassState.IsDisabled.init -> void
+Lumi.Styling.PseudoClassState.IsFocused.get -> bool
+Lumi.Styling.PseudoClassState.IsFocused.init -> void
+Lumi.Styling.PseudoClassState.IsHovered.get -> bool
+Lumi.Styling.PseudoClassState.IsHovered.init -> void
+Lumi.Styling.PseudoClassState.PseudoClassState(bool IsHovered = false, bool IsFocused = false, bool IsActive = false, bool IsDisabled = false) -> void
+Lumi.Styling.SelectorMatcher
+Lumi.Styling.SelectorSpecificity
+Lumi.Styling.SelectorSpecificity.A.get -> int
+Lumi.Styling.SelectorSpecificity.A.set -> void
+Lumi.Styling.SelectorSpecificity.B.get -> int
+Lumi.Styling.SelectorSpecificity.B.set -> void
+Lumi.Styling.SelectorSpecificity.C.get -> int
+Lumi.Styling.SelectorSpecificity.C.set -> void
+Lumi.Styling.SelectorSpecificity.CompareTo(Lumi.Styling.SelectorSpecificity other) -> int
+Lumi.Styling.SelectorSpecificity.SelectorSpecificity() -> void
+Lumi.Styling.SelectorSpecificity.SelectorSpecificity(int A, int B, int C) -> void
+Lumi.Styling.StyleResolver
+Lumi.Styling.StyleResolver.AddStyleSheet(Lumi.Styling.ParsedStyleSheet! sheet) -> void
+Lumi.Styling.StyleResolver.ClearStyleSheets() -> void
+Lumi.Styling.StyleResolver.KeyframePlayer.get -> Lumi.Core.Animation.KeyframePlayer!
+Lumi.Styling.StyleResolver.RemoveStyleSheet(Lumi.Styling.ParsedStyleSheet! sheet) -> void
+Lumi.Styling.StyleResolver.ResolveStyles(Lumi.Core.Element! root, Lumi.Styling.PseudoClassState? pseudoState = null) -> void
+Lumi.Styling.StyleResolver.SetViewport(float width, float height) -> void
+Lumi.Styling.StyleResolver.StyleResolver() -> void
+static Lumi.Styling.CssParser.Parse(string! css) -> Lumi.Styling.ParsedStyleSheet!
+static Lumi.Styling.CssParser.ParseFile(string! filePath) -> Lumi.Styling.ParsedStyleSheet!
+static Lumi.Styling.CssParser.ParseInlineStyle(string! inlineStyle) -> System.Collections.Generic.List<Lumi.Styling.ParsedDeclaration>!
+static Lumi.Styling.CssVariablePreProcessor.Process(string! css) -> string!
+static Lumi.Styling.ElementQueryExtensions.QuerySelector(this Lumi.Core.Element! element, string! selector) -> Lumi.Core.Element?
+static Lumi.Styling.ElementQueryExtensions.QuerySelectorAll(this Lumi.Core.Element! element, string! selector) -> System.Collections.Generic.List<Lumi.Core.Element!>!
+static Lumi.Styling.HtmlTemplateParser.Parse(string! html) -> Lumi.Core.Element!
+static Lumi.Styling.HtmlTemplateParser.ParseFile(string! filePath) -> Lumi.Core.Element!
+static Lumi.Styling.InheritableProperties.InheritFrom(Lumi.Core.ComputedStyle! child, Lumi.Core.ComputedStyle! parent, System.Collections.Generic.HashSet<string!>? explicitlySet = null) -> void
+static Lumi.Styling.InheritableProperties.IsInheritable(string! property) -> bool
+static Lumi.Styling.PropertyApplier.Apply(Lumi.Core.ComputedStyle! style, string! property, string! value) -> void
+static Lumi.Styling.PropertyApplier.SetFontSizeContext(float fontSize) -> void
+static Lumi.Styling.PropertyApplier.SetViewportContext(float width, float height) -> void
+static Lumi.Styling.SelectorMatcher.Matches(Lumi.Core.Element! element, string! selectorText, Lumi.Styling.PseudoClassState? pseudoState = null) -> bool
+static Lumi.Styling.SelectorSpecificity.operator <(Lumi.Styling.SelectorSpecificity left, Lumi.Styling.SelectorSpecificity right) -> bool
+static Lumi.Styling.SelectorSpecificity.operator <=(Lumi.Styling.SelectorSpecificity left, Lumi.Styling.SelectorSpecificity right) -> bool
+static Lumi.Styling.SelectorSpecificity.operator >(Lumi.Styling.SelectorSpecificity left, Lumi.Styling.SelectorSpecificity right) -> bool
+static Lumi.Styling.SelectorSpecificity.operator >=(Lumi.Styling.SelectorSpecificity left, Lumi.Styling.SelectorSpecificity right) -> bool

@@ -1,0 +1,74 @@
+#nullable enable
+Lumi.Platform.IPlatformWindow
+Lumi.Platform.IPlatformWindow.Create(string! title, int width, int height) -> void
+Lumi.Platform.IPlatformWindow.CreateGLContext() -> void
+Lumi.Platform.IPlatformWindow.DestroyGLContext() -> void
+Lumi.Platform.IPlatformWindow.DisplayRefreshRate.get -> int
+Lumi.Platform.IPlatformWindow.GetClipboardText() -> string?
+Lumi.Platform.IPlatformWindow.GetDpiScale() -> float
+Lumi.Platform.IPlatformWindow.GetPixelSize() -> (int Width, int Height)
+Lumi.Platform.IPlatformWindow.GetSize() -> (int Width, int Height)
+Lumi.Platform.IPlatformWindow.HasClipboardText() -> bool
+Lumi.Platform.IPlatformWindow.HasGLContext.get -> bool
+Lumi.Platform.IPlatformWindow.Hide() -> void
+Lumi.Platform.IPlatformWindow.IsOpen.get -> bool
+Lumi.Platform.IPlatformWindow.MakeCurrent() -> void
+Lumi.Platform.IPlatformWindow.NativeHandle.get -> nint
+Lumi.Platform.IPlatformWindow.PollEvents() -> System.Collections.Generic.List<Lumi.Core.InputEvent!>!
+Lumi.Platform.IPlatformWindow.Resize(int width, int height) -> void
+Lumi.Platform.IPlatformWindow.SetClipboardText(string! text) -> void
+Lumi.Platform.IPlatformWindow.SetLiveResizeCallback(System.Action<int, int>! callback) -> void
+Lumi.Platform.IPlatformWindow.SetTitle(string! title) -> void
+Lumi.Platform.IPlatformWindow.SetVSync(Lumi.Platform.VSyncMode mode) -> void
+Lumi.Platform.IPlatformWindow.Show() -> void
+Lumi.Platform.IPlatformWindow.SwapBuffers() -> void
+Lumi.Platform.IPlatformWindow.SystemPreferences.get -> Lumi.Platform.SystemPreferences!
+Lumi.Platform.IPlatformWindow.WaitForEvents() -> System.Collections.Generic.List<Lumi.Core.InputEvent!>!
+Lumi.Platform.Sdl3RenderTarget
+Lumi.Platform.Sdl3RenderTarget.Dispose() -> void
+Lumi.Platform.Sdl3RenderTarget.EnsureSize(int width, int height) -> void
+Lumi.Platform.Sdl3RenderTarget.Present() -> void
+Lumi.Platform.Sdl3RenderTarget.Sdl3RenderTarget(nint rendererPtr) -> void
+Lumi.Platform.Sdl3RenderTarget.Sdl3RenderTarget(SDL.SDL_Renderer* renderer) -> void
+Lumi.Platform.Sdl3RenderTarget.UpdatePixels(nint pixelData, int pitch) -> void
+Lumi.Platform.Sdl3Window
+Lumi.Platform.Sdl3Window.Create(string! title, int width, int height) -> void
+Lumi.Platform.Sdl3Window.CreateGLContext() -> void
+Lumi.Platform.Sdl3Window.CreateSdlRenderer() -> void
+Lumi.Platform.Sdl3Window.DestroyGLContext() -> void
+Lumi.Platform.Sdl3Window.DisplayRefreshRate.get -> int
+Lumi.Platform.Sdl3Window.Dispose() -> void
+Lumi.Platform.Sdl3Window.GetClipboardText() -> string?
+Lumi.Platform.Sdl3Window.GetDpiScale() -> float
+Lumi.Platform.Sdl3Window.GetPixelSize() -> (int Width, int Height)
+Lumi.Platform.Sdl3Window.GetSize() -> (int Width, int Height)
+Lumi.Platform.Sdl3Window.HasClipboardText() -> bool
+Lumi.Platform.Sdl3Window.HasGLContext.get -> bool
+Lumi.Platform.Sdl3Window.Hide() -> void
+Lumi.Platform.Sdl3Window.IsOpen.get -> bool
+Lumi.Platform.Sdl3Window.MakeCurrent() -> void
+Lumi.Platform.Sdl3Window.NativeHandle.get -> nint
+Lumi.Platform.Sdl3Window.PollEvents() -> System.Collections.Generic.List<Lumi.Core.InputEvent!>!
+Lumi.Platform.Sdl3Window.Renderer.get -> SDL.SDL_Renderer*
+Lumi.Platform.Sdl3Window.RendererPtr.get -> nint
+Lumi.Platform.Sdl3Window.Resize(int width, int height) -> void
+Lumi.Platform.Sdl3Window.Sdl3Window() -> void
+Lumi.Platform.Sdl3Window.SetClipboardText(string! text) -> void
+Lumi.Platform.Sdl3Window.SetLiveResizeCallback(System.Action<int, int>! callback) -> void
+Lumi.Platform.Sdl3Window.SetTitle(string! title) -> void
+Lumi.Platform.Sdl3Window.SetVSync(Lumi.Platform.VSyncMode mode) -> void
+Lumi.Platform.Sdl3Window.Show() -> void
+Lumi.Platform.Sdl3Window.SwapBuffers() -> void
+Lumi.Platform.Sdl3Window.SystemPreferences.get -> Lumi.Platform.SystemPreferences!
+Lumi.Platform.Sdl3Window.WaitForEvents() -> System.Collections.Generic.List<Lumi.Core.InputEvent!>!
+Lumi.Platform.Sdl3Window.WakeUp() -> void
+Lumi.Platform.SystemPreferences
+Lumi.Platform.SystemPreferences.AccentColor.get -> Lumi.Core.Color?
+Lumi.Platform.SystemPreferences.Detect() -> void
+Lumi.Platform.SystemPreferences.IsDarkMode.get -> bool
+Lumi.Platform.SystemPreferences.IsHighContrast.get -> bool
+Lumi.Platform.SystemPreferences.SystemPreferences() -> void
+Lumi.Platform.VSyncMode
+Lumi.Platform.VSyncMode.Adaptive = -1 -> Lumi.Platform.VSyncMode
+Lumi.Platform.VSyncMode.Off = 0 -> Lumi.Platform.VSyncMode
+Lumi.Platform.VSyncMode.On = 1 -> Lumi.Platform.VSyncMode

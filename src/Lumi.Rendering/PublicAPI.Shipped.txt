@@ -1,0 +1,80 @@
+#nullable enable
+Lumi.Rendering.ColorExtensions
+Lumi.Rendering.FontManager
+Lumi.Rendering.ImageCache
+Lumi.Rendering.ImageCache.CachedImage
+Lumi.Rendering.ImageCache.CachedImage.Bitmap.get -> SkiaSharp.SKBitmap!
+Lumi.Rendering.ImageCache.CachedImage.CachedImage(SkiaSharp.SKBitmap! bitmap) -> void
+Lumi.Rendering.ImageCache.CachedImage.Dispose() -> void
+Lumi.Rendering.ImageCache.CachedImage.NaturalHeight.get -> int
+Lumi.Rendering.ImageCache.CachedImage.NaturalWidth.get -> int
+Lumi.Rendering.ImageCache.Clear() -> void
+Lumi.Rendering.ImageCache.Dispose() -> void
+Lumi.Rendering.ImageCache.Evict(string! path) -> void
+Lumi.Rendering.ImageCache.Get(string! path) -> Lumi.Rendering.ImageCache.CachedImage?
+Lumi.Rendering.ImageCache.ImageCache() -> void
+Lumi.Rendering.SkiaRenderer
+Lumi.Rendering.SkiaRenderer.Canvas.get -> SkiaSharp.SKCanvas?
+Lumi.Rendering.SkiaRenderer.Dispose() -> void
+Lumi.Rendering.SkiaRenderer.EnsureSize(int width, int height) -> void
+Lumi.Rendering.SkiaRenderer.ExportPng(string! filePath) -> bool
+Lumi.Rendering.SkiaRenderer.GetPixels() -> nint
+Lumi.Rendering.SkiaRenderer.Height.get -> int
+Lumi.Rendering.SkiaRenderer.ImageCache.get -> Lumi.Rendering.ImageCache!
+Lumi.Rendering.SkiaRenderer.InitializeGpu() -> void
+Lumi.Rendering.SkiaRenderer.IsGpuAccelerated.get -> bool
+Lumi.Rendering.SkiaRenderer.Paint(Lumi.Core.Element! root) -> void
+Lumi.Rendering.SkiaRenderer.PaintDirtyRegions(Lumi.Core.Element! root, Lumi.Core.DirtyRegionTracker! tracker) -> void
+Lumi.Rendering.SkiaRenderer.Pitch.get -> int
+Lumi.Rendering.SkiaRenderer.SkiaRenderer() -> void
+Lumi.Rendering.SkiaRenderer.Width.get -> int
+Lumi.Rendering.SystemFontResolver
+Lumi.Rendering.TextLayout
+Lumi.Rendering.TextLayoutResult
+Lumi.Rendering.TextLayoutResult.Lines.get -> System.Collections.Generic.List<Lumi.Rendering.TextLine>!
+Lumi.Rendering.TextLayoutResult.MaxWidth.get -> float
+Lumi.Rendering.TextLayoutResult.MaxWidth.set -> void
+Lumi.Rendering.TextLayoutResult.TextLayoutResult() -> void
+Lumi.Rendering.TextLayoutResult.TotalHeight.get -> float
+Lumi.Rendering.TextLayoutResult.TotalHeight.set -> void
+Lumi.Rendering.TextLayoutResult.WasTruncated.get -> bool
+Lumi.Rendering.TextLayoutResult.WasTruncated.set -> void
+Lumi.Rendering.TextLine
+Lumi.Rendering.TextLine.Text.get -> string!
+Lumi.Rendering.TextLine.Text.init -> void
+Lumi.Rendering.TextLine.TextLine() -> void
+Lumi.Rendering.TextLine.TextLine(string! Text, float X, float Y, float Width) -> void
+Lumi.Rendering.TextLine.Width.get -> float
+Lumi.Rendering.TextLine.Width.init -> void
+Lumi.Rendering.TextLine.X.get -> float
+Lumi.Rendering.TextLine.X.init -> void
+Lumi.Rendering.TextLine.Y.get -> float
+Lumi.Rendering.TextLine.Y.init -> void
+Lumi.Rendering.TextMeasurer
+Lumi.Rendering.TextMeasurer.GetAscent(string! fontFamily, float fontSize, int fontWeight, bool italic) -> float
+Lumi.Rendering.TextMeasurer.GetLineHeight(string! fontFamily, float fontSize, int fontWeight, bool italic, float lineHeightMultiplier) -> float
+Lumi.Rendering.TextMeasurer.MeasureWidth(string! text, string! fontFamily, float fontSize, int fontWeight, bool italic) -> float
+Lumi.Rendering.TextMeasurer.MeasureWordWidth(System.ReadOnlySpan<char> word, SkiaSharp.SKFont! font, SkiaSharp.SKPaint! paint) -> float
+Lumi.Rendering.TextMeasurer.TextMeasurer() -> void
+Lumi.Rendering.TextRenderingOptions
+static Lumi.Rendering.ColorExtensions.ToSkColor(this Lumi.Core.Color color) -> SkiaSharp.SKColor
+static Lumi.Rendering.FontManager.Clear() -> void
+static Lumi.Rendering.FontManager.GetFallbackTypeface(string! category) -> SkiaSharp.SKTypeface?
+static Lumi.Rendering.FontManager.GetTypeface(string! familyName, int weight = 400, bool italic = false) -> SkiaSharp.SKTypeface?
+static Lumi.Rendering.FontManager.GetTypefaceWithFallback(string! familyName, int weight, bool italic, string? fallbackCategory) -> SkiaSharp.SKTypeface?
+static Lumi.Rendering.FontManager.HasGlyph(SkiaSharp.SKTypeface! typeface, int codepoint) -> bool
+static Lumi.Rendering.FontManager.IsRegistered(string! familyName) -> bool
+static Lumi.Rendering.FontManager.RegisterFallbackFont(string! category, string! filePath) -> string!
+static Lumi.Rendering.FontManager.RegisterFallbackTypeface(string! category, SkiaSharp.SKTypeface! typeface) -> void
+static Lumi.Rendering.FontManager.RegisterFont(string! familyName, byte[]! fontData) -> void
+static Lumi.Rendering.FontManager.RegisterFont(string! familyName, string! filePath) -> void
+static Lumi.Rendering.FontManager.RegisterFont(string! filePath) -> string!
+static Lumi.Rendering.FontManager.RegisterTypeface(string! familyName, SkiaSharp.SKTypeface! typeface, int weight = 400, bool italic = false) -> void
+static Lumi.Rendering.SkiaRenderer.RenderToPng(Lumi.Core.Element! root, int width, int height, string! filePath) -> bool
+static Lumi.Rendering.SystemFontResolver.Initialize() -> void
+static Lumi.Rendering.TextLayout.Layout(string! text, float availableWidth, float availableHeight, Lumi.Core.ComputedStyle! style) -> Lumi.Rendering.TextLayoutResult!
+static Lumi.Rendering.TextLayout.Measure(string! text, float maxWidth, Lumi.Core.ComputedStyle! style) -> (float Width, float Height)
+static Lumi.Rendering.TextMeasurer.CreateFont(string! fontFamily, float fontSize, int fontWeight, bool italic) -> SkiaSharp.SKFont!
+static Lumi.Rendering.TextRenderingOptions.GetShaper() -> Lumi.Text.TextShaper!
+static Lumi.Rendering.TextRenderingOptions.UseHarfBuzz.get -> bool
+static Lumi.Rendering.TextRenderingOptions.UseHarfBuzz.set -> void

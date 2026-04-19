@@ -1,0 +1,15 @@
+#nullable enable
+Lumi.Input.HitTester
+Lumi.Input.InteractionState
+Lumi.Input.InteractionState.ActiveElement.get -> Lumi.Core.Element?
+Lumi.Input.InteractionState.Clear() -> void
+Lumi.Input.InteractionState.FocusedElement.get -> Lumi.Core.Element?
+Lumi.Input.InteractionState.HoveredElement.get -> Lumi.Core.Element?
+Lumi.Input.InteractionState.InteractionState() -> void
+Lumi.Input.InteractionState.IsActive(Lumi.Core.Element! element) -> bool
+Lumi.Input.InteractionState.IsFocused(Lumi.Core.Element! element) -> bool
+Lumi.Input.InteractionState.IsHovered(Lumi.Core.Element! element) -> bool
+Lumi.Input.InteractionState.SetActive(Lumi.Core.Element? element) -> void
+Lumi.Input.InteractionState.SetFocused(Lumi.Core.Element? element) -> void
+Lumi.Input.InteractionState.SetHovered(Lumi.Core.Element? element) -> void
+static Lumi.Input.HitTester.HitTest(Lumi.Core.Element! root, float x, float y) -> Lumi.Core.Element?

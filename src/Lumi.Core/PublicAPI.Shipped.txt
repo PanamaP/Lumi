@@ -1,0 +1,1133 @@
+#nullable enable
+abstract Lumi.Core.Element.CreateCloneInstance() -> Lumi.Core.Element!
+abstract Lumi.Core.Element.TagName.get -> string!
+Lumi.Core.Accessibility.AccessibilityInfo
+Lumi.Core.Accessibility.AccessibilityInfo.AccessibilityInfo() -> void
+Lumi.Core.Accessibility.AccessibilityInfo.Description.get -> string?
+Lumi.Core.Accessibility.AccessibilityInfo.Description.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.IsHidden.get -> bool
+Lumi.Core.Accessibility.AccessibilityInfo.IsHidden.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.IsLive.get -> bool
+Lumi.Core.Accessibility.AccessibilityInfo.IsLive.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.Label.get -> string?
+Lumi.Core.Accessibility.AccessibilityInfo.Label.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.LiveMode.get -> string!
+Lumi.Core.Accessibility.AccessibilityInfo.LiveMode.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.Role.get -> string?
+Lumi.Core.Accessibility.AccessibilityInfo.Role.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.ValueMax.get -> float?
+Lumi.Core.Accessibility.AccessibilityInfo.ValueMax.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.ValueMin.get -> float?
+Lumi.Core.Accessibility.AccessibilityInfo.ValueMin.set -> void
+Lumi.Core.Accessibility.AccessibilityInfo.ValueNow.get -> float?
+Lumi.Core.Accessibility.AccessibilityInfo.ValueNow.set -> void
+Lumi.Core.Accessibility.AccessibilityNode
+Lumi.Core.Accessibility.AccessibilityNode.AccessibilityNode() -> void
+Lumi.Core.Accessibility.AccessibilityNode.Children.get -> System.Collections.Generic.List<Lumi.Core.Accessibility.AccessibilityNode!>!
+Lumi.Core.Accessibility.AccessibilityNode.Children.set -> void
+Lumi.Core.Accessibility.AccessibilityNode.Element.get -> Lumi.Core.Element!
+Lumi.Core.Accessibility.AccessibilityNode.Element.set -> void
+Lumi.Core.Accessibility.AccessibilityNode.Name.get -> string!
+Lumi.Core.Accessibility.AccessibilityNode.Name.set -> void
+Lumi.Core.Accessibility.AccessibilityNode.Role.get -> string!
+Lumi.Core.Accessibility.AccessibilityNode.Role.set -> void
+Lumi.Core.Accessibility.AccessibilityTree
+Lumi.Core.Accessibility.AriaParser
+Lumi.Core.Accessibility.HighContrastTheme
+Lumi.Core.AlignItems
+Lumi.Core.AlignItems.Auto = 5 -> Lumi.Core.AlignItems
+Lumi.Core.AlignItems.Baseline = 4 -> Lumi.Core.AlignItems
+Lumi.Core.AlignItems.Center = 2 -> Lumi.Core.AlignItems
+Lumi.Core.AlignItems.FlexEnd = 1 -> Lumi.Core.AlignItems
+Lumi.Core.AlignItems.FlexStart = 0 -> Lumi.Core.AlignItems
+Lumi.Core.AlignItems.Stretch = 3 -> Lumi.Core.AlignItems
+Lumi.Core.Animation.AnimationBuilder
+Lumi.Core.Animation.AnimationBuilder.Delay(float seconds) -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationBuilder.Duration(float seconds) -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationBuilder.Easing(System.Func<float, float>! easing) -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationBuilder.OnComplete(System.Action! callback) -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationBuilder.Property(string! name, float from, float to) -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationBuilder.Start() -> Lumi.Core.Animation.AnimationBuilder!
+Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.AnimationDirection.Alternate = 2 -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.AnimationDirection.AlternateReverse = 3 -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.AnimationDirection.Normal = 0 -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.AnimationDirection.Reverse = 1 -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.AnimationExtensions
+Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.AnimationFillMode.Backwards = 2 -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.AnimationFillMode.Both = 3 -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.AnimationFillMode.Forwards = 1 -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.AnimationFillMode.None = 0 -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.Easing
+Lumi.Core.Animation.Keyframe
+Lumi.Core.Animation.Keyframe.Keyframe(float Percent, System.Collections.Generic.Dictionary<string!, string!>! Properties) -> void
+Lumi.Core.Animation.Keyframe.Percent.get -> float
+Lumi.Core.Animation.Keyframe.Percent.init -> void
+Lumi.Core.Animation.Keyframe.Properties.get -> System.Collections.Generic.Dictionary<string!, string!>!
+Lumi.Core.Animation.Keyframe.Properties.init -> void
+Lumi.Core.Animation.KeyframeAnimation
+Lumi.Core.Animation.KeyframeAnimation.Direction.get -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.Animation.KeyframeAnimation.Direction.set -> void
+Lumi.Core.Animation.KeyframeAnimation.Duration.get -> float
+Lumi.Core.Animation.KeyframeAnimation.Duration.set -> void
+Lumi.Core.Animation.KeyframeAnimation.FillMode.get -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.Animation.KeyframeAnimation.FillMode.set -> void
+Lumi.Core.Animation.KeyframeAnimation.IterationCount.get -> int
+Lumi.Core.Animation.KeyframeAnimation.IterationCount.set -> void
+Lumi.Core.Animation.KeyframeAnimation.KeyframeAnimation() -> void
+Lumi.Core.Animation.KeyframeAnimation.Keyframes.get -> System.Collections.Generic.List<Lumi.Core.Animation.Keyframe!>!
+Lumi.Core.Animation.KeyframeAnimation.Keyframes.set -> void
+Lumi.Core.Animation.KeyframeAnimation.Name.get -> string!
+Lumi.Core.Animation.KeyframeAnimation.Name.set -> void
+Lumi.Core.Animation.KeyframePlayer
+Lumi.Core.Animation.KeyframePlayer.ActiveCount.get -> int
+Lumi.Core.Animation.KeyframePlayer.Get(string! name) -> Lumi.Core.Animation.KeyframeAnimation?
+Lumi.Core.Animation.KeyframePlayer.KeyframePlayer() -> void
+Lumi.Core.Animation.KeyframePlayer.Play(Lumi.Core.Element! element, string! animationName, float duration, int iterationCount = 1, Lumi.Core.Animation.AnimationDirection direction = Lumi.Core.Animation.AnimationDirection.Normal) -> void
+Lumi.Core.Animation.KeyframePlayer.Register(Lumi.Core.Animation.KeyframeAnimation! animation) -> void
+Lumi.Core.Animation.KeyframePlayer.Update(float deltaTime) -> void
+Lumi.Core.Animation.TransitionManager
+Lumi.Core.Animation.TransitionManager.CaptureState(Lumi.Core.Element! element) -> void
+Lumi.Core.Animation.TransitionManager.Clear() -> void
+Lumi.Core.Animation.TransitionManager.DetectChanges(Lumi.Core.Element! element) -> void
+Lumi.Core.Animation.TransitionManager.TransitionManager() -> void
+Lumi.Core.Animation.TransitionManager.Update(double deltaTime) -> void
+Lumi.Core.Animation.Tween
+Lumi.Core.Animation.Tween.Duration.get -> float
+Lumi.Core.Animation.Tween.EasingFunc.get -> System.Func<float, float>!
+Lumi.Core.Animation.Tween.Elapsed.get -> float
+Lumi.Core.Animation.Tween.From.get -> float
+Lumi.Core.Animation.Tween.IsComplete.get -> bool
+Lumi.Core.Animation.Tween.OnComplete.get -> System.Action?
+Lumi.Core.Animation.Tween.OnComplete.set -> void
+Lumi.Core.Animation.Tween.OnUpdate.get -> System.Action<float>?
+Lumi.Core.Animation.Tween.OnUpdate.set -> void
+Lumi.Core.Animation.Tween.To.get -> float
+Lumi.Core.Animation.Tween.Tween(float from, float to, float duration, System.Func<float, float>? easing = null) -> void
+Lumi.Core.Animation.Tween.Value.get -> float
+Lumi.Core.Animation.TweenEngine
+Lumi.Core.Animation.TweenEngine.ActiveCount.get -> int
+Lumi.Core.Animation.TweenEngine.Add(Lumi.Core.Animation.Tween! tween) -> void
+Lumi.Core.Animation.TweenEngine.Clear() -> void
+Lumi.Core.Animation.TweenEngine.TweenEngine() -> void
+Lumi.Core.Animation.TweenEngine.Update(float deltaTime) -> void
+Lumi.Core.Application
+Lumi.Core.Application.Application() -> void
+Lumi.Core.Application.ClearInputState() -> void
+Lumi.Core.Application.DragState.get -> Lumi.Core.DragDrop.DragDropState!
+Lumi.Core.Application.FocusedElement.get -> Lumi.Core.Element?
+Lumi.Core.Application.IsDirty.get -> bool
+Lumi.Core.Application.IsRunning.get -> bool
+Lumi.Core.Application.MarkClean() -> void
+Lumi.Core.Application.ProcessInput(System.Collections.Generic.List<Lumi.Core.InputEvent!>! events) -> void
+Lumi.Core.Application.RequestStop() -> void
+Lumi.Core.Application.Root.get -> Lumi.Core.Element!
+Lumi.Core.Application.Root.set -> void
+Lumi.Core.Application.SetFocus(Lumi.Core.Element? element) -> void
+Lumi.Core.Application.Start() -> void
+Lumi.Core.Application.Update() -> void
+Lumi.Core.Binding.BindingContext
+Lumi.Core.Binding.BindingEngine
+Lumi.Core.Binding.BindingEngine.Bind(Lumi.Core.Element! target, string! targetProperty, object! source, Lumi.Core.Binding.BindingExpression! expr) -> void
+Lumi.Core.Binding.BindingEngine.BindingEngine() -> void
+Lumi.Core.Binding.BindingEngine.ClearAll() -> void
+Lumi.Core.Binding.BindingEngine.UpdateAll() -> void
+Lumi.Core.Binding.BindingExpression
+Lumi.Core.Binding.BindingExpression.BindingExpression() -> void
+Lumi.Core.Binding.BindingExpression.Converter.get -> string?
+Lumi.Core.Binding.BindingExpression.Converter.set -> void
+Lumi.Core.Binding.BindingExpression.FallbackValue.get -> string?
+Lumi.Core.Binding.BindingExpression.FallbackValue.set -> void
+Lumi.Core.Binding.BindingExpression.Mode.get -> Lumi.Core.Binding.BindingMode
+Lumi.Core.Binding.BindingExpression.Mode.set -> void
+Lumi.Core.Binding.BindingExpression.Path.get -> string!
+Lumi.Core.Binding.BindingExpression.Path.set -> void
+Lumi.Core.Binding.BindingExpression.Template.get -> string?
+Lumi.Core.Binding.BindingExpression.Template.set -> void
+Lumi.Core.Binding.BindingMode
+Lumi.Core.Binding.BindingMode.OneTime = 2 -> Lumi.Core.Binding.BindingMode
+Lumi.Core.Binding.BindingMode.OneWay = 0 -> Lumi.Core.Binding.BindingMode
+Lumi.Core.Binding.BindingMode.TwoWay = 1 -> Lumi.Core.Binding.BindingMode
+Lumi.Core.Binding.ItemsRenderer
+Lumi.Core.Binding.ItemsRenderer.BindItemsSource(Lumi.Core.Element! container, System.Collections.IEnumerable! source, System.Func<Lumi.Core.Element!>! templateFactory) -> void
+Lumi.Core.Binding.ItemsRenderer.ItemsRenderer() -> void
+Lumi.Core.Binding.ItemsRenderer.Unbind() -> void
+Lumi.Core.Binding.TemplateBinding
+Lumi.Core.Binding.TemplateBinding.Dispose() -> void
+Lumi.Core.Binding.TemplateBinding.IsAttribute.get -> bool
+Lumi.Core.Binding.TemplateBinding.Target.get -> Lumi.Core.Element!
+Lumi.Core.Binding.TemplateBinding.TargetProperty.get -> string!
+Lumi.Core.Binding.TemplateEngine
+Lumi.Core.BorderStyle
+Lumi.Core.BorderStyle.Dashed = 2 -> Lumi.Core.BorderStyle
+Lumi.Core.BorderStyle.Dotted = 3 -> Lumi.Core.BorderStyle
+Lumi.Core.BorderStyle.Double = 4 -> Lumi.Core.BorderStyle
+Lumi.Core.BorderStyle.None = 0 -> Lumi.Core.BorderStyle
+Lumi.Core.BorderStyle.Solid = 1 -> Lumi.Core.BorderStyle
+Lumi.Core.BoxElement
+Lumi.Core.BoxElement.BoxElement(string! tagName = "div") -> void
+Lumi.Core.BoxShadow
+Lumi.Core.BoxShadow.BlurRadius.get -> float
+Lumi.Core.BoxShadow.BlurRadius.set -> void
+Lumi.Core.BoxShadow.BoxShadow() -> void
+Lumi.Core.BoxShadow.BoxShadow(float OffsetX, float OffsetY, float BlurRadius, float SpreadRadius, Lumi.Core.Color Color, bool Inset) -> void
+Lumi.Core.BoxShadow.Color.get -> Lumi.Core.Color
+Lumi.Core.BoxShadow.Color.set -> void
+Lumi.Core.BoxShadow.Inset.get -> bool
+Lumi.Core.BoxShadow.Inset.set -> void
+Lumi.Core.BoxShadow.IsNone.get -> bool
+Lumi.Core.BoxShadow.OffsetX.get -> float
+Lumi.Core.BoxShadow.OffsetX.set -> void
+Lumi.Core.BoxShadow.OffsetY.get -> float
+Lumi.Core.BoxShadow.OffsetY.set -> void
+Lumi.Core.BoxShadow.SpreadRadius.get -> float
+Lumi.Core.BoxShadow.SpreadRadius.set -> void
+Lumi.Core.BoxSizing
+Lumi.Core.BoxSizing.BorderBox = 1 -> Lumi.Core.BoxSizing
+Lumi.Core.BoxSizing.ContentBox = 0 -> Lumi.Core.BoxSizing
+Lumi.Core.ClassList
+Lumi.Core.ClassList.Add(string! item) -> void
+Lumi.Core.ClassList.ClassList() -> void
+Lumi.Core.ClassList.ClassList(System.Collections.Generic.IEnumerable<string!>! classes) -> void
+Lumi.Core.ClassList.Clear() -> void
+Lumi.Core.ClassList.Contains(string! item) -> bool
+Lumi.Core.ClassList.CopyTo(string![]! array, int arrayIndex) -> void
+Lumi.Core.ClassList.Count.get -> int
+Lumi.Core.ClassList.GetEnumerator() -> System.Collections.Generic.IEnumerator<string!>!
+Lumi.Core.ClassList.IndexOf(string! item) -> int
+Lumi.Core.ClassList.Insert(int index, string! item) -> void
+Lumi.Core.ClassList.IsReadOnly.get -> bool
+Lumi.Core.ClassList.Remove(string! item) -> bool
+Lumi.Core.ClassList.RemoveAt(int index) -> void
+Lumi.Core.ClassList.SetFrom(System.Collections.Generic.IEnumerable<string!>! classes) -> void
+Lumi.Core.ClassList.this[int index].get -> string!
+Lumi.Core.ClassList.this[int index].set -> void
+Lumi.Core.Clipboard
+Lumi.Core.Color
+Lumi.Core.Color.A.get -> byte
+Lumi.Core.Color.A.set -> void
+Lumi.Core.Color.B.get -> byte
+Lumi.Core.Color.B.set -> void
+Lumi.Core.Color.Color() -> void
+Lumi.Core.Color.Color(byte R, byte G, byte B, byte A) -> void
+Lumi.Core.Color.G.get -> byte
+Lumi.Core.Color.G.set -> void
+Lumi.Core.Color.R.get -> byte
+Lumi.Core.Color.R.set -> void
+Lumi.Core.Components.ButtonVariant
+Lumi.Core.Components.ButtonVariant.Danger = 2 -> Lumi.Core.Components.ButtonVariant
+Lumi.Core.Components.ButtonVariant.Primary = 0 -> Lumi.Core.Components.ButtonVariant
+Lumi.Core.Components.ButtonVariant.Secondary = 1 -> Lumi.Core.Components.ButtonVariant
+Lumi.Core.Components.ComponentStyles
+Lumi.Core.Components.LumiButton
+Lumi.Core.Components.LumiButton.IsDisabled.get -> bool
+Lumi.Core.Components.LumiButton.IsDisabled.set -> void
+Lumi.Core.Components.LumiButton.LumiButton() -> void
+Lumi.Core.Components.LumiButton.OnClick.get -> System.Action?
+Lumi.Core.Components.LumiButton.OnClick.set -> void
+Lumi.Core.Components.LumiButton.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiButton.Text.get -> string!
+Lumi.Core.Components.LumiButton.Text.set -> void
+Lumi.Core.Components.LumiButton.Variant.get -> Lumi.Core.Components.ButtonVariant
+Lumi.Core.Components.LumiButton.Variant.set -> void
+Lumi.Core.Components.LumiCheckbox
+Lumi.Core.Components.LumiCheckbox.IsChecked.get -> bool
+Lumi.Core.Components.LumiCheckbox.IsChecked.set -> void
+Lumi.Core.Components.LumiCheckbox.Label.get -> string!
+Lumi.Core.Components.LumiCheckbox.Label.set -> void
+Lumi.Core.Components.LumiCheckbox.LumiCheckbox() -> void
+Lumi.Core.Components.LumiCheckbox.OnChanged.get -> System.Action<bool>?
+Lumi.Core.Components.LumiCheckbox.OnChanged.set -> void
+Lumi.Core.Components.LumiCheckbox.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiDialog
+Lumi.Core.Components.LumiDialog.Content.get -> Lumi.Core.Element?
+Lumi.Core.Components.LumiDialog.Content.set -> void
+Lumi.Core.Components.LumiDialog.IsOpen.get -> bool
+Lumi.Core.Components.LumiDialog.IsOpen.set -> void
+Lumi.Core.Components.LumiDialog.LumiDialog() -> void
+Lumi.Core.Components.LumiDialog.OnClose.get -> System.Action?
+Lumi.Core.Components.LumiDialog.OnClose.set -> void
+Lumi.Core.Components.LumiDialog.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiDialog.Title.get -> string!
+Lumi.Core.Components.LumiDialog.Title.set -> void
+Lumi.Core.Components.LumiDropdown
+Lumi.Core.Components.LumiDropdown.IsOpen.get -> bool
+Lumi.Core.Components.LumiDropdown.Items.get -> System.Collections.Generic.List<string!>!
+Lumi.Core.Components.LumiDropdown.Items.set -> void
+Lumi.Core.Components.LumiDropdown.LumiDropdown() -> void
+Lumi.Core.Components.LumiDropdown.OnSelectionChanged.get -> System.Action<int>?
+Lumi.Core.Components.LumiDropdown.OnSelectionChanged.set -> void
+Lumi.Core.Components.LumiDropdown.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiDropdown.SelectedIndex.get -> int
+Lumi.Core.Components.LumiDropdown.SelectedIndex.set -> void
+Lumi.Core.Components.LumiList
+Lumi.Core.Components.LumiList.Items.get -> System.Collections.Generic.List<string!>!
+Lumi.Core.Components.LumiList.Items.set -> void
+Lumi.Core.Components.LumiList.LumiList() -> void
+Lumi.Core.Components.LumiList.OnItemClick.get -> System.Action<int>?
+Lumi.Core.Components.LumiList.OnItemClick.set -> void
+Lumi.Core.Components.LumiList.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiProgressBar
+Lumi.Core.Components.LumiProgressBar.Dispose() -> void
+Lumi.Core.Components.LumiProgressBar.IsIndeterminate.get -> bool
+Lumi.Core.Components.LumiProgressBar.IsIndeterminate.set -> void
+Lumi.Core.Components.LumiProgressBar.LumiProgressBar() -> void
+Lumi.Core.Components.LumiProgressBar.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiProgressBar.Value.get -> float
+Lumi.Core.Components.LumiProgressBar.Value.set -> void
+Lumi.Core.Components.LumiRadioGroup
+Lumi.Core.Components.LumiRadioGroup.Dispose() -> void
+Lumi.Core.Components.LumiRadioGroup.LumiRadioGroup(System.Collections.Generic.List<string!>! options) -> void
+Lumi.Core.Components.LumiRadioGroup.OnSelectionChanged.get -> System.Action<int>?
+Lumi.Core.Components.LumiRadioGroup.OnSelectionChanged.set -> void
+Lumi.Core.Components.LumiRadioGroup.Options.get -> System.Collections.Generic.IReadOnlyList<string!>!
+Lumi.Core.Components.LumiRadioGroup.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiRadioGroup.SelectedIndex.get -> int
+Lumi.Core.Components.LumiRadioGroup.SelectedIndex.set -> void
+Lumi.Core.Components.LumiSlider
+Lumi.Core.Components.LumiSlider.LumiSlider() -> void
+Lumi.Core.Components.LumiSlider.Max.get -> float
+Lumi.Core.Components.LumiSlider.Max.set -> void
+Lumi.Core.Components.LumiSlider.Min.get -> float
+Lumi.Core.Components.LumiSlider.Min.set -> void
+Lumi.Core.Components.LumiSlider.OnValueChanged.get -> System.Action<float>?
+Lumi.Core.Components.LumiSlider.OnValueChanged.set -> void
+Lumi.Core.Components.LumiSlider.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiSlider.TrackWidth.get -> float
+Lumi.Core.Components.LumiSlider.TrackWidth.set -> void
+Lumi.Core.Components.LumiSlider.Value.get -> float
+Lumi.Core.Components.LumiSlider.Value.set -> void
+Lumi.Core.Components.LumiTabControl
+Lumi.Core.Components.LumiTabControl.AddTab(string! title, Lumi.Core.Element! content) -> void
+Lumi.Core.Components.LumiTabControl.Dispose() -> void
+Lumi.Core.Components.LumiTabControl.LumiTabControl() -> void
+Lumi.Core.Components.LumiTabControl.OnTabChanged.get -> System.Action<int>?
+Lumi.Core.Components.LumiTabControl.OnTabChanged.set -> void
+Lumi.Core.Components.LumiTabControl.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiTabControl.SelectedIndex.get -> int
+Lumi.Core.Components.LumiTabControl.SelectedIndex.set -> void
+Lumi.Core.Components.LumiTextBox
+Lumi.Core.Components.LumiTextBox.InputElement.get -> Lumi.Core.InputElement!
+Lumi.Core.Components.LumiTextBox.IsReadOnly.get -> bool
+Lumi.Core.Components.LumiTextBox.IsReadOnly.set -> void
+Lumi.Core.Components.LumiTextBox.Label.get -> string?
+Lumi.Core.Components.LumiTextBox.Label.set -> void
+Lumi.Core.Components.LumiTextBox.LumiTextBox() -> void
+Lumi.Core.Components.LumiTextBox.OnValueChanged.get -> System.Action<string!>?
+Lumi.Core.Components.LumiTextBox.OnValueChanged.set -> void
+Lumi.Core.Components.LumiTextBox.Placeholder.get -> string!
+Lumi.Core.Components.LumiTextBox.Placeholder.set -> void
+Lumi.Core.Components.LumiTextBox.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiTextBox.Value.get -> string!
+Lumi.Core.Components.LumiTextBox.Value.set -> void
+Lumi.Core.Components.LumiToggle
+Lumi.Core.Components.LumiToggle.Dispose() -> void
+Lumi.Core.Components.LumiToggle.IsOn.get -> bool
+Lumi.Core.Components.LumiToggle.IsOn.set -> void
+Lumi.Core.Components.LumiToggle.Label.get -> string?
+Lumi.Core.Components.LumiToggle.Label.set -> void
+Lumi.Core.Components.LumiToggle.LumiToggle() -> void
+Lumi.Core.Components.LumiToggle.OnToggle.get -> System.Action<bool>?
+Lumi.Core.Components.LumiToggle.OnToggle.set -> void
+Lumi.Core.Components.LumiToggle.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiTooltip
+Lumi.Core.Components.LumiTooltip.Dispose() -> void
+Lumi.Core.Components.LumiTooltip.LumiTooltip() -> void
+Lumi.Core.Components.LumiTooltip.Root.get -> Lumi.Core.Element!
+Lumi.Core.Components.LumiTooltip.Text.get -> string!
+Lumi.Core.Components.LumiTooltip.Text.set -> void
+Lumi.Core.ComputedStyle
+Lumi.Core.ComputedStyle.AlignItems.get -> Lumi.Core.AlignItems
+Lumi.Core.ComputedStyle.AlignItems.set -> void
+Lumi.Core.ComputedStyle.AlignSelf.get -> Lumi.Core.AlignItems
+Lumi.Core.ComputedStyle.AlignSelf.set -> void
+Lumi.Core.ComputedStyle.AnimationDelay.get -> float
+Lumi.Core.ComputedStyle.AnimationDelay.set -> void
+Lumi.Core.ComputedStyle.AnimationDirection.get -> Lumi.Core.Animation.AnimationDirection
+Lumi.Core.ComputedStyle.AnimationDirection.set -> void
+Lumi.Core.ComputedStyle.AnimationDuration.get -> float
+Lumi.Core.ComputedStyle.AnimationDuration.set -> void
+Lumi.Core.ComputedStyle.AnimationFillMode.get -> Lumi.Core.Animation.AnimationFillMode
+Lumi.Core.ComputedStyle.AnimationFillMode.set -> void
+Lumi.Core.ComputedStyle.AnimationIterationCount.get -> int
+Lumi.Core.ComputedStyle.AnimationIterationCount.set -> void
+Lumi.Core.ComputedStyle.AnimationName.get -> string?
+Lumi.Core.ComputedStyle.AnimationName.set -> void
+Lumi.Core.ComputedStyle.AnimationTimingFunction.get -> string?
+Lumi.Core.ComputedStyle.AnimationTimingFunction.set -> void
+Lumi.Core.ComputedStyle.BackgroundColor.get -> Lumi.Core.Color
+Lumi.Core.ComputedStyle.BackgroundColor.set -> void
+Lumi.Core.ComputedStyle.BackgroundGradient.get -> Lumi.Core.CssGradient?
+Lumi.Core.ComputedStyle.BackgroundGradient.set -> void
+Lumi.Core.ComputedStyle.BackgroundImage.get -> string?
+Lumi.Core.ComputedStyle.BackgroundImage.set -> void
+Lumi.Core.ComputedStyle.BorderColor.get -> Lumi.Core.Color
+Lumi.Core.ComputedStyle.BorderColor.set -> void
+Lumi.Core.ComputedStyle.BorderCornerRadius.get -> Lumi.Core.CornerRadius
+Lumi.Core.ComputedStyle.BorderCornerRadius.set -> void
+Lumi.Core.ComputedStyle.BorderRadius.get -> float
+Lumi.Core.ComputedStyle.BorderRadius.set -> void
+Lumi.Core.ComputedStyle.BorderStyle.get -> Lumi.Core.BorderStyle
+Lumi.Core.ComputedStyle.BorderStyle.set -> void
+Lumi.Core.ComputedStyle.BorderWidth.get -> Lumi.Core.EdgeValues
+Lumi.Core.ComputedStyle.BorderWidth.set -> void
+Lumi.Core.ComputedStyle.Bottom.get -> float
+Lumi.Core.ComputedStyle.Bottom.set -> void
+Lumi.Core.ComputedStyle.BoxShadow.get -> Lumi.Core.BoxShadow
+Lumi.Core.ComputedStyle.BoxShadow.set -> void
+Lumi.Core.ComputedStyle.BoxSizing.get -> Lumi.Core.BoxSizing
+Lumi.Core.ComputedStyle.BoxSizing.set -> void
+Lumi.Core.ComputedStyle.Color.get -> Lumi.Core.Color
+Lumi.Core.ComputedStyle.Color.set -> void
+Lumi.Core.ComputedStyle.ColumnGap.get -> float
+Lumi.Core.ComputedStyle.ColumnGap.set -> void
+Lumi.Core.ComputedStyle.ComputedStyle() -> void
+Lumi.Core.ComputedStyle.Cursor.get -> string!
+Lumi.Core.ComputedStyle.Cursor.set -> void
+Lumi.Core.ComputedStyle.CustomProperties.get -> System.Collections.Generic.Dictionary<string!, string!>!
+Lumi.Core.ComputedStyle.CustomProperties.set -> void
+Lumi.Core.ComputedStyle.Display.get -> Lumi.Core.DisplayMode
+Lumi.Core.ComputedStyle.Display.set -> void
+Lumi.Core.ComputedStyle.FlexBasis.get -> float
+Lumi.Core.ComputedStyle.FlexBasis.set -> void
+Lumi.Core.ComputedStyle.FlexDirection.get -> Lumi.Core.FlexDirection
+Lumi.Core.ComputedStyle.FlexDirection.set -> void
+Lumi.Core.ComputedStyle.FlexGrow.get -> float
+Lumi.Core.ComputedStyle.FlexGrow.set -> void
+Lumi.Core.ComputedStyle.FlexShrink.get -> float
+Lumi.Core.ComputedStyle.FlexShrink.set -> void
+Lumi.Core.ComputedStyle.FlexWrap.get -> Lumi.Core.FlexWrap
+Lumi.Core.ComputedStyle.FlexWrap.set -> void
+Lumi.Core.ComputedStyle.FontFamily.get -> string!
+Lumi.Core.ComputedStyle.FontFamily.set -> void
+Lumi.Core.ComputedStyle.FontSize.get -> float
+Lumi.Core.ComputedStyle.FontSize.set -> void
+Lumi.Core.ComputedStyle.FontStyle.get -> Lumi.Core.FontStyle
+Lumi.Core.ComputedStyle.FontStyle.set -> void
+Lumi.Core.ComputedStyle.FontWeight.get -> int
+Lumi.Core.ComputedStyle.FontWeight.set -> void
+Lumi.Core.ComputedStyle.Gap.get -> float
+Lumi.Core.ComputedStyle.Gap.set -> void
+Lumi.Core.ComputedStyle.GridGap.get -> float
+Lumi.Core.ComputedStyle.GridGap.set -> void
+Lumi.Core.ComputedStyle.GridTemplateColumns.get -> string?
+Lumi.Core.ComputedStyle.GridTemplateColumns.set -> void
+Lumi.Core.ComputedStyle.GridTemplateRows.get -> string?
+Lumi.Core.ComputedStyle.GridTemplateRows.set -> void
+Lumi.Core.ComputedStyle.HasCustomProperties.get -> bool
+Lumi.Core.ComputedStyle.Height.get -> float
+Lumi.Core.ComputedStyle.Height.set -> void
+Lumi.Core.ComputedStyle.JustifyContent.get -> Lumi.Core.JustifyContent
+Lumi.Core.ComputedStyle.JustifyContent.set -> void
+Lumi.Core.ComputedStyle.Left.get -> float
+Lumi.Core.ComputedStyle.Left.set -> void
+Lumi.Core.ComputedStyle.LetterSpacing.get -> float
+Lumi.Core.ComputedStyle.LetterSpacing.set -> void
+Lumi.Core.ComputedStyle.LineHeight.get -> float
+Lumi.Core.ComputedStyle.LineHeight.set -> void
+Lumi.Core.ComputedStyle.Margin.get -> Lumi.Core.EdgeValues
+Lumi.Core.ComputedStyle.Margin.set -> void
+Lumi.Core.ComputedStyle.MaxHeight.get -> float
+Lumi.Core.ComputedStyle.MaxHeight.set -> void
+Lumi.Core.ComputedStyle.MaxWidth.get -> float
+Lumi.Core.ComputedStyle.MaxWidth.set -> void
+Lumi.Core.ComputedStyle.MinHeight.get -> float
+Lumi.Core.ComputedStyle.MinHeight.set -> void
+Lumi.Core.ComputedStyle.MinWidth.get -> float
+Lumi.Core.ComputedStyle.MinWidth.set -> void
+Lumi.Core.ComputedStyle.Opacity.get -> float
+Lumi.Core.ComputedStyle.Opacity.set -> void
+Lumi.Core.ComputedStyle.Overflow.get -> Lumi.Core.Overflow
+Lumi.Core.ComputedStyle.Overflow.set -> void
+Lumi.Core.ComputedStyle.Padding.get -> Lumi.Core.EdgeValues
+Lumi.Core.ComputedStyle.Padding.set -> void
+Lumi.Core.ComputedStyle.PointerEvents.get -> bool
+Lumi.Core.ComputedStyle.PointerEvents.set -> void
+Lumi.Core.ComputedStyle.Position.get -> Lumi.Core.Position
+Lumi.Core.ComputedStyle.Position.set -> void
+Lumi.Core.ComputedStyle.Reset() -> void
+Lumi.Core.ComputedStyle.Right.get -> float
+Lumi.Core.ComputedStyle.Right.set -> void
+Lumi.Core.ComputedStyle.RowGap.get -> float
+Lumi.Core.ComputedStyle.RowGap.set -> void
+Lumi.Core.ComputedStyle.TextAlign.get -> Lumi.Core.TextAlign
+Lumi.Core.ComputedStyle.TextAlign.set -> void
+Lumi.Core.ComputedStyle.TextDecoration.get -> Lumi.Core.TextDecoration
+Lumi.Core.ComputedStyle.TextDecoration.set -> void
+Lumi.Core.ComputedStyle.TextOverflow.get -> Lumi.Core.TextOverflow
+Lumi.Core.ComputedStyle.TextOverflow.set -> void
+Lumi.Core.ComputedStyle.TextTransform.get -> Lumi.Core.TextTransform
+Lumi.Core.ComputedStyle.TextTransform.set -> void
+Lumi.Core.ComputedStyle.Top.get -> float
+Lumi.Core.ComputedStyle.Top.set -> void
+Lumi.Core.ComputedStyle.Transform.get -> Lumi.Core.CssTransform
+Lumi.Core.ComputedStyle.Transform.set -> void
+Lumi.Core.ComputedStyle.TransformOriginX.get -> float
+Lumi.Core.ComputedStyle.TransformOriginX.set -> void
+Lumi.Core.ComputedStyle.TransformOriginY.get -> float
+Lumi.Core.ComputedStyle.TransformOriginY.set -> void
+Lumi.Core.ComputedStyle.TransitionDuration.get -> float
+Lumi.Core.ComputedStyle.TransitionDuration.set -> void
+Lumi.Core.ComputedStyle.TransitionProperty.get -> string?
+Lumi.Core.ComputedStyle.TransitionProperty.set -> void
+Lumi.Core.ComputedStyle.TransitionTimingFunction.get -> string?
+Lumi.Core.ComputedStyle.TransitionTimingFunction.set -> void
+Lumi.Core.ComputedStyle.Visibility.get -> Lumi.Core.Visibility
+Lumi.Core.ComputedStyle.Visibility.set -> void
+Lumi.Core.ComputedStyle.WhiteSpace.get -> Lumi.Core.WhiteSpace
+Lumi.Core.ComputedStyle.WhiteSpace.set -> void
+Lumi.Core.ComputedStyle.Width.get -> float
+Lumi.Core.ComputedStyle.Width.set -> void
+Lumi.Core.ComputedStyle.WordBreak.get -> Lumi.Core.WordBreak
+Lumi.Core.ComputedStyle.WordBreak.set -> void
+Lumi.Core.ComputedStyle.ZIndex.get -> int
+Lumi.Core.ComputedStyle.ZIndex.set -> void
+Lumi.Core.CornerRadius
+Lumi.Core.CornerRadius.BottomLeft.get -> float
+Lumi.Core.CornerRadius.BottomLeft.set -> void
+Lumi.Core.CornerRadius.BottomRight.get -> float
+Lumi.Core.CornerRadius.BottomRight.set -> void
+Lumi.Core.CornerRadius.CornerRadius() -> void
+Lumi.Core.CornerRadius.CornerRadius(float all) -> void
+Lumi.Core.CornerRadius.CornerRadius(float TopLeft, float TopRight, float BottomRight, float BottomLeft) -> void
+Lumi.Core.CornerRadius.HasPerCorner.get -> bool
+Lumi.Core.CornerRadius.TopLeft.get -> float
+Lumi.Core.CornerRadius.TopLeft.set -> void
+Lumi.Core.CornerRadius.TopRight.get -> float
+Lumi.Core.CornerRadius.TopRight.set -> void
+Lumi.Core.CornerRadius.Uniform.get -> float
+Lumi.Core.CssGradient
+Lumi.Core.CssGradient.Angle.get -> float
+Lumi.Core.CssGradient.Angle.set -> void
+Lumi.Core.CssGradient.CssGradient() -> void
+Lumi.Core.CssGradient.Stops.get -> System.Collections.Generic.List<Lumi.Core.GradientStop>!
+Lumi.Core.CssGradient.Stops.set -> void
+Lumi.Core.CssGradient.Type.get -> Lumi.Core.GradientType
+Lumi.Core.CssGradient.Type.set -> void
+Lumi.Core.CssTransform
+Lumi.Core.CssTransform.CssTransform() -> void
+Lumi.Core.CssTransform.CssTransform(float TranslateX, float TranslateY, float ScaleX, float ScaleY, float Rotate, float SkewX, float SkewY) -> void
+Lumi.Core.CssTransform.IsIdentity.get -> bool
+Lumi.Core.CssTransform.Rotate.get -> float
+Lumi.Core.CssTransform.Rotate.set -> void
+Lumi.Core.CssTransform.ScaleX.get -> float
+Lumi.Core.CssTransform.ScaleX.set -> void
+Lumi.Core.CssTransform.ScaleY.get -> float
+Lumi.Core.CssTransform.ScaleY.set -> void
+Lumi.Core.CssTransform.SkewX.get -> float
+Lumi.Core.CssTransform.SkewX.set -> void
+Lumi.Core.CssTransform.SkewY.get -> float
+Lumi.Core.CssTransform.SkewY.set -> void
+Lumi.Core.CssTransform.TranslateX.get -> float
+Lumi.Core.CssTransform.TranslateX.set -> void
+Lumi.Core.CssTransform.TranslateY.get -> float
+Lumi.Core.CssTransform.TranslateY.set -> void
+Lumi.Core.DirtyRegionTracker
+Lumi.Core.DirtyRegionTracker.Add(Lumi.Core.LayoutBox absoluteBox) -> void
+Lumi.Core.DirtyRegionTracker.Clear() -> void
+Lumi.Core.DirtyRegionTracker.CoverageRatio(int surfaceWidth, int surfaceHeight) -> float
+Lumi.Core.DirtyRegionTracker.DirtyRects.get -> System.Collections.Generic.IReadOnlyList<Lumi.Core.LayoutBox>!
+Lumi.Core.DirtyRegionTracker.DirtyRegionTracker() -> void
+Lumi.Core.DirtyRegionTracker.HasDirtyRegions.get -> bool
+Lumi.Core.DisplayMode
+Lumi.Core.DisplayMode.Block = 0 -> Lumi.Core.DisplayMode
+Lumi.Core.DisplayMode.Flex = 1 -> Lumi.Core.DisplayMode
+Lumi.Core.DisplayMode.Grid = 2 -> Lumi.Core.DisplayMode
+Lumi.Core.DisplayMode.None = 3 -> Lumi.Core.DisplayMode
+Lumi.Core.DragDrop.DragData
+Lumi.Core.DragDrop.DragData.Custom.get -> object?
+Lumi.Core.DragDrop.DragData.Custom.set -> void
+Lumi.Core.DragDrop.DragData.DragData() -> void
+Lumi.Core.DragDrop.DragData.Files.get -> string![]?
+Lumi.Core.DragDrop.DragData.Files.set -> void
+Lumi.Core.DragDrop.DragData.Text.get -> string?
+Lumi.Core.DragDrop.DragData.Text.set -> void
+Lumi.Core.DragDrop.DragDropState
+Lumi.Core.DragDrop.DragDropState.Data.get -> Lumi.Core.DragDrop.DragData?
+Lumi.Core.DragDrop.DragDropState.DragDropState() -> void
+Lumi.Core.DragDrop.DragDropState.IsDragging.get -> bool
+Lumi.Core.DragDrop.DragDropState.Source.get -> Lumi.Core.Element?
+Lumi.Core.DragDrop.DragDropState.X.get -> float
+Lumi.Core.DragDrop.DragDropState.Y.get -> float
+Lumi.Core.EdgeValues
+Lumi.Core.EdgeValues.Bottom.get -> float
+Lumi.Core.EdgeValues.Bottom.set -> void
+Lumi.Core.EdgeValues.EdgeValues() -> void
+Lumi.Core.EdgeValues.EdgeValues(float all) -> void
+Lumi.Core.EdgeValues.EdgeValues(float Top, float Right, float Bottom, float Left) -> void
+Lumi.Core.EdgeValues.EdgeValues(float vertical, float horizontal) -> void
+Lumi.Core.EdgeValues.Left.get -> float
+Lumi.Core.EdgeValues.Left.set -> void
+Lumi.Core.EdgeValues.Right.get -> float
+Lumi.Core.EdgeValues.Right.set -> void
+Lumi.Core.EdgeValues.Top.get -> float
+Lumi.Core.EdgeValues.Top.set -> void
+Lumi.Core.Element
+Lumi.Core.Element.Accessibility.get -> Lumi.Core.Accessibility.AccessibilityInfo!
+Lumi.Core.Element.AddChild(Lumi.Core.Element! child) -> void
+Lumi.Core.Element.Attributes.get -> System.Collections.Generic.Dictionary<string!, string!>!
+Lumi.Core.Element.Attributes.set -> void
+Lumi.Core.Element.Children.get -> System.Collections.Generic.IReadOnlyList<Lumi.Core.Element!>!
+Lumi.Core.Element.Classes.get -> Lumi.Core.ClassList!
+Lumi.Core.Element.Classes.set -> void
+Lumi.Core.Element.ClearChildren() -> void
+Lumi.Core.Element.ComputedStyle.get -> Lumi.Core.ComputedStyle!
+Lumi.Core.Element.CopyBasePropertiesTo(Lumi.Core.Element! clone) -> void
+Lumi.Core.Element.DataContext.get -> object?
+Lumi.Core.Element.DataContext.set -> void
+Lumi.Core.Element.Element() -> void
+Lumi.Core.Element.Id.get -> string?
+Lumi.Core.Element.Id.set -> void
+Lumi.Core.Element.InlineStyle.get -> string?
+Lumi.Core.Element.InlineStyle.set -> void
+Lumi.Core.Element.InsertChild(int index, Lumi.Core.Element! child) -> void
+Lumi.Core.Element.IsDirty.get -> bool
+Lumi.Core.Element.IsDirty.set -> void
+Lumi.Core.Element.IsDraggable.get -> bool
+Lumi.Core.Element.IsDraggable.set -> void
+Lumi.Core.Element.IsFocusable.get -> bool
+Lumi.Core.Element.IsFocusable.set -> void
+Lumi.Core.Element.IsFocused.get -> bool
+Lumi.Core.Element.IsFocused.set -> void
+Lumi.Core.Element.IsLayoutDirty.get -> bool
+Lumi.Core.Element.IsLayoutDirty.set -> void
+Lumi.Core.Element.IsVisible.get -> bool
+Lumi.Core.Element.LayoutBox.get -> Lumi.Core.LayoutBox
+Lumi.Core.Element.LayoutBox.set -> void
+Lumi.Core.Element.MarkDirty() -> void
+Lumi.Core.Element.Off(string! eventName, Lumi.Core.RoutedEventHandler! handler) -> void
+Lumi.Core.Element.On(string! eventName, Lumi.Core.RoutedEventHandler! handler) -> void
+Lumi.Core.Element.OnDragEnd -> System.Action?
+Lumi.Core.Element.OnDragEnter -> System.Action<Lumi.Core.DragDrop.DragData!>?
+Lumi.Core.Element.OnDragLeave -> System.Action<Lumi.Core.DragDrop.DragData!>?
+Lumi.Core.Element.OnDragOver -> System.Action<Lumi.Core.DragDrop.DragData!>?
+Lumi.Core.Element.OnDragStart -> System.Action<Lumi.Core.DragDrop.DragData!>?
+Lumi.Core.Element.OnDrop -> System.Action<Lumi.Core.DragDrop.DragData!>?
+Lumi.Core.Element.Parent.get -> Lumi.Core.Element?
+Lumi.Core.Element.PreviousLayoutBox.get -> Lumi.Core.LayoutBox
+Lumi.Core.Element.PreviousLayoutBox.set -> void
+Lumi.Core.Element.RemoveAllEventHandlers() -> void
+Lumi.Core.Element.RemoveChild(Lumi.Core.Element! child) -> void
+Lumi.Core.Element.ScrollBy(float dx, float dy) -> void
+Lumi.Core.Element.ScrollHeight.get -> float
+Lumi.Core.Element.ScrollHeight.set -> void
+Lumi.Core.Element.ScrollLeft.get -> float
+Lumi.Core.Element.ScrollLeft.set -> void
+Lumi.Core.Element.ScrollTo(float x, float y) -> void
+Lumi.Core.Element.ScrollTop.get -> float
+Lumi.Core.Element.ScrollTop.set -> void
+Lumi.Core.Element.ScrollWidth.get -> float
+Lumi.Core.Element.ScrollWidth.set -> void
+Lumi.Core.Element.TabIndex.get -> int
+Lumi.Core.Element.TabIndex.set -> void
+Lumi.Core.Element.ThemeVariables.get -> System.Collections.Generic.Dictionary<string!, string!>?
+Lumi.Core.Element.ThemeVariables.set -> void
+Lumi.Core.ElementIndex
+Lumi.Core.ElementIndex.AttachTo(Lumi.Core.Element! root) -> void
+Lumi.Core.ElementIndex.Detach() -> void
+Lumi.Core.ElementIndex.ElementIndex() -> void
+Lumi.Core.ElementIndex.FindByClass(string! className) -> System.Collections.Generic.List<Lumi.Core.Element!>!
+Lumi.Core.ElementIndex.FindById(string! id) -> Lumi.Core.Element?
+Lumi.Core.ElementIndex.Root.get -> Lumi.Core.Element?
+Lumi.Core.ElementMeasureDelegate
+Lumi.Core.ElementRegistry
+Lumi.Core.EventDispatcher
+Lumi.Core.FileDropEvent
+Lumi.Core.FileDropEvent.FileDropEvent() -> void
+Lumi.Core.FileDropEvent.Files.get -> string![]!
+Lumi.Core.FileDropEvent.Files.init -> void
+Lumi.Core.FileDropEvent.X.get -> float
+Lumi.Core.FileDropEvent.X.init -> void
+Lumi.Core.FileDropEvent.Y.get -> float
+Lumi.Core.FileDropEvent.Y.init -> void
+Lumi.Core.FlexDirection
+Lumi.Core.FlexDirection.Column = 2 -> Lumi.Core.FlexDirection
+Lumi.Core.FlexDirection.ColumnReverse = 3 -> Lumi.Core.FlexDirection
+Lumi.Core.FlexDirection.Row = 0 -> Lumi.Core.FlexDirection
+Lumi.Core.FlexDirection.RowReverse = 1 -> Lumi.Core.FlexDirection
+Lumi.Core.FlexWrap
+Lumi.Core.FlexWrap.NoWrap = 0 -> Lumi.Core.FlexWrap
+Lumi.Core.FlexWrap.Wrap = 1 -> Lumi.Core.FlexWrap
+Lumi.Core.FlexWrap.WrapReverse = 2 -> Lumi.Core.FlexWrap
+Lumi.Core.FontStyle
+Lumi.Core.FontStyle.Italic = 1 -> Lumi.Core.FontStyle
+Lumi.Core.FontStyle.Normal = 0 -> Lumi.Core.FontStyle
+Lumi.Core.FrameMetrics
+Lumi.Core.FrameMetrics.AverageFps.get -> double
+Lumi.Core.FrameMetrics.BeginFrame() -> void
+Lumi.Core.FrameMetrics.BeginStage() -> void
+Lumi.Core.FrameMetrics.CurrentFps.get -> double
+Lumi.Core.FrameMetrics.EndFrame() -> void
+Lumi.Core.FrameMetrics.EndStage() -> double
+Lumi.Core.FrameMetrics.FrameMetrics() -> void
+Lumi.Core.FrameMetrics.GetSummary() -> string!
+Lumi.Core.FrameMetrics.LayoutTimeMs.get -> double
+Lumi.Core.FrameMetrics.PaintTimeMs.get -> double
+Lumi.Core.FrameMetrics.PollTimeMs.get -> double
+Lumi.Core.FrameMetrics.PresentTimeMs.get -> double
+Lumi.Core.FrameMetrics.RecordLayout() -> void
+Lumi.Core.FrameMetrics.RecordPaint() -> void
+Lumi.Core.FrameMetrics.RecordPoll() -> void
+Lumi.Core.FrameMetrics.RecordPresent() -> void
+Lumi.Core.FrameMetrics.RecordStyle() -> void
+Lumi.Core.FrameMetrics.RecordUpdate() -> void
+Lumi.Core.FrameMetrics.StyleTimeMs.get -> double
+Lumi.Core.FrameMetrics.TotalFrameTimeMs.get -> double
+Lumi.Core.FrameMetrics.UpdateTimeMs.get -> double
+Lumi.Core.GradientStop
+Lumi.Core.GradientStop.Color.get -> Lumi.Core.Color
+Lumi.Core.GradientStop.Color.set -> void
+Lumi.Core.GradientStop.GradientStop() -> void
+Lumi.Core.GradientStop.GradientStop(Lumi.Core.Color color, float position) -> void
+Lumi.Core.GradientStop.Position.get -> float
+Lumi.Core.GradientStop.Position.set -> void
+Lumi.Core.GradientType
+Lumi.Core.GradientType.Linear = 0 -> Lumi.Core.GradientType
+Lumi.Core.GradientType.Radial = 1 -> Lumi.Core.GradientType
+Lumi.Core.ImageElement
+Lumi.Core.ImageElement.ImageElement() -> void
+Lumi.Core.ImageElement.NaturalHeight.get -> float
+Lumi.Core.ImageElement.NaturalHeight.set -> void
+Lumi.Core.ImageElement.NaturalWidth.get -> float
+Lumi.Core.ImageElement.NaturalWidth.set -> void
+Lumi.Core.ImageElement.Source.get -> string?
+Lumi.Core.ImageElement.Source.set -> void
+Lumi.Core.InputElement
+Lumi.Core.InputElement.ClearSelection() -> void
+Lumi.Core.InputElement.CursorPosition.get -> int
+Lumi.Core.InputElement.CursorPosition.set -> void
+Lumi.Core.InputElement.DeleteSelection() -> void
+Lumi.Core.InputElement.HasSelection.get -> bool
+Lumi.Core.InputElement.InputElement() -> void
+Lumi.Core.InputElement.InputType.get -> string!
+Lumi.Core.InputElement.InputType.set -> void
+Lumi.Core.InputElement.IsChecked.get -> bool
+Lumi.Core.InputElement.IsChecked.set -> void
+Lumi.Core.InputElement.IsDisabled.get -> bool
+Lumi.Core.InputElement.IsDisabled.set -> void
+Lumi.Core.InputElement.LastEditTick.get -> long
+Lumi.Core.InputElement.LastEditTick.set -> void
+Lumi.Core.InputElement.Placeholder.get -> string!
+Lumi.Core.InputElement.Placeholder.set -> void
+Lumi.Core.InputElement.ResetBlink() -> void
+Lumi.Core.InputElement.SelectionEnd.get -> int
+Lumi.Core.InputElement.SelectionEnd.set -> void
+Lumi.Core.InputElement.SelectionStart.get -> int
+Lumi.Core.InputElement.SelectionStart.set -> void
+Lumi.Core.InputElement.Value.get -> string!
+Lumi.Core.InputElement.Value.set -> void
+Lumi.Core.InputElement.ValueChanged -> System.Action<string!>?
+Lumi.Core.InputEvent
+Lumi.Core.InputEvent.Handled.get -> bool
+Lumi.Core.InputEvent.Handled.set -> void
+Lumi.Core.InputEvent.InputEvent() -> void
+Lumi.Core.InputEvent.Timestamp.get -> double
+Lumi.Core.InputEvent.Timestamp.set -> void
+Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.Center = 2 -> Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.FlexEnd = 1 -> Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.FlexStart = 0 -> Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.SpaceAround = 4 -> Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.SpaceBetween = 3 -> Lumi.Core.JustifyContent
+Lumi.Core.JustifyContent.SpaceEvenly = 5 -> Lumi.Core.JustifyContent
+Lumi.Core.KeyboardEvent
+Lumi.Core.KeyboardEvent.Alt.get -> bool
+Lumi.Core.KeyboardEvent.Alt.init -> void
+Lumi.Core.KeyboardEvent.Ctrl.get -> bool
+Lumi.Core.KeyboardEvent.Ctrl.init -> void
+Lumi.Core.KeyboardEvent.Key.get -> Lumi.Core.KeyCode
+Lumi.Core.KeyboardEvent.Key.init -> void
+Lumi.Core.KeyboardEvent.KeyboardEvent() -> void
+Lumi.Core.KeyboardEvent.Shift.get -> bool
+Lumi.Core.KeyboardEvent.Shift.init -> void
+Lumi.Core.KeyboardEvent.Type.get -> Lumi.Core.KeyboardEventType
+Lumi.Core.KeyboardEvent.Type.init -> void
+Lumi.Core.KeyboardEventType
+Lumi.Core.KeyboardEventType.KeyDown = 0 -> Lumi.Core.KeyboardEventType
+Lumi.Core.KeyboardEventType.KeyUp = 1 -> Lumi.Core.KeyboardEventType
+Lumi.Core.KeyCode
+Lumi.Core.KeyCode.A = 1 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Apostrophe = 82 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.B = 2 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Backslash = 80 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Backspace = 54 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.C = 3 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.CapsLock = 51 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Comma = 84 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.D = 4 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Delete = 55 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Down = 57 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.E = 5 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.End = 61 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Enter = 53 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Equals = 77 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Escape = 49 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F = 6 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F1 = 37 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F10 = 46 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F11 = 47 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F12 = 48 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F2 = 38 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F3 = 39 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F4 = 40 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F5 = 41 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F6 = 42 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F7 = 43 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F8 = 44 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.F9 = 45 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.G = 7 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Grave = 83 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.H = 8 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Home = 60 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.I = 9 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Insert = 64 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.J = 10 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.K = 11 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.L = 12 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Left = 58 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.LeftAlt = 71 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.LeftBracket = 78 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.LeftCtrl = 69 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.LeftShift = 67 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.LeftSuper = 73 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.M = 13 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Menu = 75 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Minus = 76 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.N = 14 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num0 = 27 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num1 = 28 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num2 = 29 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num3 = 30 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num4 = 31 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num5 = 32 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num6 = 33 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num7 = 34 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num8 = 35 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Num9 = 36 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumLock = 87 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad0 = 102 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad1 = 93 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad2 = 94 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad3 = 95 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad4 = 96 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad5 = 97 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad6 = 98 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad7 = 99 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad8 = 100 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Numpad9 = 101 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadAdd = 91 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadDecimal = 103 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadDivide = 88 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadEnter = 92 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadEquals = 104 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadMultiply = 89 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.NumpadSubtract = 90 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.O = 15 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.P = 16 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.PageDown = 63 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.PageUp = 62 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Pause = 66 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Period = 85 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.PrintScreen = 65 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Q = 17 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.R = 18 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Right = 59 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.RightAlt = 72 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.RightBracket = 79 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.RightCtrl = 70 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.RightShift = 68 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.RightSuper = 74 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.S = 19 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Semicolon = 81 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Slash = 86 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Space = 52 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.T = 20 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Tab = 50 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.U = 21 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Unknown = 0 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Up = 56 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.V = 22 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.W = 23 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.X = 24 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Y = 25 -> Lumi.Core.KeyCode
+Lumi.Core.KeyCode.Z = 26 -> Lumi.Core.KeyCode
+Lumi.Core.LayoutBox
+Lumi.Core.LayoutBox.Bottom.get -> float
+Lumi.Core.LayoutBox.Contains(float px, float py) -> bool
+Lumi.Core.LayoutBox.Height.get -> float
+Lumi.Core.LayoutBox.Height.set -> void
+Lumi.Core.LayoutBox.LayoutBox() -> void
+Lumi.Core.LayoutBox.LayoutBox(float X, float Y, float Width, float Height) -> void
+Lumi.Core.LayoutBox.Right.get -> float
+Lumi.Core.LayoutBox.Width.get -> float
+Lumi.Core.LayoutBox.Width.set -> void
+Lumi.Core.LayoutBox.X.get -> float
+Lumi.Core.LayoutBox.X.set -> void
+Lumi.Core.LayoutBox.Y.get -> float
+Lumi.Core.LayoutBox.Y.set -> void
+Lumi.Core.MouseButton
+Lumi.Core.MouseButton.Left = 1 -> Lumi.Core.MouseButton
+Lumi.Core.MouseButton.Middle = 2 -> Lumi.Core.MouseButton
+Lumi.Core.MouseButton.None = 0 -> Lumi.Core.MouseButton
+Lumi.Core.MouseButton.Right = 3 -> Lumi.Core.MouseButton
+Lumi.Core.MouseEvent
+Lumi.Core.MouseEvent.Button.get -> Lumi.Core.MouseButton
+Lumi.Core.MouseEvent.Button.init -> void
+Lumi.Core.MouseEvent.MouseEvent() -> void
+Lumi.Core.MouseEvent.Type.get -> Lumi.Core.MouseEventType
+Lumi.Core.MouseEvent.Type.init -> void
+Lumi.Core.MouseEvent.X.get -> float
+Lumi.Core.MouseEvent.X.init -> void
+Lumi.Core.MouseEvent.Y.get -> float
+Lumi.Core.MouseEvent.Y.init -> void
+Lumi.Core.MouseEventType
+Lumi.Core.MouseEventType.ButtonDown = 1 -> Lumi.Core.MouseEventType
+Lumi.Core.MouseEventType.ButtonUp = 2 -> Lumi.Core.MouseEventType
+Lumi.Core.MouseEventType.Move = 0 -> Lumi.Core.MouseEventType
+Lumi.Core.Navigation.NavigationHost
+Lumi.Core.Navigation.NavigationHost.NavigationHost() -> void
+Lumi.Core.Navigation.NavigationHost.Root.get -> Lumi.Core.Element!
+Lumi.Core.Navigation.NavigationHost.Router.get -> Lumi.Core.Navigation.Router!
+Lumi.Core.Navigation.RouteParameters
+Lumi.Core.Navigation.RouteParameters.RouteParameters() -> void
+Lumi.Core.Navigation.Router
+Lumi.Core.Navigation.Router.CanGoBack.get -> bool
+Lumi.Core.Navigation.Router.Container.get -> Lumi.Core.Element!
+Lumi.Core.Navigation.Router.CurrentRoute.get -> string!
+Lumi.Core.Navigation.Router.GoBack() -> void
+Lumi.Core.Navigation.Router.Navigate(string! route) -> bool
+Lumi.Core.Navigation.Router.Register(string! pattern, System.Func<Lumi.Core.Element!>! pageFactory) -> void
+Lumi.Core.Navigation.Router.Register(string! pattern, System.Func<Lumi.Core.Navigation.RouteParameters!, Lumi.Core.Element!>! pageFactory) -> void
+Lumi.Core.Navigation.Router.RouteChanged -> System.Action<string!>?
+Lumi.Core.Navigation.Router.Router(Lumi.Core.Element! container) -> void
+Lumi.Core.Overflow
+Lumi.Core.Overflow.Hidden = 1 -> Lumi.Core.Overflow
+Lumi.Core.Overflow.Scroll = 2 -> Lumi.Core.Overflow
+Lumi.Core.Overflow.Visible = 0 -> Lumi.Core.Overflow
+Lumi.Core.Position
+Lumi.Core.Position.Absolute = 1 -> Lumi.Core.Position
+Lumi.Core.Position.Fixed = 2 -> Lumi.Core.Position
+Lumi.Core.Position.Relative = 0 -> Lumi.Core.Position
+Lumi.Core.RoutedEvent
+Lumi.Core.RoutedEvent.Handled.get -> bool
+Lumi.Core.RoutedEvent.Handled.set -> void
+Lumi.Core.RoutedEvent.Name.get -> string!
+Lumi.Core.RoutedEvent.Phase.get -> Lumi.Core.RoutingPhase
+Lumi.Core.RoutedEvent.RoutedEvent(string! name) -> void
+Lumi.Core.RoutedEvent.Source.get -> Lumi.Core.Element?
+Lumi.Core.RoutedEvent.Target.get -> Lumi.Core.Element?
+Lumi.Core.RoutedEventHandler
+Lumi.Core.RoutedKeyEvent
+Lumi.Core.RoutedKeyEvent.Alt.get -> bool
+Lumi.Core.RoutedKeyEvent.Alt.init -> void
+Lumi.Core.RoutedKeyEvent.Ctrl.get -> bool
+Lumi.Core.RoutedKeyEvent.Ctrl.init -> void
+Lumi.Core.RoutedKeyEvent.Key.get -> Lumi.Core.KeyCode
+Lumi.Core.RoutedKeyEvent.Key.init -> void
+Lumi.Core.RoutedKeyEvent.RoutedKeyEvent(string! name) -> void
+Lumi.Core.RoutedKeyEvent.Shift.get -> bool
+Lumi.Core.RoutedKeyEvent.Shift.init -> void
+Lumi.Core.RoutedMouseEvent
+Lumi.Core.RoutedMouseEvent.Button.get -> Lumi.Core.MouseButton
+Lumi.Core.RoutedMouseEvent.Button.init -> void
+Lumi.Core.RoutedMouseEvent.RoutedMouseEvent(string! name) -> void
+Lumi.Core.RoutedMouseEvent.X.get -> float
+Lumi.Core.RoutedMouseEvent.X.init -> void
+Lumi.Core.RoutedMouseEvent.Y.get -> float
+Lumi.Core.RoutedMouseEvent.Y.init -> void
+Lumi.Core.RoutedTextInputEvent
+Lumi.Core.RoutedTextInputEvent.RoutedTextInputEvent(string! name) -> void
+Lumi.Core.RoutedTextInputEvent.Text.get -> string!
+Lumi.Core.RoutedTextInputEvent.Text.init -> void
+Lumi.Core.RoutingPhase
+Lumi.Core.RoutingPhase.Bubble = 2 -> Lumi.Core.RoutingPhase
+Lumi.Core.RoutingPhase.Direct = 1 -> Lumi.Core.RoutingPhase
+Lumi.Core.RoutingPhase.Tunnel = 0 -> Lumi.Core.RoutingPhase
+Lumi.Core.ScrollEvent
+Lumi.Core.ScrollEvent.DeltaX.get -> float
+Lumi.Core.ScrollEvent.DeltaX.init -> void
+Lumi.Core.ScrollEvent.DeltaY.get -> float
+Lumi.Core.ScrollEvent.DeltaY.init -> void
+Lumi.Core.ScrollEvent.ScrollEvent() -> void
+Lumi.Core.ScrollEvent.X.get -> float
+Lumi.Core.ScrollEvent.X.init -> void
+Lumi.Core.ScrollEvent.Y.get -> float
+Lumi.Core.ScrollEvent.Y.init -> void
+Lumi.Core.TemplateForElement
+Lumi.Core.TemplateForElement.CollectionPath.get -> string!
+Lumi.Core.TemplateForElement.CollectionPath.set -> void
+Lumi.Core.TemplateForElement.ItemAlias.get -> string!
+Lumi.Core.TemplateForElement.ItemAlias.set -> void
+Lumi.Core.TemplateForElement.TemplateForElement() -> void
+Lumi.Core.TemplateForElement.TemplateHtml.get -> string!
+Lumi.Core.TemplateForElement.TemplateHtml.set -> void
+Lumi.Core.TemplateForElement.Unbind() -> void
+Lumi.Core.TemplateIfElement
+Lumi.Core.TemplateIfElement.ConditionPath.get -> string!
+Lumi.Core.TemplateIfElement.ConditionPath.set -> void
+Lumi.Core.TemplateIfElement.TemplateHtml.get -> string!
+Lumi.Core.TemplateIfElement.TemplateHtml.set -> void
+Lumi.Core.TemplateIfElement.TemplateIfElement() -> void
+Lumi.Core.TemplateIfElement.Unbind() -> void
+Lumi.Core.TextAlign
+Lumi.Core.TextAlign.Center = 2 -> Lumi.Core.TextAlign
+Lumi.Core.TextAlign.Left = 0 -> Lumi.Core.TextAlign
+Lumi.Core.TextAlign.Right = 1 -> Lumi.Core.TextAlign
+Lumi.Core.TextDecoration
+Lumi.Core.TextDecoration.LineThrough = 2 -> Lumi.Core.TextDecoration
+Lumi.Core.TextDecoration.None = 0 -> Lumi.Core.TextDecoration
+Lumi.Core.TextDecoration.Underline = 1 -> Lumi.Core.TextDecoration
+Lumi.Core.TextElement
+Lumi.Core.TextElement.Text.get -> string!
+Lumi.Core.TextElement.Text.set -> void
+Lumi.Core.TextElement.TextElement() -> void
+Lumi.Core.TextElement.TextElement(string! text) -> void
+Lumi.Core.TextInputEvent
+Lumi.Core.TextInputEvent.Text.get -> string!
+Lumi.Core.TextInputEvent.Text.init -> void
+Lumi.Core.TextInputEvent.TextInputEvent() -> void
+Lumi.Core.TextOverflow
+Lumi.Core.TextOverflow.Clip = 0 -> Lumi.Core.TextOverflow
+Lumi.Core.TextOverflow.Ellipsis = 1 -> Lumi.Core.TextOverflow
+Lumi.Core.TextTransform
+Lumi.Core.TextTransform.Capitalize = 3 -> Lumi.Core.TextTransform
+Lumi.Core.TextTransform.Lowercase = 2 -> Lumi.Core.TextTransform
+Lumi.Core.TextTransform.None = 0 -> Lumi.Core.TextTransform
+Lumi.Core.TextTransform.Uppercase = 1 -> Lumi.Core.TextTransform
+Lumi.Core.ThemeManager
+Lumi.Core.ThemeManager.ApplyTo(Lumi.Core.Element! root) -> void
+Lumi.Core.ThemeManager.CurrentVariables.get -> System.Collections.Generic.IReadOnlyDictionary<string!, string!>!
+Lumi.Core.ThemeManager.IsDarkMode.get -> bool
+Lumi.Core.ThemeManager.Mode.get -> Lumi.Core.ThemeMode
+Lumi.Core.ThemeManager.Mode.set -> void
+Lumi.Core.ThemeManager.SetSystemPreference(bool systemIsDark) -> void
+Lumi.Core.ThemeManager.SetTheme(Lumi.Core.ThemeMode mode) -> void
+Lumi.Core.ThemeManager.ThemeChanged -> System.Action<bool>?
+Lumi.Core.ThemeManager.ThemeManager() -> void
+Lumi.Core.ThemeManager.Toggle() -> void
+Lumi.Core.ThemeMode
+Lumi.Core.ThemeMode.Dark = 1 -> Lumi.Core.ThemeMode
+Lumi.Core.ThemeMode.Light = 0 -> Lumi.Core.ThemeMode
+Lumi.Core.ThemeMode.System = 2 -> Lumi.Core.ThemeMode
+Lumi.Core.Visibility
+Lumi.Core.Visibility.Hidden = 1 -> Lumi.Core.Visibility
+Lumi.Core.Visibility.Visible = 0 -> Lumi.Core.Visibility
+Lumi.Core.WhiteSpace
+Lumi.Core.WhiteSpace.Normal = 0 -> Lumi.Core.WhiteSpace
+Lumi.Core.WhiteSpace.NoWrap = 1 -> Lumi.Core.WhiteSpace
+Lumi.Core.WhiteSpace.Pre = 2 -> Lumi.Core.WhiteSpace
+Lumi.Core.WindowEvent
+Lumi.Core.WindowEvent.Height.get -> int
+Lumi.Core.WindowEvent.Height.init -> void
+Lumi.Core.WindowEvent.Type.get -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEvent.Type.init -> void
+Lumi.Core.WindowEvent.Width.get -> int
+Lumi.Core.WindowEvent.Width.init -> void
+Lumi.Core.WindowEvent.WindowEvent() -> void
+Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.Close = 1 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.Exposed = 6 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.FocusGained = 2 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.FocusLost = 3 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.Hidden = 5 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.Resized = 0 -> Lumi.Core.WindowEventType
+Lumi.Core.WindowEventType.Shown = 4 -> Lumi.Core.WindowEventType
+Lumi.Core.WordBreak
+Lumi.Core.WordBreak.BreakAll = 1 -> Lumi.Core.WordBreak
+Lumi.Core.WordBreak.Normal = 0 -> Lumi.Core.WordBreak
+override Lumi.Core.BoxElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.BoxElement.TagName.get -> string!
+override Lumi.Core.Element.ToString() -> string!
+override Lumi.Core.ImageElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.ImageElement.DeepClone() -> Lumi.Core.Element!
+override Lumi.Core.ImageElement.TagName.get -> string!
+override Lumi.Core.InputElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.InputElement.DeepClone() -> Lumi.Core.Element!
+override Lumi.Core.InputElement.TagName.get -> string!
+override Lumi.Core.TemplateForElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.TemplateForElement.DeepClone() -> Lumi.Core.Element!
+override Lumi.Core.TemplateForElement.TagName.get -> string!
+override Lumi.Core.TemplateIfElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.TemplateIfElement.DeepClone() -> Lumi.Core.Element!
+override Lumi.Core.TemplateIfElement.TagName.get -> string!
+override Lumi.Core.TextElement.CreateCloneInstance() -> Lumi.Core.Element!
+override Lumi.Core.TextElement.DeepClone() -> Lumi.Core.Element!
+override Lumi.Core.TextElement.TagName.get -> string!
+static Lumi.Core.Accessibility.AccessibilityTree.Build(Lumi.Core.Element! root) -> Lumi.Core.Accessibility.AccessibilityNode!
+static Lumi.Core.Accessibility.AccessibilityTree.GetFocusableNodes(Lumi.Core.Accessibility.AccessibilityNode! root) -> System.Collections.Generic.List<Lumi.Core.Accessibility.AccessibilityNode!>!
+static Lumi.Core.Accessibility.AriaParser.ApplyAriaAttributes(Lumi.Core.Element! element) -> void
+static Lumi.Core.Accessibility.HighContrastTheme.Apply(Lumi.Core.Element! root) -> void
+static Lumi.Core.Accessibility.HighContrastTheme.GetHighContrastStyle() -> System.Collections.Generic.Dictionary<string!, string!>!
+static Lumi.Core.Animation.AnimationExtensions.Animate(this Lumi.Core.Element! element, Lumi.Core.Animation.TweenEngine! engine) -> Lumi.Core.Animation.AnimationBuilder!
+static Lumi.Core.Animation.AnimationExtensions.Animate(this Lumi.Core.Element! element) -> Lumi.Core.Animation.AnimationBuilder!
+static Lumi.Core.Animation.AnimationExtensions.GlobalTweenEngine.get -> Lumi.Core.Animation.TweenEngine!
+static Lumi.Core.Animation.Easing.EaseInCubic(float t) -> float
+static Lumi.Core.Animation.Easing.EaseInOutCubic(float t) -> float
+static Lumi.Core.Animation.Easing.EaseInQuad(float t) -> float
+static Lumi.Core.Animation.Easing.EaseOutCubic(float t) -> float
+static Lumi.Core.Animation.Easing.EaseOutQuad(float t) -> float
+static Lumi.Core.Animation.Easing.FromName(string! name) -> System.Func<float, float>!
+static Lumi.Core.Animation.Easing.Linear(float t) -> float
+static Lumi.Core.Application.HitTest(Lumi.Core.Element! root, float x, float y) -> Lumi.Core.Element?
+static Lumi.Core.Binding.BindingContext.GetEffectiveDataContext(Lumi.Core.Element! element) -> object?
+static Lumi.Core.Binding.BindingEngine.ResolvePath(object? source, string! path) -> object?
+static Lumi.Core.Binding.BindingExpression.IsBindingExpression(string? value) -> bool
+static Lumi.Core.Binding.BindingExpression.Parse(string! expr) -> Lumi.Core.Binding.BindingExpression!
+static Lumi.Core.Binding.TemplateBinding.TryCreate(Lumi.Core.Element! target, string! targetProperty, bool isAttribute, string! text, string! alias, object! source) -> Lumi.Core.Binding.TemplateBinding?
+static Lumi.Core.Binding.TemplateEngine.Apply(Lumi.Core.Element! root, object! dataContext) -> void
+static Lumi.Core.Binding.TemplateEngine.HtmlParser.get -> System.Func<string!, Lumi.Core.Element!>?
+static Lumi.Core.Binding.TemplateEngine.HtmlParser.set -> void
+static Lumi.Core.Clipboard.GetText() -> string?
+static Lumi.Core.Clipboard.IsInitialized.get -> bool
+static Lumi.Core.Clipboard.SetText(string! text) -> void
+static Lumi.Core.Color.FromHex(string! hex) -> Lumi.Core.Color
+static Lumi.Core.Components.ComponentStyles.AppendStyle(Lumi.Core.Element! el, string! additionalCss) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyButton(Lumi.Core.Element! el, Lumi.Core.Components.ButtonVariant variant) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyContainer(Lumi.Core.Element! el, Lumi.Core.FlexDirection direction = Lumi.Core.FlexDirection.Column) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyDialogPanel(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyDisabledButton(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyLabel(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyListContainer(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyListRow(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyOverlay(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyProgressTrack(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyRadioGroup(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyTabHeader(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyTextInput(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyToggleTrack(Lumi.Core.Element! el, bool isOn) -> void
+static Lumi.Core.Components.ComponentStyles.ApplyTooltip(Lumi.Core.Element! el) -> void
+static Lumi.Core.Components.ComponentStyles.SetVisible(Lumi.Core.Element! el, bool visible) -> void
+static Lumi.Core.Components.ComponentStyles.ToRgba(Lumi.Core.Color c) -> string!
+static Lumi.Core.Components.LumiTooltip.Attach(Lumi.Core.Element! target, string! text) -> Lumi.Core.Components.LumiTooltip!
+static Lumi.Core.ElementRegistry.Create(string! tagName) -> Lumi.Core.Element!
+static Lumi.Core.ElementRegistry.IsRegistered(string! tagName) -> bool
+static Lumi.Core.ElementRegistry.Register(string! tagName, System.Func<Lumi.Core.Element!>! factory) -> void
+static Lumi.Core.ElementRegistry.Register<T>(string! tagName) -> void
+static Lumi.Core.EventDispatcher.Dispatch(Lumi.Core.RoutedEvent! e, Lumi.Core.Element! target) -> void
+static readonly Lumi.Core.Accessibility.HighContrastTheme.Background -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.ButtonBorder -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.ButtonFace -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.ButtonText -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.Disabled -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.Foreground -> Lumi.Core.Color
+static readonly Lumi.Core.Accessibility.HighContrastTheme.Hyperlink -> Lumi.Core.Color
+static readonly Lumi.Core.BoxShadow.None -> Lumi.Core.BoxShadow
+static readonly Lumi.Core.Color.Black -> Lumi.Core.Color
+static readonly Lumi.Core.Color.Transparent -> Lumi.Core.Color
+static readonly Lumi.Core.Color.White -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Accent -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Background -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Border -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Danger -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Disabled -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Overlay -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Subtle -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.Surface -> Lumi.Core.Color
+static readonly Lumi.Core.Components.ComponentStyles.TextColor -> Lumi.Core.Color
+static readonly Lumi.Core.CssTransform.Identity -> Lumi.Core.CssTransform
+static readonly Lumi.Core.EdgeValues.Zero -> Lumi.Core.EdgeValues
+static readonly Lumi.Core.LayoutBox.Empty -> Lumi.Core.LayoutBox
+static readonly Lumi.Core.ThemeManager.DarkVariables -> System.Collections.Generic.Dictionary<string!, string!>!
+static readonly Lumi.Core.ThemeManager.LightVariables -> System.Collections.Generic.Dictionary<string!, string!>!
+virtual Lumi.Core.Element.DeepClone() -> Lumi.Core.Element!

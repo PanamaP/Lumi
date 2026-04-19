@@ -5,6 +5,7 @@
     <Description>Core types and element model for the Lumi GUI framework.</Description>
     <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +13,4 @@
     <InternalsVisibleTo Include="Lumi" />
     <InternalsVisibleTo Include="Lumi.Tests" />
   </ItemGroup>
-
 </Project>

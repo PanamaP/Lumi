@@ -1,0 +1,68 @@
+#nullable enable
+Lumi.FrameClock
+Lumi.FrameClock.BeginFrame() -> void
+Lumi.FrameClock.DeltaTime.get -> double
+Lumi.FrameClock.ElapsedFrameTimeMs.get -> double
+Lumi.FrameClock.FrameClock(int targetRefreshRate = 60) -> void
+Lumi.FrameClock.TargetFrameTimeMs.get -> double
+Lumi.FrameClock.TargetRefreshRate.get -> int
+Lumi.FrameClock.TargetRefreshRate.set -> void
+Lumi.HotReload
+Lumi.HotReload.ApplyPendingChanges() -> void
+Lumi.HotReload.Dispose() -> void
+Lumi.HotReload.HasPendingChanges.get -> bool
+Lumi.HotReload.HotReload(Lumi.Window! window, string? htmlPath, string? cssPath, System.Action? wakeUp = null) -> void
+Lumi.HotReload.HtmlWasReloaded.get -> bool
+Lumi.HotReload.HtmlWasReloaded.set -> void
+Lumi.HotReload.Start() -> void
+Lumi.HotReload.Stop() -> void
+Lumi.Inspector
+Lumi.Inspector.Draw(SkiaSharp.SKCanvas! canvas, Lumi.Core.Element! root, Lumi.Core.Element? hoveredElement, int canvasWidth, int canvasHeight) -> void
+Lumi.Inspector.Inspector() -> void
+Lumi.Inspector.IsEnabled.get -> bool
+Lumi.Inspector.Toggle() -> void
+Lumi.LumiApp
+Lumi.LumiApp.Dispose() -> void
+Lumi.SecondaryWindow
+Lumi.SecondaryWindow.Close() -> void
+Lumi.SecondaryWindow.IsOpen.get -> bool
+Lumi.SecondaryWindow.SecondaryWindow() -> void
+Lumi.Window
+Lumi.Window.CssPath.get -> string?
+Lumi.Window.CssPath.set -> void
+Lumi.Window.EnableHotReload.get -> bool
+Lumi.Window.EnableHotReload.set -> void
+Lumi.Window.FindByClass(string! className) -> System.Collections.Generic.List<Lumi.Core.Element!>!
+Lumi.Window.FindById(string! id) -> Lumi.Core.Element?
+Lumi.Window.FrameMetrics.get -> Lumi.Core.FrameMetrics!
+Lumi.Window.Height.get -> int
+Lumi.Window.Height.set -> void
+Lumi.Window.HtmlPath.get -> string?
+Lumi.Window.HtmlPath.set -> void
+Lumi.Window.LoadStyleSheet(string! path) -> void
+Lumi.Window.LoadStyleSheetString(string! css) -> void
+Lumi.Window.LoadTemplate(string! path) -> void
+Lumi.Window.LoadTemplateString(string! html) -> void
+Lumi.Window.NavigateTo(Lumi.Window! newWindow) -> void
+Lumi.Window.RegisterFont(string! familyName, string! filePath) -> void
+Lumi.Window.Root.get -> Lumi.Core.Element!
+Lumi.Window.SaveScreenshot(string! filePath) -> bool
+Lumi.Window.StyleResolver.get -> Lumi.Styling.StyleResolver!
+Lumi.Window.Theme.get -> Lumi.Core.ThemeManager!
+Lumi.Window.Title.get -> string!
+Lumi.Window.Title.set -> void
+Lumi.Window.Width.get -> int
+Lumi.Window.Width.set -> void
+Lumi.Window.Window() -> void
+Lumi.Window.Windows.get -> Lumi.WindowManager?
+Lumi.WindowManager
+Lumi.WindowManager.CloseAll() -> void
+Lumi.WindowManager.Count.get -> int
+Lumi.WindowManager.Open(Lumi.SecondaryWindow! window) -> Lumi.SecondaryWindow!
+Lumi.WindowManager.WindowManager() -> void
+static Lumi.LumiApp.Run(Lumi.Window! window) -> void
+virtual Lumi.Window.OnHtmlReloaded() -> void
+virtual Lumi.Window.OnNavigatedTo() -> void
+virtual Lumi.Window.OnNavigatingFrom() -> void
+virtual Lumi.Window.OnReady() -> void
+virtual Lumi.Window.OnUpdate() -> void

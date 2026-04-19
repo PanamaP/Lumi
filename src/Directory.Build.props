@@ -14,4 +14,15 @@
     <PackageTags>gui;ui;framework;desktop;cross-platform;skia;sdl3</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+
+  <!--
+    Public API surface enforcement.
+    Shipping projects opt in by setting <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
+    and providing PublicAPI.Shipped.txt / PublicAPI.Unshipped.txt files alongside the csproj.
+  -->
+  <ItemGroup Condition="'$(EnablePublicApiAnalyzers)' == 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Shipped.txt')" />
+    <AdditionalFiles Include="$(MSBuildProjectDirectory)\PublicAPI.Unshipped.txt" Condition="Exists('$(MSBuildProjectDirectory)\PublicAPI.Unshipped.txt')" />
+  </ItemGroup>
 </Project>

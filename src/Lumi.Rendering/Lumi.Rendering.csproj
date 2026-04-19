@@ -6,6 +6,7 @@
     <Description>SkiaSharp-based rendering pipeline for Lumi.</Description>
     <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,5 +29,4 @@
     <ProjectReference Include="..\Lumi.Platform\Lumi.Platform.csproj" />
     <ProjectReference Include="..\Lumi.Text\Lumi.Text.csproj" />
   </ItemGroup>
-
 </Project>
