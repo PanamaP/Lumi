@@ -6,6 +6,7 @@
     <Description>A lightweight, cross-platform GUI framework for .NET using HTML/CSS templating, SkiaSharp rendering, and SDL3.</Description>
     <IsPackable>true</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -53,12 +54,4 @@
                             Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference'" />
     </ItemGroup>
   </Target>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
 </Project>

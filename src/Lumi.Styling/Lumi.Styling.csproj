@@ -5,6 +5,7 @@
     <Description>CSS parsing, selector matching, and style resolution for Lumi.</Description>
     <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,13 +22,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Lumi.Core\Lumi.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 </Project>

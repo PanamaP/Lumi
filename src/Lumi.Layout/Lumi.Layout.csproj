@@ -6,6 +6,7 @@
     <Description>Layout engine (Yoga-based flexbox + CSS Grid) for Lumi.</Description>
     <IsPackable>false</IsPackable>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePublicApiAnalyzers>true</EnablePublicApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,13 +20,5 @@
 
   <ItemGroup>
     <PackageReference Include="Yoga-CS" Version="1.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
-    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
 </Project>
