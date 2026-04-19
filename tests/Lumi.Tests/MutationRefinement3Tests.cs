@@ -427,15 +427,8 @@ public class MutationRefinement3Tests
 /// <summary>
 /// Application input refinements: handled-key route gating + surrogate boundaries.
 /// </summary>
-public class ApplicationKeyRefinementTests : IDisposable
+public class ApplicationKeyRefinementTests
 {
-    public ApplicationKeyRefinementTests()
-    {
-        Clipboard.ResetForTesting();
-        string? content = "";
-        Clipboard.Initialize(() => content, t => content = t);
-    }
-    public void Dispose() => Clipboard.ResetForTesting();
 
     private static (Application app, InputElement input) FocusedInput(string val = "abc", int cursor = 1)
     {

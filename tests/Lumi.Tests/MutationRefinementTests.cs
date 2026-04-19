@@ -19,16 +19,12 @@ public class MutationRefinementTests : IDisposable
 
     public MutationRefinementTests()
     {
-        Clipboard.ResetForTesting();
-        string? content = "";
-        Clipboard.Initialize(() => content, t => content = t);
         _previousTime = TimeSource.Default;
         TimeSource.Default = _clock;
     }
 
     public void Dispose()
     {
-        Clipboard.ResetForTesting();
         TimeSource.Default = _previousTime;
     }
 
