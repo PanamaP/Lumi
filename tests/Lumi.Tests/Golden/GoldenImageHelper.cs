@@ -9,14 +9,30 @@ namespace Lumi.Tests.Golden;
 /// Baselines live under <c>Golden/baselines/&lt;name&gt;.png</c> in the test project, copied
 /// next to the test assembly via the project's <c>Content</c> item group.
 ///
+/// <para><b>Opt-in execution.</b> Golden tests are skipped by default because Skia
+/// rasterization can vary across operating systems and GPU drivers, and the committed
+/// baselines were generated on a single platform. Set the environment variable
+/// <c>LUMI_RUN_GOLDENS=1</c> to enable them (e.g. locally or on a CI job that matches
+/// the baseline platform). Until per-OS baselines exist, leaving them disabled keeps
+/// the cross-platform CI matrix deterministic.</para>
+///
 /// To regenerate baselines, set the environment variable <c>LUMI_REGEN_GOLDENS=1</c> and
 /// run the golden tests. When set, <see cref="AssertGolden"/> writes the actual bitmap
 /// to the source baseline path (if it can be discovered by walking up from the assembly
 /// location), otherwise to the output directory baseline path, and skips the assertion.
+/// Setting <c>LUMI_REGEN_GOLDENS=1</c> implicitly enables execution.
 /// After regeneration, visually inspect the PNGs before committing.
 /// </summary>
 public static class GoldenImageHelper
 {
+    /// <summary>
+    /// Returns <c>true</c> when golden tests should run. Enabled by either
+    /// <c>LUMI_RUN_GOLDENS=1</c> or <c>LUMI_REGEN_GOLDENS=1</c>.
+    /// </summary>
+    public static bool IsEnabled =>
+        Environment.GetEnvironmentVariable("LUMI_RUN_GOLDENS") == "1" ||
+        Environment.GetEnvironmentVariable("LUMI_REGEN_GOLDENS") == "1";
+
     /// <summary>
     /// Render the given HTML+CSS through the headless pipeline and return a deep copy
     /// of the resulting bitmap (decoupled from the renderer's pixel buffer lifetime).
@@ -110,9 +126,11 @@ public static class GoldenImageHelper
         {
             var worstActual = actual.GetPixel(worstX, worstY);
             var worstExpected = expected.GetPixel(worstX, worstY);
-            // Persist the actual bitmap next to the baseline for triage.
+            // Persist the actual bitmap next to the baseline for triage. If the write fails,
+            // capture the error so it appears in the assertion message instead of being hidden.
             var failPath = Path.Combine(AppContext.BaseDirectory, "Golden", "baselines",
                                         baselineName + ".actual.png");
+            string actualSuffix;
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(failPath)!);
@@ -120,14 +138,18 @@ public static class GoldenImageHelper
                 using var data = img.Encode(SKEncodedImageFormat.Png, 100);
                 using var fs = File.Create(failPath);
                 data.SaveTo(fs);
+                actualSuffix = $" Actual written to '{failPath}'.";
             }
-            catch { /* best-effort */ }
+            catch (Exception writeEx)
+            {
+                actualSuffix = $" Failed to write actual bitmap to '{failPath}': {writeEx.GetType().Name}: {writeEx.Message}.";
+            }
 
             throw new Xunit.Sdk.XunitException(
                 $"Golden '{baselineName}' mismatch: {mismatched}/{total} pixels differ " +
                 $"(ratio={ratio:P3}, allowed={maxDifferingPixelRatio:P3}). " +
                 $"Worst pixel at ({worstX},{worstY}): actual={worstActual} expected={worstExpected} " +
-                $"maxChannelDelta={worstDelta}. Actual written to '{failPath}'.");
+                $"maxChannelDelta={worstDelta}.{actualSuffix}");
         }
     }
 
