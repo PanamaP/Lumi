@@ -19,6 +19,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Lumi.Tests/Lumi.Tests.csproj" />
+    <Project Path="tests/Lumi.Benchmarks/Lumi.Benchmarks.csproj" />
   </Folder>
   <Project Path="templates/Lumi.Templates.csproj" />
 </Solution>
