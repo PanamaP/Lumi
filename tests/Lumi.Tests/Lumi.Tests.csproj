@@ -34,4 +34,10 @@
     <ProjectReference Include="..\..\src\Lumi\Lumi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Golden\baselines\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
