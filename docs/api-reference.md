@@ -524,6 +524,7 @@ panel.On("KeyDown", (sender, e) =>
 });
 
 // Read the typed character (layout/IME aware)
+var input = new InputElement();
 input.On("TextInput", (sender, e) =>
 {
     var te = (RoutedTextInputEvent)e;
