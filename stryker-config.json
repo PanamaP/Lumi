@@ -4,6 +4,13 @@
     "test-projects": ["tests/Lumi.Tests/Lumi.Tests.csproj"],
     "reporters": ["progress", "html", "json"],
     "thresholds": { "high": 80, "low": 60, "break": 0 },
+    "mutate": [
+      "**/*.cs",
+      "!**/obj/**/*.cs",
+      "!**/bin/**/*.cs",
+      "!**/*.g.cs",
+      "!**/*.Designer.cs"
+    ],
     "ignore-mutations": ["string", "regex"],
     "concurrency": 4
   }
