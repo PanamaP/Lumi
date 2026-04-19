@@ -69,6 +69,11 @@ public class ParserSmokeTests
         return s.Substring(0, max) + "...(truncated, total=" + s.Length + ")";
     }
 
+    // Note: StackOverflowException and AccessViolationException are not reliably
+    // catchable in user code — they terminate the process. If a fuzz input triggers
+    // either, the test runner crash itself is the signal. We only assert on
+    // OutOfMemoryException (which is catchable) and on hangs (per-iteration timeout).
+
     [Fact]
     [Trait("Category", "Fuzz")]
     public void CssParser_NeverCrashes_OnRandomInput()
@@ -77,25 +82,24 @@ public class ParserSmokeTests
         for (int i = 0; i < 5000; i++)
         {
             string input = GenerateInput(rng, CssAlphabet);
-            try
+            var task = Task.Run(() =>
             {
-                CssParser.Parse(input);
+                try { CssParser.Parse(input); }
+                catch (OutOfMemoryException) { throw; }
+                catch { /* ordinary parse exceptions are acceptable */ }
+            });
+
+#pragma warning disable xUnit1031 // intentional blocking wait for hang detection
+            bool finished = task.Wait(2000);
+#pragma warning restore xUnit1031
+            if (!finished)
+            {
+                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>2s)\nInput: {Snippet(input)}");
             }
-            catch (OutOfMemoryException ex)
+
+            if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
             {
-                Assert.Fail($"CssParser OOM at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (StackOverflowException ex)
-            {
-                Assert.Fail($"CssParser StackOverflow at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (AccessViolationException ex)
-            {
-                Assert.Fail($"CssParser AccessViolation at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (Exception)
-            {
-                // ordinary parse exceptions are acceptable
+                Assert.Fail($"CssParser OOM at seed={Seed} iter={i}: {oom.Message}\nInput: {Snippet(input)}");
             }
         }
     }
@@ -108,25 +112,24 @@ public class ParserSmokeTests
         for (int i = 0; i < 5000; i++)
         {
             string input = GenerateInput(rng, HtmlAlphabet);
-            try
+            var task = Task.Run(() =>
             {
-                HtmlTemplateParser.Parse(input);
+                try { HtmlTemplateParser.Parse(input); }
+                catch (OutOfMemoryException) { throw; }
+                catch { /* ordinary parse exceptions are acceptable */ }
+            });
+
+#pragma warning disable xUnit1031 // intentional blocking wait for hang detection
+            bool finished = task.Wait(2000);
+#pragma warning restore xUnit1031
+            if (!finished)
+            {
+                Assert.Fail($"HtmlTemplateParser hang at seed={Seed} iter={i} (>2s)\nInput: {Snippet(input)}");
             }
-            catch (OutOfMemoryException ex)
+
+            if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
             {
-                Assert.Fail($"HtmlTemplateParser OOM at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (StackOverflowException ex)
-            {
-                Assert.Fail($"HtmlTemplateParser StackOverflow at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (AccessViolationException ex)
-            {
-                Assert.Fail($"HtmlTemplateParser AccessViolation at seed={Seed} iter={i}: {ex.Message}\nInput: {Snippet(input)}");
-            }
-            catch (Exception)
-            {
-                // ordinary parse exceptions are acceptable
+                Assert.Fail($"HtmlTemplateParser OOM at seed={Seed} iter={i}: {oom.Message}\nInput: {Snippet(input)}");
             }
         }
     }
