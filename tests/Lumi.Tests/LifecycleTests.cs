@@ -57,7 +57,7 @@ public class LifecycleTests
 
     [Fact]
     [Trait("Category", "Lifecycle")]
-    public void Element_AppendChild_RemoveChild_NoZombies()
+    public void Element_AddChild_RemoveChild_ClearsParentAndRemovesFromChildren()
     {
         var parent = new BoxElement("div");
         var removedChildren = new List<Element>();
