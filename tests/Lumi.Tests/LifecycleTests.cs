@@ -7,9 +7,14 @@ public class LifecycleTests
 {
     private const string TinyHtml = "<div id=\"root\"><span>hi</span></div>";
     private const string TinyCss = "div { background: red; padding: 4px; } span { color: blue; }";
+    private const string IterationsEnvironmentVariable = "LUMI_LIFECYCLE_ITERATIONS";
+    private const string WarmupEnvironmentVariable = "LUMI_LIFECYCLE_WARMUP";
 
     private static long MeasureMemoryDelta(Action scenario, int iterations = 1000, int warmup = 50)
     {
+        iterations = GetConfiguredCount(IterationsEnvironmentVariable, iterations);
+        warmup = GetConfiguredCount(WarmupEnvironmentVariable, warmup);
+
         for (int i = 0; i < warmup; i++) scenario();   // JIT + reach steady state
         GC.Collect(2, GCCollectionMode.Forced, blocking: true);
         GC.WaitForPendingFinalizers();
@@ -21,6 +26,12 @@ public class LifecycleTests
         GC.Collect(2, GCCollectionMode.Forced, blocking: true);
         long after = GC.GetTotalMemory(forceFullCollection: true);
         return after - before;
+    }
+
+    private static int GetConfiguredCount(string environmentVariableName, int fallback)
+    {
+        var value = Environment.GetEnvironmentVariable(environmentVariableName);
+        return int.TryParse(value, out int parsed) && parsed > 0 ? parsed : fallback;
     }
 
     [Fact]
