@@ -33,3 +33,5 @@ BenchmarkDotNet.Artifacts/
 
 stryker-test.log
 StrykerOutput/
+StrykerOutput/
+stryker-*.log

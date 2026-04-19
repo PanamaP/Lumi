@@ -118,8 +118,8 @@ public class ClassListTests
     public void Contains_HitMissCases()
     {
         var cl = new ClassList(new[] { "x" });
-        Assert.True(cl.Contains("x"));
-        Assert.False(cl.Contains("y"));
+        Assert.Contains("x", cl);
+        Assert.DoesNotContain("y", cl);
     }
 
     [Fact]
