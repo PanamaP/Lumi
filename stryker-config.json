@@ -4,7 +4,13 @@
     "test-projects": ["tests/Lumi.Tests/Lumi.Tests.csproj"],
     "reporters": ["progress", "html", "json"],
     "thresholds": { "high": 80, "low": 60, "break": 0 },
-    "mutate": ["src/Lumi.Core/**/*.cs"],
+    "mutate": [
+      "src/Lumi.Core/**/*.cs",
+      "!src/Lumi.Core/**/obj/**/*.cs",
+      "!src/Lumi.Core/**/bin/**/*.cs",
+      "!src/Lumi.Core/**/*.g.cs",
+      "!src/Lumi.Core/**/*.Designer.cs"
+    ],
     "ignore-mutations": ["string", "regex"],
     "concurrency": 4
   }
