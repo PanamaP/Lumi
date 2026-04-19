@@ -75,3 +75,17 @@ Found a bug or have a feature request? Please open an issue on [GitHub Issues](.
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+
+## Mutation testing
+
+We use [Stryker.NET](https://stryker-mutator.io/docs/stryker-net/introduction/) to periodically measure how well our test suite detects logic mutations in `Lumi.Core`. A weekly GitHub Actions workflow (Sundays, 03:00 UTC) runs the full mutation suite and uploads the HTML report as an artifact.
+
+To run mutation testing locally:
+
+```sh
+dotnet tool restore
+dotnet stryker
+```
+
+Note: a full run takes 30+ minutes. See `stryker-config.json` for thresholds and configuration.
+
