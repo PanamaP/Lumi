@@ -86,8 +86,7 @@ public class PropertyTests
     [Property(MaxTest = 100)]
     public void CssColor_Parse_Format_Roundtrip(byte r, byte g, byte b)
     {
-        // Use the public Color.FromHex API. Color.FromHex expects the hex
-        // digits without a leading '#'.
+        // Use the public Color.FromHex API (accepts hex with or without a leading '#').
         string hex = $"{r:X2}{g:X2}{b:X2}";
         var parsed = Color.FromHex(hex);
 
