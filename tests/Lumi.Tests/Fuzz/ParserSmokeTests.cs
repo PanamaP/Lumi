@@ -13,6 +13,7 @@ namespace Lumi.Tests.Fuzz;
 public class ParserSmokeTests
 {
     private const int Seed = 0;
+    private const int ParserTimeoutMs = 2000;
 
     private static readonly char[] CssAlphabet = BuildAlphabet(
         "{}[]():;,.#% \n\t\"'");
@@ -90,11 +91,11 @@ public class ParserSmokeTests
             });
 
 #pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(2000);
+            bool finished = task.Wait(ParserTimeoutMs);
 #pragma warning restore xUnit1031
             if (!finished)
             {
-                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>2s)\nInput: {Snippet(input)}");
+                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
             }
 
             if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
@@ -120,11 +121,11 @@ public class ParserSmokeTests
             });
 
 #pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(2000);
+            bool finished = task.Wait(ParserTimeoutMs);
 #pragma warning restore xUnit1031
             if (!finished)
             {
-                Assert.Fail($"HtmlTemplateParser hang at seed={Seed} iter={i} (>2s)\nInput: {Snippet(input)}");
+                Assert.Fail($"HtmlTemplateParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
             }
 
             if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
@@ -148,11 +149,11 @@ public class ParserSmokeTests
                 catch { /* ordinary exceptions are fine; we only care about hangs */ }
             });
 #pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(2000);
+            bool finished = task.Wait(ParserTimeoutMs);
 #pragma warning restore xUnit1031
             if (!finished)
             {
-                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>2s)\nInput: {Snippet(input)}");
+                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
             }
         }
     }
