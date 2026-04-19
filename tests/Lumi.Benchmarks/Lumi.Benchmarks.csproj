@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Lumi.Core\Lumi.Core.csproj" />
+    <ProjectReference Include="..\..\src\Lumi.Input\Lumi.Input.csproj" />
+    <ProjectReference Include="..\..\src\Lumi.Layout\Lumi.Layout.csproj" />
+    <ProjectReference Include="..\..\src\Lumi.Rendering\Lumi.Rendering.csproj" />
+    <ProjectReference Include="..\..\src\Lumi.Styling\Lumi.Styling.csproj" />
+  </ItemGroup>
+</Project>
