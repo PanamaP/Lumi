@@ -70,91 +70,53 @@ public class ParserSmokeTests
         return s.Substring(0, max) + "...(truncated, total=" + s.Length + ")";
     }
 
-    // Note: StackOverflowException and AccessViolationException are not reliably
-    // catchable in user code — they terminate the process. If a fuzz input triggers
-    // either, the test runner crash itself is the signal. We only assert on
-    // OutOfMemoryException (which is catchable) and on hangs (per-iteration timeout).
+    // Notes:
+    // * StackOverflowException and AccessViolationException are not reliably
+    //   catchable in user code — they terminate the process. If a fuzz input
+    //   triggers either, the test runner crash itself is the signal. We only
+    //   assert on OutOfMemoryException (catchable) and on hangs (per-iter timeout).
+    // * Hang detection uses Task.WhenAny with a delay rather than Task.Wait so a
+    //   faulted task does not throw AggregateException and we keep diagnostics.
+    // * On a detected hang the parse Task is orphaned on the thread pool (we have
+    //   no cancellation hook into the synchronous parser). It will keep running
+    //   until the parser returns or the test process exits; this is acceptable
+    //   because (a) Assert.Fail aborts the run, surfacing the bug for follow-up,
+    //   and (b) the orphan is a background thread-pool work item and will not
+    //   prevent process exit.
 
-    [Fact]
-    [Trait("Category", "Fuzz")]
-    public void CssParser_NeverCrashes_OnRandomInput()
+    private static async Task RunCrashSmokeAsync(string parserName, char[] alphabet, Action<string> parse)
     {
         var rng = new Random(Seed);
         for (int i = 0; i < 5000; i++)
         {
-            string input = GenerateInput(rng, CssAlphabet);
-            var task = Task.Run(() =>
+            string input = GenerateInput(rng, alphabet);
+            var parseTask = Task.Run(() =>
             {
-                try { CssParser.Parse(input); }
+                try { parse(input); }
                 catch (OutOfMemoryException) { throw; }
                 catch { /* ordinary parse exceptions are acceptable */ }
             });
 
-#pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(ParserTimeoutMs);
-#pragma warning restore xUnit1031
-            if (!finished)
+            var completed = await Task.WhenAny(parseTask, Task.Delay(ParserTimeoutMs));
+            if (completed != parseTask)
             {
-                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
+                Assert.Fail($"{parserName} hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
             }
 
-            if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
+            if (parseTask.Exception?.GetBaseException() is OutOfMemoryException oom)
             {
-                Assert.Fail($"CssParser OOM at seed={Seed} iter={i}: {oom.Message}\nInput: {Snippet(input)}");
+                Assert.Fail($"{parserName} OOM at seed={Seed} iter={i}: {oom.Message}\nInput: {Snippet(input)}");
             }
         }
     }
 
     [Fact]
     [Trait("Category", "Fuzz")]
-    public void HtmlTemplateParser_NeverCrashes_OnRandomInput()
-    {
-        var rng = new Random(Seed);
-        for (int i = 0; i < 5000; i++)
-        {
-            string input = GenerateInput(rng, HtmlAlphabet);
-            var task = Task.Run(() =>
-            {
-                try { HtmlTemplateParser.Parse(input); }
-                catch (OutOfMemoryException) { throw; }
-                catch { /* ordinary parse exceptions are acceptable */ }
-            });
-
-#pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(ParserTimeoutMs);
-#pragma warning restore xUnit1031
-            if (!finished)
-            {
-                Assert.Fail($"HtmlTemplateParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
-            }
-
-            if (task.Exception?.GetBaseException() is OutOfMemoryException oom)
-            {
-                Assert.Fail($"HtmlTemplateParser OOM at seed={Seed} iter={i}: {oom.Message}\nInput: {Snippet(input)}");
-            }
-        }
-    }
+    public Task CssParser_NeverCrashes_OnRandomInput()
+        => RunCrashSmokeAsync("CssParser", CssAlphabet, input => CssParser.Parse(input));
 
     [Fact]
     [Trait("Category", "Fuzz")]
-    public void CssParser_NeverHangs_2sBudget()
-    {
-        var rng = new Random(Seed);
-        for (int i = 0; i < 100; i++)
-        {
-            string input = GenerateInput(rng, CssAlphabet);
-            var task = Task.Run(() =>
-            {
-                try { CssParser.Parse(input); }
-                catch { /* ordinary exceptions are fine; we only care about hangs */ }
-            });
-#pragma warning disable xUnit1031 // intentional blocking wait for hang detection
-            bool finished = task.Wait(ParserTimeoutMs);
-#pragma warning restore xUnit1031
-            if (!finished)
-            {
-                Assert.Fail($"CssParser hang at seed={Seed} iter={i} (>{ParserTimeoutMs}ms)\nInput: {Snippet(input)}");
-            }
-        }
-    }
+    public Task HtmlTemplateParser_NeverCrashes_OnRandomInput()
+        => RunCrashSmokeAsync("HtmlTemplateParser", HtmlAlphabet, input => HtmlTemplateParser.Parse(input));
 }
