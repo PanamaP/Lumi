@@ -96,8 +96,7 @@ public class LumiTooltip : IDisposable
         }
 
         _container.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"position: absolute; left: {x:F0}px; top: {y:F0}px; padding: 4px 8px; border-radius: 4px; " +
-            $"background-color: rgba(0,0,0,0.85); z-index: 10000; pointer-events: none");
+            $"position: absolute; left: {x:F0}px; top: {y:F0}px; padding: 4px 8px; border-radius: 4px; background-color: rgba(0,0,0,0.85); z-index: 10000; pointer-events: none");
 
         if (_container.Parent != root)
         {

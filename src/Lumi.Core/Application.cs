@@ -455,8 +455,9 @@ public class Application
                     int deleteCount = 1;
                     if (input.CursorPosition >= 2 && char.IsSurrogatePair(input.Value[input.CursorPosition - 2], input.Value[input.CursorPosition - 1]))
                         deleteCount = 2;
-                    input.Value = input.Value[..(input.CursorPosition - deleteCount)] + input.Value[input.CursorPosition..];
-                    input.CursorPosition -= deleteCount;
+                    int newCursor = input.CursorPosition - deleteCount;
+                    input.Value = input.Value[..newCursor] + input.Value[input.CursorPosition..];
+                    input.CursorPosition = newCursor;
                     input.ClearSelection();
                 }
                 input.ResetBlink();

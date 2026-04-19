@@ -79,9 +79,7 @@ public class LumiToggle : IDisposable
     {
         float left = _isOn ? TrackWidth - ThumbSize - ThumbMargin : ThumbMargin;
         _thumb.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; border-radius: {ThumbSize / 2:F0}px; " +
-            $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
-            $"position: absolute; top: {ThumbMargin:F0}px; left: {left:F0}px");
+            $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; border-radius: {ThumbSize / 2:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; position: absolute; top: {ThumbMargin:F0}px; left: {left:F0}px");
     }
 
     public void Dispose()

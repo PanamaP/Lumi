@@ -95,8 +95,7 @@ public class LumiSlider
             $"display: flex; flex-direction: column; padding: {ContainerPadding:F0}px 0px; width: {_trackWidth:F0}px; position: relative");
 
         _track.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"height: {TrackHeight:F0}px; width: {_trackWidth:F0}px; " +
-            $"background-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; overflow: hidden");
+            $"height: {TrackHeight:F0}px; width: {_trackWidth:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Border)}; border-radius: 4px; overflow: hidden");
     }
 
     private void OnMouseDown(Element sender, RoutedEvent e)
@@ -142,14 +141,10 @@ public class LumiSlider
         float thumbLeft = pct * (_trackWidth - ThumbSize);
 
         _fill.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; " +
-            $"width: {fillPx:F1}px");
+            $"height: {TrackHeight:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.Accent)}; width: {fillPx:F1}px");
 
         _thumb.InlineStyle = string.Create(System.Globalization.CultureInfo.InvariantCulture,
-            $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; " +
-            $"background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; " +
-            $"border-radius: {ThumbSize / 2:F0}px; position: absolute; " +
-            $"top: {ThumbTop:F0}px; left: {thumbLeft:F1}px");
+            $"width: {ThumbSize:F0}px; height: {ThumbSize:F0}px; background-color: {ComponentStyles.ToRgba(ComponentStyles.TextColor)}; border-radius: {ThumbSize / 2:F0}px; position: absolute; top: {ThumbTop:F0}px; left: {thumbLeft:F1}px");
 
         _container.MarkDirty();
     }
