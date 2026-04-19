@@ -175,4 +175,119 @@ public class TemplateForElementTests
         Assert.Equal(2, t.Children.Count);
         Assert.Equal("z", t.Children[1].DataContext);
     }
+
+    // ---------------- Mutation-coverage targeted edge cases ----------------
+
+    [Fact]
+    public void Insert_AtIndexZero_PutsItemAtFront()
+    {
+        var coll = new ObservableCollection<string> { "a", "b" };
+        var t = BindEmptyTemplate(coll, out var factory);
+        Seed(t, coll, factory);
+
+        coll.Insert(0, "Z");
+
+        // Tests `e.NewStartingIndex >= 0` vs `> 0` mutation: index 0 must use the
+        // explicit position, not Children.Count.
+        Assert.Equal(3, t.Children.Count);
+        Assert.Equal("Z", t.Children[0].DataContext);
+        Assert.Equal("a", t.Children[1].DataContext);
+        Assert.Equal("b", t.Children[2].DataContext);
+    }
+
+    [Fact]
+    public void AddRange_KeepsOrder_AndAdvancesInsertIndex()
+    {
+        // Use a custom ObservableCollection-like surrogate so that one event carries
+        // multiple new items — exercises the inner `insertIndex++` in OnCollectionChanged.
+        var coll = new MultiAddCollection<string>();
+        var t = new TemplateForElement();
+        Func<object, Element> factory = item => new BoxElement("li") { DataContext = item };
+        t.BindCollection(coll, factory);
+
+        coll.AddRange(["a", "b", "c"]);
+
+        Assert.Equal(3, t.Children.Count);
+        Assert.Equal("a", t.Children[0].DataContext);
+        Assert.Equal("b", t.Children[1].DataContext);
+        Assert.Equal("c", t.Children[2].DataContext);
+    }
+
+    [Fact]
+    public void RemoveAt_LastIndex_RemovesCorrectChild()
+    {
+        var coll = new ObservableCollection<string> { "a", "b", "c" };
+        var t = BindEmptyTemplate(coll, out var factory);
+        Seed(t, coll, factory);
+
+        coll.RemoveAt(2); // boundary: idx == Children.Count - 1
+
+        Assert.Equal(2, t.Children.Count);
+        Assert.Equal("a", t.Children[0].DataContext);
+        Assert.Equal("b", t.Children[1].DataContext);
+    }
+
+    [Fact]
+    public void Replace_LastIndex_SwapsCorrectly()
+    {
+        var coll = new ObservableCollection<string> { "a", "b" };
+        var t = BindEmptyTemplate(coll, out var factory);
+        Seed(t, coll, factory);
+
+        var origLast = t.Children[1];
+        coll[1] = "B"; // boundary index
+
+        Assert.NotSame(origLast, t.Children[1]);
+        Assert.Equal("B", t.Children[1].DataContext);
+        Assert.Equal("a", t.Children[0].DataContext);
+    }
+
+    [Fact]
+    public void Reset_PreservesItemOrder()
+    {
+        var coll = new ObservableCollection<string> { "a", "b", "c" };
+        var t = BindEmptyTemplate(coll, out var factory);
+        Seed(t, coll, factory);
+
+        // ObservableCollection.Clear fires Reset; verify children rebuild empty
+        // (covers the Reset branch's Unbind/ClearChildren + early-exit path).
+        coll.Clear();
+        Assert.Empty(t.Children);
+
+        coll.Add("X");
+        coll.Add("Y");
+        Assert.Equal(2, t.Children.Count);
+        Assert.Equal("X", t.Children[0].DataContext);
+        Assert.Equal("Y", t.Children[1].DataContext);
+    }
+
+    [Fact]
+    public void Unbind_OnUnboundTemplate_DoesNotThrow()
+    {
+        var t = new TemplateForElement();
+        var ex = Record.Exception(() => t.Unbind());
+        Assert.Null(ex);
+    }
+
+    /// <summary>
+    /// Minimal observable collection that fires a single Add event carrying multiple
+    /// NewItems. Lets us exercise the inner insert-loop in OnCollectionChanged.
+    /// </summary>
+    private sealed class MultiAddCollection<T> : System.Collections.ObjectModel.Collection<T>, System.Collections.Specialized.INotifyCollectionChanged
+    {
+        public event System.Collections.Specialized.NotifyCollectionChangedEventHandler? CollectionChanged;
+
+        public void AddRange(IList<T> items)
+        {
+            int startIndex = Count;
+            foreach (var item in items) Add(item);
+            // Suppress the per-item events emitted by Add via clearing handlers? Items already added.
+            // We instead just emit one bulk event to test multi-item path.
+            CollectionChanged?.Invoke(this,
+                new System.Collections.Specialized.NotifyCollectionChangedEventArgs(
+                    System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+                    (System.Collections.IList)items,
+                    startIndex));
+        }
+    }
 }
