@@ -154,7 +154,7 @@ public class InputReplayTests
     }
 
     [Fact]
-    public void Animation_Frame_Stepping_Determinism()
+    public void ScriptedInput_With_TimeAdvance_Produces_Deterministic_Snapshot()
     {
         var (digest1, pixels1) = RunScript();
         var (digest2, pixels2) = RunScript();

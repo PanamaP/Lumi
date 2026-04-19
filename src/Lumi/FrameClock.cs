@@ -43,10 +43,12 @@ public sealed class FrameClock
     /// </summary>
     public double TargetFrameTimeMs => _targetFrameTimeMs;
 
+#pragma warning disable RS0027 // Existing shipped API (with optional parameter); keep as-is. The 2-arg overload below adds the ITimeSource injection point.
     public FrameClock(int targetRefreshRate = 60)
         : this(targetRefreshRate, TimeSource.Default)
     {
     }
+#pragma warning restore RS0027
 
     public FrameClock(int targetRefreshRate, ITimeSource timeSource)
     {

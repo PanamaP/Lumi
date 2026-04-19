@@ -17,7 +17,7 @@ public sealed class HeadlessApp : IDisposable
     public HeadlessPipeline Pipeline { get; }
     public Application App { get; }
     public ManualTimeSource Clock { get; }
-    public Element Root => Pipeline.Root;
+    public Element Root => App.Root;
 
     private readonly Queue<InputEvent> _queue = new();
     private readonly ITimeSource _previousDefault;

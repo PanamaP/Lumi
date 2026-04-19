@@ -1,1 +1,2 @@
 #nullable enable
+Lumi.FrameClock.FrameClock(int targetRefreshRate, Lumi.Core.Time.ITimeSource! timeSource) -> void

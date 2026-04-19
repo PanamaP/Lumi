@@ -455,25 +455,32 @@ public sealed class LumiApp : IDisposable
 
     private static List<Element> CollectFocusableElements(Element root)
     {
-        var result = new List<Element>();
-        CollectFocusables(root, result);
-        // Sort by TabIndex (0 last in tab order per HTML spec), then DOM order
-        result.Sort((a, b) =>
+        var ordered = new List<(Element Element, int Order)>();
+        int order = 0;
+        CollectFocusables(root, ordered, ref order);
+        // Sort by TabIndex (0 last in tab order per HTML spec), then DOM order.
+        // List.Sort is unstable, so use the captured DOM-traversal index as a deterministic tie-breaker.
+        ordered.Sort((a, b) =>
         {
-            int aIdx = a.TabIndex <= 0 ? int.MaxValue : a.TabIndex;
-            int bIdx = b.TabIndex <= 0 ? int.MaxValue : b.TabIndex;
-            return aIdx.CompareTo(bIdx);
+            int aIdx = a.Element.TabIndex <= 0 ? int.MaxValue : a.Element.TabIndex;
+            int bIdx = b.Element.TabIndex <= 0 ? int.MaxValue : b.Element.TabIndex;
+            int tabCmp = aIdx.CompareTo(bIdx);
+            return tabCmp != 0 ? tabCmp : a.Order.CompareTo(b.Order);
         });
+
+        var result = new List<Element>(ordered.Count);
+        foreach (var item in ordered)
+            result.Add(item.Element);
         return result;
     }
 
-    private static void CollectFocusables(Element element, List<Element> result)
+    private static void CollectFocusables(Element element, List<(Element Element, int Order)> result, ref int order)
     {
         if (element.ComputedStyle.Display == DisplayMode.None) return;
         if (element.IsFocusable)
-            result.Add(element);
+            result.Add((element, order++));
         foreach (var child in element.Children)
-            CollectFocusables(child, result);
+            CollectFocusables(child, result, ref order);
     }
 
     /// <summary>
