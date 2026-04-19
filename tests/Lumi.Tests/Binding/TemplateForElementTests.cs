@@ -280,9 +280,10 @@ public class TemplateForElementTests
         public void AddRange(IList<T> items)
         {
             int startIndex = Count;
+            // Collection<T>.Add does NOT raise CollectionChanged (we don't override
+            // InsertItem), so this loop is silent. We then emit a single bulk Add
+            // event below to exercise the multi-item insert path in OnCollectionChanged.
             foreach (var item in items) Add(item);
-            // Suppress the per-item events emitted by Add via clearing handlers? Items already added.
-            // We instead just emit one bulk event to test multi-item path.
             CollectionChanged?.Invoke(this,
                 new System.Collections.Specialized.NotifyCollectionChangedEventArgs(
                     System.Collections.Specialized.NotifyCollectionChangedAction.Add,

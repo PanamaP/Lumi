@@ -12,6 +12,13 @@ namespace Lumi.Tests;
 /// those side effects after each input key. Also covers a few BindingEngine
 /// and TemplateForElement edges that the previous batch missed.
 /// </summary>
+/// <remarks>
+/// Placed in the non-parallel "Dst" collection because the constructor mutates
+/// <see cref="TimeSource.Default"/> — a process-wide global also exercised by
+/// the deterministic-simulation tests under <c>Dst/</c>. Running concurrently
+/// with those tests would cause flaky time-related failures.
+/// </remarks>
+[Xunit.Collection("Dst")]
 public class MutationRefinementTests : IDisposable
 {
     private readonly ITimeSource _previousTime;

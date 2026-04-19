@@ -8,6 +8,12 @@ namespace Lumi.Tests;
 /// hit-test (transform/scroll/clip), key handling and lifecycle. Targets surviving
 /// mutants in Application.cs (the largest remaining offender after phase 1).
 /// </summary>
+/// <remarks>
+/// Placed in the non-parallel "Lifecycle" collection because the constructor
+/// installs a process-wide <see cref="Clipboard"/> delegate; running concurrently
+/// with other clipboard-using tests would race on that global state.
+/// </remarks>
+[Xunit.Collection("Lifecycle")]
 public class ApplicationLifecycleTests : IDisposable
 {
     public ApplicationLifecycleTests()

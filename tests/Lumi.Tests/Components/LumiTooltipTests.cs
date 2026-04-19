@@ -133,13 +133,20 @@ public class LumiTooltipTests
     }
 
     [Fact]
-    public void Show_WhenNoTarget_NoOps()
+    public void Dispose_WhenNeverAttached_DoesNotThrow()
     {
+        // LumiTooltip created via constructor (not Attach) has _target == null.
+        // Dispose must take the guarded branch (`if (_target != null)`) without throwing
+        // and must still null out the handlers / target idempotently.
         var tooltip = new LumiTooltip { Text = "x" };
-        // Dispatch nothing; just verify Show() gated by _target null doesn't throw via direct API.
-        // Use Hide as the no-op proxy: Hide on a never-shown tooltip is also safe.
-        var ex = Record.Exception(() => { /* Show is private; nothing to invoke */ });
+
+        var ex = Record.Exception(() => tooltip.Dispose());
         Assert.Null(ex);
+
+        // Calling Dispose a second time on the now-cleared instance must also be safe.
+        var ex2 = Record.Exception(() => tooltip.Dispose());
+        Assert.Null(ex2);
+
         Assert.Equal("x", tooltip.Text);
     }
 
