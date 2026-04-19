@@ -30,16 +30,29 @@ public class ParserSmokeTests
         return sb.ToString().ToCharArray();
     }
 
+    private static char NextBmpScalarChar(Random rng)
+    {
+        // Pick from the BMP while skipping the UTF-16 surrogate range
+        // (0xD800-0xDFFF), which does not represent valid scalar values.
+        int value = rng.Next(0x80, 0xF800);
+        if (value >= 0xD800)
+        {
+            value += 0x800;
+        }
+
+        return (char)value;
+    }
+
     private static string GenerateInput(Random rng, char[] alphabet)
     {
         int len = rng.Next(1, 4097);
         var sb = new StringBuilder(len);
         for (int i = 0; i < len; i++)
         {
-            // ~2% chance of injecting an arbitrary BMP unicode character.
+            // ~2% chance of injecting an arbitrary BMP Unicode scalar character.
             if (rng.Next(50) == 0)
             {
-                sb.Append((char)rng.Next(0x80, 0xFFFE));
+                sb.Append(NextBmpScalarChar(rng));
             }
             else
             {
