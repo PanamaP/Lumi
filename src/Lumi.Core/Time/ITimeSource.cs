@@ -32,14 +32,20 @@ public sealed class ManualTimeSource : ITimeSource
     private double _now;
     private long _tick;
 
+    /// <inheritdoc />
     public double NowSeconds => _now;
+    /// <inheritdoc />
     public long TickCount64 => _tick;
 
+    /// <summary>Advance the manual clock by <paramref name="seconds"/>.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="seconds"/> is negative.</exception>
     public void Advance(double seconds)
     {
         if (seconds < 0) throw new ArgumentOutOfRangeException(nameof(seconds));
         _now += seconds;
-        _tick += (long)(seconds * 1000.0);
+        // Derive _tick from _now to keep TickCount64 consistent with NowSeconds and avoid
+        // per-step truncation drift (e.g. 1/60s steps would otherwise lose ~0.666ms each).
+        _tick = (long)Math.Round(_now * 1000.0);
     }
 }
 
@@ -49,5 +55,19 @@ public sealed class ManualTimeSource : ITimeSource
 /// </summary>
 public static class TimeSource
 {
-    public static ITimeSource Default { get; set; } = new StopwatchTimeSource();
+    private static ITimeSource _default = new StopwatchTimeSource();
+
+    /// <summary>
+    /// Gets or sets the ambient process-wide <see cref="ITimeSource"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
+    public static ITimeSource Default
+    {
+        get => _default;
+        set
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            _default = value;
+        }
+    }
 }

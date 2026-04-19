@@ -44,7 +44,7 @@ public sealed class FrameClock
     public double TargetFrameTimeMs => _targetFrameTimeMs;
 
     public FrameClock(int targetRefreshRate = 60)
-        : this(targetRefreshRate, new StopwatchTimeSource())
+        : this(targetRefreshRate, TimeSource.Default)
     {
     }
 

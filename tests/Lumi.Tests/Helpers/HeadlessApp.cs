@@ -1,10 +1,6 @@
 using Lumi.Core;
 using Lumi.Core.Time;
-using Lumi.Layout;
 using Lumi.Rendering;
-using Lumi.Styling;
-using Lumi.Text;
-using SkiaSharp;
 
 namespace Lumi.Tests.Helpers;
 
@@ -112,27 +108,37 @@ public sealed class HeadlessApp : IDisposable
 
     private static List<Element> CollectFocusables(Element root)
     {
-        var result = new List<Element>();
-        Walk(root, result);
+        var result = new List<(Element Element, int Order)>();
+        int order = 0;
+        Walk(root, result, ref order);
         result.Sort((a, b) =>
         {
-            int aIdx = a.TabIndex <= 0 ? int.MaxValue : a.TabIndex;
-            int bIdx = b.TabIndex <= 0 ? int.MaxValue : b.TabIndex;
-            return aIdx.CompareTo(bIdx);
-        });
-        return result;
+            int aIdx = a.Element.TabIndex <= 0 ? int.MaxValue : a.Element.TabIndex;
+            int bIdx = b.Element.TabIndex <= 0 ? int.MaxValue : b.Element.TabIndex;
 
-        static void Walk(Element e, List<Element> acc)
+            int tabIndexComparison = aIdx.CompareTo(bIdx);
+            return tabIndexComparison != 0
+                ? tabIndexComparison
+                : a.Order.CompareTo(b.Order);
+        });
+
+        var focusables = new List<Element>(result.Count);
+        foreach (var item in result)
+            focusables.Add(item.Element);
+
+        return focusables;
+
+        static void Walk(Element e, List<(Element Element, int Order)> acc, ref int order)
         {
             // Mirror LumiApp: skip hidden subtrees so tab navigation matches production.
             if (e.ComputedStyle.Display == DisplayMode.None) return;
-            if (e.IsFocusable) acc.Add(e);
-            foreach (var c in e.Children) Walk(c, acc);
+            if (e.IsFocusable) acc.Add((e, order++));
+            foreach (var c in e.Children) Walk(c, acc, ref order);
         }
     }
 
     /// <summary>
-    /// Snapshot of all element ids and their layout boxes plus all rendered pixels.
+    /// Snapshot of all element tag names and their layout boxes plus all rendered pixels.
     /// Used by tests to assert deterministic replay.
     /// </summary>
     public (string LayoutDigest, byte[] Pixels) Snapshot()
@@ -148,8 +154,10 @@ public sealed class HeadlessApp : IDisposable
         static void Walk(Element e, System.Text.StringBuilder sb)
         {
             sb.Append(e.TagName).Append('|')
-              .Append(e.LayoutBox.X).Append(',').Append(e.LayoutBox.Y).Append(',')
-              .Append(e.LayoutBox.Width).Append(',').Append(e.LayoutBox.Height).Append(';');
+              .Append(e.LayoutBox.X.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',')
+              .Append(e.LayoutBox.Y.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',')
+              .Append(e.LayoutBox.Width.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(',')
+              .Append(e.LayoutBox.Height.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(';');
             foreach (var c in e.Children) Walk(c, sb);
         }
     }
