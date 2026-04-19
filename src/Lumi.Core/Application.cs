@@ -40,28 +40,36 @@ public class Application
     public void ProcessInput(List<InputEvent> events)
     {
         foreach (var evt in events)
+            ProcessInputEvent(evt);
+    }
+
+    /// <summary>
+    /// Processes a single raw input event and routes it through the element tree.
+    /// Same semantics as <see cref="ProcessInput(List{InputEvent})"/> but for a single event,
+    /// useful for test harnesses that drive scripted input one event at a time.
+    /// </summary>
+    public void ProcessInputEvent(InputEvent evt)
+    {
+        switch (evt)
         {
-            switch (evt)
-            {
-                case MouseEvent mouse:
-                    HandleMouse(mouse);
-                    break;
-                case KeyboardEvent keyboard:
-                    HandleKeyboard(keyboard);
-                    break;
-                case TextInputEvent textInput:
-                    HandleTextInput(textInput);
-                    break;
-                case ScrollEvent scroll:
-                    HandleScroll(scroll);
-                    break;
-                case WindowEvent window:
-                    HandleWindow(window);
-                    break;
-                case FileDropEvent fileDrop:
-                    HandleFileDrop(fileDrop);
-                    break;
-            }
+            case MouseEvent mouse:
+                HandleMouse(mouse);
+                break;
+            case KeyboardEvent keyboard:
+                HandleKeyboard(keyboard);
+                break;
+            case TextInputEvent textInput:
+                HandleTextInput(textInput);
+                break;
+            case ScrollEvent scroll:
+                HandleScroll(scroll);
+                break;
+            case WindowEvent window:
+                HandleWindow(window);
+                break;
+            case FileDropEvent fileDrop:
+                HandleFileDrop(fileDrop);
+                break;
         }
     }
 

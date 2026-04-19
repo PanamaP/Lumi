@@ -1,1 +1,17 @@
 #nullable enable
+Lumi.Core.Application.ProcessInputEvent(Lumi.Core.InputEvent! evt) -> void
+Lumi.Core.Time.ITimeSource
+Lumi.Core.Time.ITimeSource.NowSeconds.get -> double
+Lumi.Core.Time.ITimeSource.TickCount64.get -> long
+Lumi.Core.Time.ManualTimeSource
+Lumi.Core.Time.ManualTimeSource.Advance(double seconds) -> void
+Lumi.Core.Time.ManualTimeSource.ManualTimeSource() -> void
+Lumi.Core.Time.ManualTimeSource.NowSeconds.get -> double
+Lumi.Core.Time.ManualTimeSource.TickCount64.get -> long
+Lumi.Core.Time.StopwatchTimeSource
+Lumi.Core.Time.StopwatchTimeSource.NowSeconds.get -> double
+Lumi.Core.Time.StopwatchTimeSource.StopwatchTimeSource() -> void
+Lumi.Core.Time.StopwatchTimeSource.TickCount64.get -> long
+Lumi.Core.Time.TimeSource
+static Lumi.Core.Time.TimeSource.Default.get -> Lumi.Core.Time.ITimeSource!
+static Lumi.Core.Time.TimeSource.Default.set -> void
