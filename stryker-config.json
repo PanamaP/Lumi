@@ -1,0 +1,11 @@
+{
+  "stryker-config": {
+    "project": "src/Lumi.Core/Lumi.Core.csproj",
+    "test-projects": ["tests/Lumi.Tests/Lumi.Tests.csproj"],
+    "reporters": ["progress", "html", "json"],
+    "thresholds": { "high": 80, "low": 60, "break": 0 },
+    "mutate": ["src/Lumi.Core/**/*.cs"],
+    "ignore-mutations": ["string", "regex"],
+    "concurrency": 4
+  }
+}
