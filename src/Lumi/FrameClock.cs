@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using Lumi.Core.Time;
 
 namespace Lumi;
 
@@ -9,9 +9,9 @@ namespace Lumi;
 /// </summary>
 public sealed class FrameClock
 {
-    private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
-    private long _frameStartTicks;
-    private long _previousFrameStartTicks;
+    private readonly ITimeSource _timeSource;
+    private double _frameStartSeconds;
+    private double _previousFrameStartSeconds;
     private int _targetRefreshRate;
     private double _targetFrameTimeMs;
 
@@ -23,7 +23,7 @@ public sealed class FrameClock
     /// <summary>
     /// Time elapsed during the current frame's work (between BeginFrame and now), in milliseconds.
     /// </summary>
-    public double ElapsedFrameTimeMs => (_stopwatch.ElapsedTicks - _frameStartTicks) * 1000.0 / Stopwatch.Frequency;
+    public double ElapsedFrameTimeMs => (_timeSource.NowSeconds - _frameStartSeconds) * 1000.0;
 
     /// <summary>
     /// The target refresh rate in Hz.
@@ -44,10 +44,16 @@ public sealed class FrameClock
     public double TargetFrameTimeMs => _targetFrameTimeMs;
 
     public FrameClock(int targetRefreshRate = 60)
+        : this(targetRefreshRate, new StopwatchTimeSource())
     {
+    }
+
+    public FrameClock(int targetRefreshRate, ITimeSource timeSource)
+    {
+        _timeSource = timeSource ?? throw new ArgumentNullException(nameof(timeSource));
         TargetRefreshRate = targetRefreshRate;
-        _frameStartTicks = _stopwatch.ElapsedTicks;
-        _previousFrameStartTicks = _frameStartTicks;
+        _frameStartSeconds = _timeSource.NowSeconds;
+        _previousFrameStartSeconds = _frameStartSeconds;
     }
 
     /// <summary>
@@ -55,9 +61,9 @@ public sealed class FrameClock
     /// </summary>
     public void BeginFrame()
     {
-        _previousFrameStartTicks = _frameStartTicks;
-        _frameStartTicks = _stopwatch.ElapsedTicks;
-        DeltaTime = (_frameStartTicks - _previousFrameStartTicks) / (double)Stopwatch.Frequency;
+        _previousFrameStartSeconds = _frameStartSeconds;
+        _frameStartSeconds = _timeSource.NowSeconds;
+        DeltaTime = _frameStartSeconds - _previousFrameStartSeconds;
 
         // Clamp delta to avoid spiral-of-death after long stalls (e.g. breakpoints, idle wait)
         if (DeltaTime > 0.1)

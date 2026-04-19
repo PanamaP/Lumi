@@ -1,3 +1,5 @@
+using Lumi.Core.Time;
+
 namespace Lumi.Core;
 
 /// <summary>
@@ -150,7 +152,7 @@ public class InputElement : Element
     /// </summary>
     public void ResetBlink()
     {
-        LastEditTick = Environment.TickCount64;
+        LastEditTick = TimeSource.Default.TickCount64;
     }
 
     protected override Element CreateCloneInstance() => new InputElement();

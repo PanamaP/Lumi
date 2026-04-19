@@ -2,6 +2,7 @@ namespace Lumi.Rendering;
 
 using SkiaSharp;
 using Lumi.Core;
+using Lumi.Core.Time;
 using Lumi.Text;
 
 public class SkiaRenderer : IDisposable
@@ -709,7 +710,7 @@ public class SkiaRenderer : IDisposable
         if (input.IsFocused)
         {
             // Caret blink: visible for 530ms, hidden for 530ms
-            long elapsed = Environment.TickCount64 - input.LastEditTick;
+            long elapsed = TimeSource.Default.TickCount64 - input.LastEditTick;
             bool caretVisible = (elapsed % 1060) < 530;
 
             string valueText = hasValue
