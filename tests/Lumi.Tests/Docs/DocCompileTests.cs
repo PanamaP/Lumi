@@ -20,8 +20,8 @@ namespace Lumi.Tests.Docs;
 /// </para>
 /// <para>
 /// To opt a snippet out of the check (for intentionally illustrative or
-/// partial code), place an HTML comment on the line immediately above the
-/// fence:
+/// partial code), place an HTML comment on the previous non-empty line above
+/// the fence:
 /// <code>
 /// &lt;!-- doc-compile:skip --&gt;
 /// ```csharp
@@ -189,9 +189,13 @@ public class DocCompileTests
         return best;
     }
 
+    private static readonly CSharpParseOptions ParseOptions = new(
+        languageVersion: LanguageVersion.Preview,
+        kind: SourceCodeKind.Regular);
+
     private static IReadOnlyList<Diagnostic> Compile(string source)
     {
-        var tree = CSharpSyntaxTree.ParseText(source);
+        var tree = CSharpSyntaxTree.ParseText(source, ParseOptions);
 
         var options = new CSharpCompilationOptions(
             OutputKind.DynamicallyLinkedLibrary,
