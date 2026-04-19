@@ -1,0 +1,76 @@
+#nullable enable
+Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Arabic = 1 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.CJK = 3 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Common = 9 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Devanagari = 5 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Emoji = 7 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Hangul = 4 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Hebrew = 2 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Latin = 0 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Symbol = 8 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Thai = 6 -> Lumi.Text.ScriptCategory
+Lumi.Text.ScriptCategory.Unknown = 10 -> Lumi.Text.ScriptCategory
+Lumi.Text.ShapedGlyphRun
+Lumi.Text.ShapedGlyphRun.Advances.get -> float[]!
+Lumi.Text.ShapedGlyphRun.FontFamily.get -> string!
+Lumi.Text.ShapedGlyphRun.FontSize.get -> float
+Lumi.Text.ShapedGlyphRun.FontWeight.get -> int
+Lumi.Text.ShapedGlyphRun.GlyphIds.get -> ushort[]!
+Lumi.Text.ShapedGlyphRun.Italic.get -> bool
+Lumi.Text.ShapedGlyphRun.Positions.get -> float[]!
+Lumi.Text.ShapedGlyphRun.ShapedGlyphRun(ushort[]! glyphIds, float[]! positions, float[]! advances, float totalWidth, string! fontFamily, float fontSize, int fontWeight, bool italic) -> void
+Lumi.Text.ShapedGlyphRun.TotalWidth.get -> float
+Lumi.Text.ShapedTextLayout
+Lumi.Text.ShapedTextLayoutResult
+Lumi.Text.ShapedTextLayoutResult.Lines.get -> System.Collections.Generic.List<Lumi.Text.ShapedTextLine!>!
+Lumi.Text.ShapedTextLayoutResult.MaxWidth.get -> float
+Lumi.Text.ShapedTextLayoutResult.MaxWidth.set -> void
+Lumi.Text.ShapedTextLayoutResult.ShapedTextLayoutResult() -> void
+Lumi.Text.ShapedTextLayoutResult.TotalHeight.get -> float
+Lumi.Text.ShapedTextLayoutResult.TotalHeight.set -> void
+Lumi.Text.ShapedTextLayoutResult.WasTruncated.get -> bool
+Lumi.Text.ShapedTextLayoutResult.WasTruncated.set -> void
+Lumi.Text.ShapedTextLine
+Lumi.Text.ShapedTextLine.Run.get -> Lumi.Text.ShapedGlyphRun!
+Lumi.Text.ShapedTextLine.Runs.get -> System.Collections.Generic.List<Lumi.Text.ShapedGlyphRun!>!
+Lumi.Text.ShapedTextLine.ShapedTextLine(Lumi.Text.ShapedGlyphRun! run, float x, float y, float width) -> void
+Lumi.Text.ShapedTextLine.ShapedTextLine(System.Collections.Generic.List<Lumi.Text.ShapedGlyphRun!>! runs, float x, float y, float width) -> void
+Lumi.Text.ShapedTextLine.Width.get -> float
+Lumi.Text.ShapedTextLine.X.get -> float
+Lumi.Text.ShapedTextLine.Y.get -> float
+Lumi.Text.ShapedTextRenderer
+Lumi.Text.TextSegment
+Lumi.Text.TextSegment.Script.get -> Lumi.Text.ScriptCategory
+Lumi.Text.TextSegment.Script.init -> void
+Lumi.Text.TextSegment.StartIndex.get -> int
+Lumi.Text.TextSegment.StartIndex.init -> void
+Lumi.Text.TextSegment.Text.get -> string!
+Lumi.Text.TextSegment.Text.init -> void
+Lumi.Text.TextSegment.TextSegment() -> void
+Lumi.Text.TextSegment.TextSegment(string! Text, Lumi.Text.ScriptCategory Script, int StartIndex) -> void
+Lumi.Text.TextSegmenter
+Lumi.Text.TextShaper
+Lumi.Text.TextShaper.Dispose() -> void
+Lumi.Text.TextShaper.Shape(string! text, string! fontFamily, float fontSize, int fontWeight, bool italic, HarfBuzzSharp.Feature[]? features = null) -> Lumi.Text.ShapedGlyphRun!
+Lumi.Text.TextShaper.ShapeMultiScript(string! text, string! fontFamily, float fontSize, int fontWeight, bool italic) -> System.Collections.Generic.List<Lumi.Text.ShapedGlyphRun!>!
+Lumi.Text.TextShaper.TextShaper() -> void
+Lumi.Text.TypefaceCache
+Lumi.Text.UnicodeScript
+static Lumi.Text.ShapedTextLayout.Layout(string! text, float availableWidth, float availableHeight, Lumi.Core.ComputedStyle! style, Lumi.Text.TextShaper! shaper) -> Lumi.Text.ShapedTextLayoutResult!
+static Lumi.Text.ShapedTextLayout.Measure(string! text, float maxWidth, Lumi.Core.ComputedStyle! style, Lumi.Text.TextShaper! shaper) -> (float Width, float Height)
+static Lumi.Text.ShapedTextRenderer.Draw(SkiaSharp.SKCanvas! canvas, Lumi.Text.ShapedGlyphRun! run, float x, float y, SkiaSharp.SKPaint! paint) -> void
+static Lumi.Text.TextSegmenter.Segment(string! text) -> System.Collections.Generic.List<Lumi.Text.TextSegment>!
+static Lumi.Text.TextShaper.CustomTypefaceResolver.get -> System.Func<string!, int, bool, SkiaSharp.SKTypeface?>?
+static Lumi.Text.TextShaper.CustomTypefaceResolver.set -> void
+static Lumi.Text.TextShaper.DefaultFeatures.get -> System.Collections.Generic.IReadOnlyList<HarfBuzzSharp.Feature>!
+static Lumi.Text.TextShaper.FallbackTypefaceResolver.get -> System.Func<string!, SkiaSharp.SKTypeface?>?
+static Lumi.Text.TextShaper.FallbackTypefaceResolver.set -> void
+static Lumi.Text.TextShaper.SetDefaultFeatures(params HarfBuzzSharp.Feature[]! features) -> void
+static Lumi.Text.TypefaceCache.Clear() -> void
+static Lumi.Text.TypefaceCache.GetOrCreate(string! family, bool bold, bool italic) -> SkiaSharp.SKTypeface!
+static Lumi.Text.UnicodeScript.Classify(int codepoint) -> Lumi.Text.ScriptCategory
+static Lumi.Text.UnicodeScript.Classify(string! text, int index) -> Lumi.Text.ScriptCategory
+static Lumi.Text.UnicodeScript.GetDirection(Lumi.Text.ScriptCategory script) -> HarfBuzzSharp.Direction
+static Lumi.Text.UnicodeScript.GetHarfBuzzScript(Lumi.Text.ScriptCategory script) -> HarfBuzzSharp.Script
+static Lumi.Text.UnicodeScript.IsEmoji(int codepoint) -> bool

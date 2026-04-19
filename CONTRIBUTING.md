@@ -75,3 +75,8 @@ Found a bug or have a feature request? Please open an issue on [GitHub Issues](.
 ## License
 
 By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+
+
+## Public API changes
+
+When you add or change a public API, the `Microsoft.CodeAnalysis.PublicApiAnalyzers` analyzer will fail the build with `RS0016` (undeclared API) or `RS0017` (removed API). Add the new line(s) to `PublicAPI.Unshipped.txt` for the affected project (the build error message and the IDE code fix tell you the exact line). On release, entries move from `PublicAPI.Unshipped.txt` into `PublicAPI.Shipped.txt`.
