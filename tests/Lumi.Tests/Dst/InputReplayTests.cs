@@ -1,5 +1,6 @@
 using Lumi.Core;
 using Lumi.Core.Time;
+using Lumi.Rendering;
 using Lumi.Tests.Helpers;
 using Xunit;
 
@@ -95,19 +96,22 @@ public class InputReplayTests
         long t0 = app.Clock.TickCount64;
         Assert.Equal(t0, input.LastEditTick);
 
-        // Right after edit: caret visible (elapsed=0, 0 % 1060 < 530).
+        const long Period = SkiaRenderer.CaretBlinkPeriodMs;
+        const long HalfPeriod = SkiaRenderer.CaretBlinkHalfPeriodMs;
+
+        // Right after edit: caret visible (elapsed=0, 0 % Period < HalfPeriod).
         long elapsed0 = app.Clock.TickCount64 - input.LastEditTick;
-        Assert.True((elapsed0 % 1060) < 530);
+        Assert.True((elapsed0 % Period) < HalfPeriod);
 
-        // Advance 600ms: now in the hidden half of the blink cycle.
-        app.Clock.Advance(0.600);
+        // Advance into the hidden half of the blink cycle.
+        app.Clock.Advance((HalfPeriod + 70) / 1000.0);
         long elapsedHidden = app.Clock.TickCount64 - input.LastEditTick;
-        Assert.False((elapsedHidden % 1060) < 530);
+        Assert.False((elapsedHidden % Period) < HalfPeriod);
 
-        // Advance another 530ms: back to visible half.
-        app.Clock.Advance(0.530);
+        // Advance another half-period: back to visible half.
+        app.Clock.Advance(HalfPeriod / 1000.0);
         long elapsedVisible = app.Clock.TickCount64 - input.LastEditTick;
-        Assert.True((elapsedVisible % 1060) < 530);
+        Assert.True((elapsedVisible % Period) < HalfPeriod);
     }
 
     [Fact]

@@ -18,8 +18,10 @@ public interface ITimeSource
 public sealed class StopwatchTimeSource : ITimeSource
 {
     private readonly System.Diagnostics.Stopwatch _sw = System.Diagnostics.Stopwatch.StartNew();
+    /// <inheritdoc />
     public double NowSeconds => _sw.Elapsed.TotalSeconds;
-    public long TickCount64 => Environment.TickCount64;
+    /// <inheritdoc />
+    public long TickCount64 => _sw.ElapsedMilliseconds;
 }
 
 /// <summary>

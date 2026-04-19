@@ -33,11 +33,22 @@ public sealed class HeadlessApp : IDisposable
         _previousDefault = TimeSource.Default;
         TimeSource.Default = Clock;
 
-        Pipeline = new HeadlessPipeline(width, height);
-        Pipeline.Load(html, css);
-        Pipeline.Execute();
+        HeadlessPipeline? pipeline = null;
+        try
+        {
+            pipeline = new HeadlessPipeline(width, height);
+            pipeline.Load(html, css);
+            pipeline.Execute();
 
-        App = new Application { Root = Pipeline.Root };
+            Pipeline = pipeline;
+            App = new Application { Root = pipeline.Root };
+        }
+        catch
+        {
+            pipeline?.Dispose();
+            TimeSource.Default = _previousDefault;
+            throw;
+        }
     }
 
     /// <summary>Append a single input event to the scripted queue (drained on next <see cref="Tick"/>).</summary>
@@ -113,6 +124,8 @@ public sealed class HeadlessApp : IDisposable
 
         static void Walk(Element e, List<Element> acc)
         {
+            // Mirror LumiApp: skip hidden subtrees so tab navigation matches production.
+            if (e.ComputedStyle.Display == DisplayMode.None) return;
             if (e.IsFocusable) acc.Add(e);
             foreach (var c in e.Children) Walk(c, acc);
         }

@@ -7,6 +7,12 @@ using Lumi.Text;
 
 public class SkiaRenderer : IDisposable
 {
+    /// <summary>Caret blink half-period in milliseconds (visible for this duration, then hidden).</summary>
+    internal const long CaretBlinkHalfPeriodMs = 530;
+
+    /// <summary>Caret blink full period in milliseconds (visible + hidden halves).</summary>
+    internal const long CaretBlinkPeriodMs = CaretBlinkHalfPeriodMs * 2;
+
     private SKBitmap? _bitmap;
     private SKCanvas? _canvas;
     private SKSurface? _gpuSurface;
@@ -709,9 +715,9 @@ public class SkiaRenderer : IDisposable
         // Draw caret and selection if focused
         if (input.IsFocused)
         {
-            // Caret blink: visible for 530ms, hidden for 530ms
+            // Caret blink: visible for CaretBlinkHalfPeriodMs, hidden for CaretBlinkHalfPeriodMs
             long elapsed = TimeSource.Default.TickCount64 - input.LastEditTick;
-            bool caretVisible = (elapsed % 1060) < 530;
+            bool caretVisible = (elapsed % CaretBlinkPeriodMs) < CaretBlinkHalfPeriodMs;
 
             string valueText = hasValue
                 ? (input.InputType.Equals("password", StringComparison.OrdinalIgnoreCase)
