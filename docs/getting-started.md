@@ -74,6 +74,7 @@ The template gives you a working app out of the box. Here's what each file does:
 
 ### Program.cs
 
+<!-- doc-compile:skip -->
 ```csharp
 using Lumi;
 
@@ -254,6 +255,7 @@ h1, h2, h3 { }           /* Multiple tags */
 
 ### Loading Multiple Stylesheets
 
+<!-- doc-compile:skip -->
 ```csharp
 // In your Window constructor
 LoadStyleSheet(Path.Combine(dir, "reset.css"));
@@ -272,6 +274,7 @@ Lumi uses a three-phase event system inspired by the DOM: **Tunnel** (root → t
 
 ### Registering Event Handlers
 
+<!-- doc-compile:skip -->
 ```csharp
 // Event names are case-insensitive: "click", "Click", "CLICK" all work
 element.On("Click", (sender, e) =>
@@ -393,6 +396,7 @@ element.ComputedStyle.BackgroundColor = Color.FromHex("#FF0000");
 
 ### Common Patterns
 
+<!-- doc-compile:skip -->
 ```csharp
 // Toggle visibility
 element.InlineStyle = isVisible ? "display: flex" : "display: none";
@@ -566,6 +570,7 @@ scrollContainer.AddChild(list.Root);
 
 The `ComponentStyles` class provides the default dark-theme palette:
 
+<!-- doc-compile:skip -->
 ```csharp
 ComponentStyles.Background   // #1E293B — app background
 ComponentStyles.Accent        // #38BDF8 — primary accent
@@ -699,6 +704,7 @@ Conditionally show or hide a block of HTML:
 
 Template directives are activated by calling `TemplateEngine.Apply()` with your root element and a view model:
 
+<!-- doc-compile:skip -->
 ```csharp
 using Lumi.Core.Binding;
 
@@ -718,6 +724,7 @@ public class MainWindow : Window
 
 When the collection implements `INotifyCollectionChanged` (e.g., `ObservableCollection<T>`), the UI updates automatically when items are added, removed, or cleared — no manual refresh needed:
 
+<!-- doc-compile:skip -->
 ```csharp
 using System.Collections.ObjectModel;
 
@@ -736,6 +743,7 @@ _vm.Items.Clear();           // All elements removed
 
 When the view model implements `INotifyPropertyChanged`, conditional blocks toggle automatically when the bound property changes:
 
+<!-- doc-compile:skip -->
 ```csharp
 using System.ComponentModel;
 
@@ -827,6 +835,7 @@ The animation system works by calling `PropertyApplier.Apply()` each frame with 
 
 ### Easing Functions
 
+<!-- doc-compile:skip -->
 ```csharp
 Easing.Linear        // Constant speed
 Easing.EaseInCubic   // Slow start
@@ -949,6 +958,7 @@ public class SettingsWindow : SecondaryWindow
 
 Use the `Windows` property (a `WindowManager`) available on any `Window`:
 
+<!-- doc-compile:skip -->
 ```csharp
 public override void OnReady()
 {
@@ -966,6 +976,7 @@ Call `Close()` from within the secondary window, or the user can close it via th
 platform close button. The `WindowManager` handles disposal of all platform resources
 automatically.
 
+<!-- doc-compile:skip -->
 ```csharp
 // From inside the secondary window:
 Close();
@@ -990,6 +1001,7 @@ generator creates the backing fields, setters, and change notifications for you.
 
 ### Usage
 
+<!-- doc-compile:skip -->
 ```csharp
 using Lumi.Generators;
 
@@ -1035,6 +1047,7 @@ partial class SettingsViewModel : INotifyPropertyChanged
 
 The generated view model works directly with Lumi's binding engine:
 
+<!-- doc-compile:skip -->
 ```csharp
 var vm = new SettingsViewModel { UserName = "Jane" };
 BindingEngine.Bind(vm, "UserName", nameLabel, "Text");
@@ -1051,6 +1064,7 @@ Lumi watches your source HTML and CSS files and reloads them instantly when you 
 
 ### Enable Hot Reload
 
+<!-- doc-compile:skip -->
 ```csharp
 public MainWindow()
 {
@@ -1078,6 +1092,7 @@ private static string GetSourceDir(
 
 When HTML is reloaded, the element tree is replaced. Override `OnHtmlReloaded()` to re-register event handlers:
 
+<!-- doc-compile:skip -->
 ```csharp
 public override void OnHtmlReloaded()
 {
@@ -1227,6 +1242,7 @@ color: transparent;           /* Fully transparent */
 
 The base class for your application window.
 
+<!-- doc-compile:skip -->
 ```csharp
 public class Window
 {
@@ -1264,6 +1280,7 @@ public class Window
 
 The base class for all UI elements in the tree.
 
+<!-- doc-compile:skip -->
 ```csharp
 public abstract class Element
 {
@@ -1317,6 +1334,7 @@ public abstract class Element
 
 Activates template directives in the element tree.
 
+<!-- doc-compile:skip -->
 ```csharp
 public static class TemplateEngine
 {
@@ -1332,6 +1350,7 @@ public static class TemplateEngine
 
 A repeater element created from `<template for="">` in HTML.
 
+<!-- doc-compile:skip -->
 ```csharp
 public class TemplateForElement : Element
 {
@@ -1346,6 +1365,7 @@ public class TemplateForElement : Element
 
 A conditional element created from `<template if="">` in HTML.
 
+<!-- doc-compile:skip -->
 ```csharp
 public class TemplateIfElement : Element
 {
@@ -1359,6 +1379,7 @@ public class TemplateIfElement : Element
 
 Access real-time performance data:
 
+<!-- doc-compile:skip -->
 ```csharp
 public sealed class FrameMetrics
 {
@@ -1375,6 +1396,7 @@ public sealed class FrameMetrics
 
 ### Usage in OnUpdate
 
+<!-- doc-compile:skip -->
 ```csharp
 public override void OnUpdate()
 {
