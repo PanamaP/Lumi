@@ -34,13 +34,23 @@ public static class GoldenImageHelper
         Environment.GetEnvironmentVariable("LUMI_REGEN_GOLDENS") == "1";
 
     /// <summary>
+    /// Throws a <see cref="Xunit.SkipException"/> when golden tests are not opted in, so the
+    /// tests show up as <i>skipped</i> (rather than passing or failing) in test results.
+    /// </summary>
+    public static void SkipIfDisabled()
+    {
+        Skip.IfNot(IsEnabled,
+            "Golden tests are opt-in. Set LUMI_RUN_GOLDENS=1 (or LUMI_REGEN_GOLDENS=1) to enable.");
+    }
+
+    /// <summary>
     /// Render the given HTML+CSS through the headless pipeline and return a deep copy
     /// of the resulting bitmap (decoupled from the renderer's pixel buffer lifetime).
     /// </summary>
     public static SKBitmap RenderToBitmap(string html, string css, int w, int h)
     {
         using var pipeline = HeadlessPipeline.Render(html, css, w, h);
-        var src = new SKBitmap();
+        using var src = new SKBitmap();
         var info = new SKImageInfo(w, h, SKColorType.Bgra8888, SKAlphaType.Premul);
         src.InstallPixels(info, pipeline.Renderer.GetPixels());
 
@@ -51,7 +61,6 @@ public static class GoldenImageHelper
             canvas.Clear(SKColors.Transparent);
             canvas.DrawBitmap(src, 0, 0);
         }
-        src.Dispose();
         return copy;
     }
 

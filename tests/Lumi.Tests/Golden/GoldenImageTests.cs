@@ -1,4 +1,5 @@
 using SkiaSharp;
+using Xunit;
 
 namespace Lumi.Tests.Golden;
 
@@ -16,10 +17,10 @@ namespace Lumi.Tests.Golden;
 [Trait("Category", "Golden")]
 public class GoldenImageTests
 {
-    [Fact]
+    [SkippableFact]
     public void SolidRedBox()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """<div id="box" class="b"></div>""";
         const string css = """
             html, body { background-color: white; }
@@ -29,10 +30,10 @@ public class GoldenImageTests
         GoldenImageHelper.AssertGolden(bmp, "solid_red_box");
     }
 
-    [Fact]
+    [SkippableFact]
     public void RoundedCorners()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """<div id="box" class="b"></div>""";
         const string css = """
             html, body { background-color: white; }
@@ -44,10 +45,10 @@ public class GoldenImageTests
             tolerancePerChannel: 4, maxDifferingPixelRatio: 0.01);
     }
 
-    [Fact]
+    [SkippableFact]
     public void Border1pxBlack()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """<div id="box" class="b"></div>""";
         const string css = """
             html, body { background-color: white; }
@@ -58,10 +59,10 @@ public class GoldenImageTests
         GoldenImageHelper.AssertGolden(bmp, "border_1px_black");
     }
 
-    [Fact]
+    [SkippableFact]
     public void AlphaCompositing()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """
             <div id="root" class="root">
                 <div id="r" class="r"></div>
@@ -81,10 +82,10 @@ public class GoldenImageTests
             tolerancePerChannel: 3, maxDifferingPixelRatio: 0.01);
     }
 
-    [Fact]
+    [SkippableFact]
     public void FlexRowThreeColors()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """
             <div id="row" class="row">
                 <div class="c1"></div>
@@ -103,10 +104,10 @@ public class GoldenImageTests
         GoldenImageHelper.AssertGolden(bmp, "flex_row_three_colors");
     }
 
-    [Fact]
+    [SkippableFact]
     public void NestedPaddingBoxes()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """
             <div id="outer" class="outer">
                 <div id="mid" class="mid">
@@ -124,10 +125,10 @@ public class GoldenImageTests
         GoldenImageHelper.AssertGolden(bmp, "nested_padding_boxes");
     }
 
-    [Fact]
+    [SkippableFact]
     public void MarginCollapseOrOffset()
     {
-        if (!GoldenImageHelper.IsEnabled) return;
+        GoldenImageHelper.SkipIfDisabled();
         const string html = """<div id="box" class="b"></div>""";
         const string css = """
             html, body { background-color: white; }
