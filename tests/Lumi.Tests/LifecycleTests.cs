@@ -3,6 +3,7 @@ using Lumi.Tests.Helpers;
 
 namespace Lumi.Tests;
 
+[Collection("Lifecycle")]
 public class LifecycleTests
 {
     private const string TinyHtml = "<div id=\"root\"><span>hi</span></div>";
@@ -45,7 +46,6 @@ public class LifecycleTests
 
         Assert.True(delta < 5 * 1024 * 1024,
             $"Pipeline render/dispose leaked {delta:N0} bytes (>5 MB)");
-        Console.WriteLine($"[Lifecycle] HeadlessPipeline_Render_Dispose delta={delta:N0} bytes");
     }
 
     [Fact]
@@ -63,7 +63,6 @@ public class LifecycleTests
 
         Assert.True(delta < 1 * 1024 * 1024,
             $"Event subscribe/unsubscribe leaked {delta:N0} bytes (>1 MB)");
-        Console.WriteLine($"[Lifecycle] EventHandler_Subscribe_Unsubscribe delta={delta:N0} bytes");
     }
 
     [Fact]
@@ -71,18 +70,17 @@ public class LifecycleTests
     public void Element_AddChild_RemoveChild_ClearsParentAndRemovesFromChildren()
     {
         var parent = new BoxElement("div");
-        var removedChildren = new List<Element>();
-
-        for (int i = 0; i < 1000; i++)
+        long delta = MeasureMemoryDelta(() =>
         {
             var child = new BoxElement("span");
             parent.AddChild(child);
             parent.RemoveChild(child);
-            removedChildren.Add(child);
-        }
+            Assert.Null(child.Parent);
+        });
 
         Assert.Empty(parent.Children);
-        Assert.All(removedChildren, c => Assert.Null(c.Parent));
+        Assert.True(delta < 1 * 1024 * 1024,
+            $"Element add/remove leaked {delta:N0} bytes (>1 MB)");
     }
 
     [Fact]
@@ -102,7 +100,6 @@ public class LifecycleTests
         Assert.Equal(firstPtr, afterPtr);
         Assert.True(delta < 2 * 1024 * 1024,
             $"Pipeline rerender leaked {delta:N0} bytes (>2 MB)");
-        Console.WriteLine($"[Lifecycle] Pipeline_Rerender_Bitmap_Reuses delta={delta:N0} bytes");
     }
 
     [Fact]
@@ -120,11 +117,10 @@ public class LifecycleTests
 
         long delta = MeasureMemoryDelta(() =>
         {
-            EventDispatcher.Dispatch(new RoutedMouseEvent("Click"), button);
+            EventDispatcher.Dispatch(new RoutedMouseEvent("Click"), button!);
         }, iterations: 5000);
 
         Assert.True(delta < 1 * 1024 * 1024,
             $"Click dispatch leaked {delta:N0} bytes (>1 MB)");
-        Console.WriteLine($"[Lifecycle] Click_Dispatch_NoCacheGrowth delta={delta:N0} bytes");
     }
 }
