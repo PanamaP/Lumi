@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +33,12 @@
     <ProjectReference Include="..\..\src\Lumi.Text\Lumi.Text.csproj" />
     <ProjectReference Include="..\..\src\Lumi.Platform\Lumi.Platform.csproj" />
     <ProjectReference Include="..\..\src\Lumi\Lumi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Golden\baselines\**\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
