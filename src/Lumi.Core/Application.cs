@@ -481,7 +481,8 @@ public class Application
 
     private void HandleTextInput(TextInputEvent textInput)
     {
-        // Route text input to the focused InputElement
+        // Route text input to the focused InputElement first so built-in text
+        // editing keeps working without any extra wiring.
         var target = _focusedElement;
         while (target != null)
         {
@@ -500,6 +501,16 @@ public class Application
             }
             target = target.Parent;
         }
+
+        // No InputElement on the focus path — surface the typed text as a
+        // routed "TextInput" event so application code can subscribe via
+        // element.On("TextInput", ...). This is the layout / IME-aware
+        // counterpart to "KeyDown" and is the right hook for keyboard
+        // shortcuts that depend on the typed character (e.g. '+' or '*').
+        var routeTarget = _focusedElement ?? Root;
+        EventDispatcher.Dispatch(
+            new RoutedTextInputEvent("TextInput") { Text = textInput.Text },
+            routeTarget);
     }
 
     private void HandleScroll(ScrollEvent scroll)

@@ -91,5 +91,17 @@ public enum KeyCode
     Home, End, PageUp, PageDown,
     Insert, PrintScreen, Pause,
     LeftShift, RightShift, LeftCtrl, RightCtrl, LeftAlt, RightAlt,
-    LeftSuper, RightSuper, Menu
+    LeftSuper, RightSuper, Menu,
+
+    // Symbol / punctuation row (US-layout names; correspond to physical keys)
+    Minus, Equals,
+    LeftBracket, RightBracket, Backslash,
+    Semicolon, Apostrophe, Grave,
+    Comma, Period, Slash,
+
+    // Numeric keypad
+    NumLock,
+    NumpadDivide, NumpadMultiply, NumpadSubtract, NumpadAdd, NumpadEnter,
+    Numpad1, Numpad2, Numpad3, Numpad4, Numpad5, Numpad6, Numpad7, Numpad8, Numpad9, Numpad0,
+    NumpadDecimal, NumpadEquals
 }

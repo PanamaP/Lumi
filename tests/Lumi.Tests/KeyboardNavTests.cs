@@ -45,4 +45,44 @@ public class KeyboardNavTests
         var el = new BoxElement("div");
         Assert.Equal(0, el.TabIndex);
     }
+
+    [Fact]
+    public void KeyCode_HasSymbolRowKeys()
+    {
+        // Ensure a developer can bind to the punctuation/symbol row.
+        var names = Enum.GetNames<KeyCode>();
+        foreach (var expected in new[]
+        {
+            "Minus", "Equals", "LeftBracket", "RightBracket", "Backslash",
+            "Semicolon", "Apostrophe", "Grave", "Comma", "Period", "Slash"
+        })
+        {
+            Assert.Contains(expected, names);
+        }
+    }
+
+    [Fact]
+    public void KeyCode_HasNumpadKeys()
+    {
+        var names = Enum.GetNames<KeyCode>();
+        foreach (var expected in new[]
+        {
+            "NumLock", "NumpadDivide", "NumpadMultiply", "NumpadSubtract",
+            "NumpadAdd", "NumpadEnter", "NumpadDecimal", "NumpadEquals",
+            "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4",
+            "Numpad5", "Numpad6", "Numpad7", "Numpad8", "Numpad9"
+        })
+        {
+            Assert.Contains(expected, names);
+        }
+    }
+
+    [Fact]
+    public void RoutedTextInputEvent_CarriesText()
+    {
+        var ev = new RoutedTextInputEvent("TextInput") { Text = "*" };
+        Assert.Equal("TextInput", ev.Name);
+        Assert.Equal("*", ev.Text);
+        Assert.IsAssignableFrom<RoutedEvent>(ev);
+    }
 }
