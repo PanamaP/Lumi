@@ -1,1 +1,3 @@
 #nullable enable
+Lumi.Platform.IPlatformWindow.SetCursor(string! cursorName) -> void
+Lumi.Platform.Sdl3Window.SetCursor(string! cursorName) -> void
