@@ -641,7 +641,7 @@ public unsafe class Sdl3Window : IPlatformWindow
             SDL_SetCursor((SDL_Cursor*)cursorPtr);
     }
 
-    private static SDL_SystemCursor MapCssCursorToSdl(string cursorName) => cursorName switch
+    internal static SDL_SystemCursor MapCssCursorToSdl(string cursorName) => cursorName switch
     {
         "pointer" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_POINTER,
         "text" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_TEXT,
