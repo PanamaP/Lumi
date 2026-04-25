@@ -17,6 +17,10 @@ public unsafe class Sdl3Window : IPlatformWindow
     private bool _disposed;
     private int _displayRefreshRate;
 
+    // Cursor management
+    private readonly Dictionary<SDL_SystemCursor, IntPtr> _cursorCache = new();
+    private string _currentCursorName = "default";
+
     // Live resize: SDL event watcher fires during the OS modal resize loop
     private static Sdl3Window? _activeInstance;
     private Action<int, int>? _liveResizeCallback;
@@ -617,6 +621,55 @@ public unsafe class Sdl3Window : IPlatformWindow
             throw new InvalidOperationException("Window has not been created. Call Create() first.");
     }
 
+    public void SetCursor(string cursorName)
+    {
+        cursorName = cursorName.Trim().ToLowerInvariant();
+
+        if (_disposed || cursorName == _currentCursorName)
+            return;
+
+        var systemCursor = MapCssCursorToSdl(cursorName);
+        
+        if (!_cursorCache.TryGetValue(systemCursor, out var cursorPtr))
+        {
+            var cursor = SDL_CreateSystemCursor(systemCursor);
+            cursorPtr = (IntPtr)cursor;
+            if (cursorPtr != IntPtr.Zero)
+                _cursorCache[systemCursor] = cursorPtr;
+        }
+
+        if (cursorPtr != IntPtr.Zero)
+        {
+            SDL_SetCursor((SDL_Cursor*)cursorPtr);
+            _currentCursorName = cursorName;
+        }
+    }
+
+    internal static SDL_SystemCursor MapCssCursorToSdl(string cursorName) => cursorName switch
+    {
+        "pointer" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_POINTER,
+        "text" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_TEXT,
+        "crosshair" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_CROSSHAIR,
+        "move" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_MOVE,
+        "not-allowed" or "no-drop" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NOT_ALLOWED,
+        "wait" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_WAIT,
+        "progress" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_PROGRESS,
+        "ew-resize" or "col-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_EW_RESIZE,
+        "ns-resize" or "row-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NS_RESIZE,
+        "nwse-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NWSE_RESIZE,
+        "nesw-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NESW_RESIZE,
+        "n-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_N_RESIZE,
+        "e-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_E_RESIZE,
+        "s-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_S_RESIZE,
+        "w-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_W_RESIZE,
+        "ne-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NE_RESIZE,
+        "nw-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_NW_RESIZE,
+        "se-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_SE_RESIZE,
+        "sw-resize" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_SW_RESIZE,
+        "grab" or "grabbing" or "all-scroll" => SDL_SystemCursor.SDL_SYSTEM_CURSOR_MOVE,
+        _ => SDL_SystemCursor.SDL_SYSTEM_CURSOR_DEFAULT,
+    };
+
     public void Dispose()
     {
         if (_disposed)
@@ -624,6 +677,14 @@ public unsafe class Sdl3Window : IPlatformWindow
 
         _disposed = true;
         _isOpen = false;
+
+        // Clean up cached cursors
+        foreach (var cursorPtr in _cursorCache.Values)
+        {
+            if (cursorPtr != IntPtr.Zero)
+                SDL_DestroyCursor((SDL_Cursor*)cursorPtr);
+        }
+        _cursorCache.Clear();
 
         if (_liveResizeCallback != null)
         {

@@ -2,6 +2,12 @@ using Lumi.Core;
 
 namespace Lumi.Tests;
 
+/// <remarks>
+/// Placed in the non-parallel "Lifecycle" collection because <see cref="Clipboard"/>
+/// is process-wide static state; running concurrently with other clipboard-using
+/// tests causes race conditions on Windows.
+/// </remarks>
+[Collection("Lifecycle")]
 public class ClipboardTests : IDisposable
 {
     public ClipboardTests()

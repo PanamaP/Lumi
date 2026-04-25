@@ -99,4 +99,9 @@ public interface IPlatformWindow : IDisposable
     /// Check whether the OS clipboard contains text.
     /// </summary>
     bool HasClipboardText();
+
+    /// <summary>
+    /// Set the system cursor to match a CSS cursor value (e.g. "default", "pointer", "text").
+    /// </summary>
+    void SetCursor(string cursorName);
 }

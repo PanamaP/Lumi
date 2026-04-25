@@ -321,6 +321,7 @@ public sealed class LumiApp : IDisposable
                 case MouseEvent { Type: MouseEventType.Move } mouse:
                     _interaction.SetHovered(
                         HitTester.HitTest(_window.Root, mouse.X, mouse.Y));
+                    UpdateCursorForHoveredElement();
                     break;
                 case MouseEvent { Type: MouseEventType.ButtonDown } down:
                     _interaction.SetActive(
@@ -377,6 +378,12 @@ public sealed class LumiApp : IDisposable
     }
 
     private const float ScrollSpeed = 40f;
+
+    private void UpdateCursorForHoveredElement()
+    {
+        var cursorName = _interaction.HoveredElement?.ComputedStyle.Cursor ?? "default";
+        _platformWindow.SetCursor(cursorName);
+    }
 
     private void HandleScrollWheel(ScrollEvent scroll)
     {
