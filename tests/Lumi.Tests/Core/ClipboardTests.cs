@@ -6,6 +6,12 @@ namespace Lumi.Tests.Core;
 /// Targets surviving mutants in Clipboard: Initialize null guards, GetText/SetText
 /// delegate routing, IsInitialized state, Reset clears delegates.
 /// </summary>
+/// <remarks>
+/// Placed in the non-parallel "Lifecycle" collection because <see cref="Clipboard"/>
+/// is process-wide static state; running concurrently with other clipboard-using
+/// tests (e.g. ApplicationLifecycleTests) causes race conditions.
+/// </remarks>
+[Collection("Lifecycle")]
 public class ClipboardTests : IDisposable
 {
     public ClipboardTests() => Clipboard.ResetForTesting();
