@@ -623,10 +623,11 @@ public unsafe class Sdl3Window : IPlatformWindow
 
     public void SetCursor(string cursorName)
     {
+        cursorName = cursorName.Trim().ToLowerInvariant();
+
         if (_disposed || cursorName == _currentCursorName)
             return;
 
-        _currentCursorName = cursorName;
         var systemCursor = MapCssCursorToSdl(cursorName);
         
         if (!_cursorCache.TryGetValue(systemCursor, out var cursorPtr))
@@ -638,7 +639,10 @@ public unsafe class Sdl3Window : IPlatformWindow
         }
 
         if (cursorPtr != IntPtr.Zero)
+        {
             SDL_SetCursor((SDL_Cursor*)cursorPtr);
+            _currentCursorName = cursorName;
+        }
     }
 
     internal static SDL_SystemCursor MapCssCursorToSdl(string cursorName) => cursorName switch

@@ -64,7 +64,7 @@ public class CssCursorTests
     }
 
     [Fact]
-    public void StyleResolver_CursorNotInherited_ChildKeepsDefault()
+    public void StyleResolver_CursorInherited_ChildGetsParentCursor()
     {
         var sheet = CssParser.Parse(".parent { cursor: pointer; }");
 
@@ -79,8 +79,30 @@ public class CssCursorTests
         resolver.ResolveStyles(root);
 
         Assert.Equal("pointer", root.ComputedStyle.Cursor);
-        // cursor is NOT inherited in CSS by default in this framework (it's set per-element)
-        // The ancestor walk in LumiApp handles the "inheritance" at runtime
+        Assert.Equal("pointer", child.ComputedStyle.Cursor);
+    }
+
+    [Fact]
+    public void StyleResolver_CursorInherited_ChildOverridesParent()
+    {
+        var sheet = CssParser.Parse(@"
+            .parent { cursor: pointer; }
+            .child  { cursor: default; }
+        ");
+
+        var resolver = new StyleResolver();
+        resolver.AddStyleSheet(sheet);
+
+        var root = new BoxElement("div");
+        root.Classes.Add("parent");
+        var child = new BoxElement("div");
+        child.Classes.Add("child");
+        root.AddChild(child);
+
+        resolver.ResolveStyles(root);
+
+        Assert.Equal("pointer", root.ComputedStyle.Cursor);
+        Assert.Equal("default", child.ComputedStyle.Cursor);
     }
 
     [Fact]

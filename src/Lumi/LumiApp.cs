@@ -381,18 +381,7 @@ public sealed class LumiApp : IDisposable
 
     private void UpdateCursorForHoveredElement()
     {
-        var cursorName = "default";
-        var element = _interaction.HoveredElement;
-        while (element != null)
-        {
-            var cursor = element.ComputedStyle.Cursor;
-            if (!string.IsNullOrEmpty(cursor) && cursor != "default")
-            {
-                cursorName = cursor;
-                break;
-            }
-            element = element.Parent;
-        }
+        var cursorName = _interaction.HoveredElement?.ComputedStyle.Cursor ?? "default";
         _platformWindow.SetCursor(cursorName);
     }
 
